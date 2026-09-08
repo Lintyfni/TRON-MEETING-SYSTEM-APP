@@ -1,0 +1,6 @@
+{
+  "name": "TikTok Meeting & Post System",
+  "description": "TikTok-style vertical meeting feed with multi-user video filtering, Granola Engine automated meeting notes, token-linked Post feed, recording management, and TikTok-style profile.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
