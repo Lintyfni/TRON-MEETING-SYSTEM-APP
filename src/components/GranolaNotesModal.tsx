@@ -2,30 +2,25 @@ import React, { useState, useMemo } from 'react';
 import {
   X,
   NotebookTabs,
-  Sparkles,
-  CheckCircle2,
   Share2,
-  Radio,
   ChevronDown,
   Search,
   Plus,
   Copy,
   Check,
   Tag,
-  Mic,
+  Clock,
   Calendar,
   Layers,
   FileText,
-  Clock,
-  CheckSquare,
-  Square,
-  Volume2,
-  Zap,
-  Bot
+  ListPlus,
+  ListChecks,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 import { MeetingNote, MeetingRoom } from '../types';
 
-interface GranolaNotesModalProps {
+interface MeetingNotesModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentRoomToken: string;
@@ -36,7 +31,7 @@ interface GranolaNotesModalProps {
   onSelectMeetingRoom?: (token: string) => void;
 }
 
-export const GranolaNotesModal: React.FC<GranolaNotesModalProps> = ({
+export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
   isOpen,
   onClose,
   currentRoomToken,
@@ -46,717 +41,484 @@ export const GranolaNotesModal: React.FC<GranolaNotesModalProps> = ({
   onAddNote,
   onSelectMeetingRoom,
 }) => {
-  const [selectedMeetingFilter, setSelectedMeetingFilter] = useState<string>(currentRoomToken || rooms[0]?.token || 'ALL');
-  const [activeSectionTab, setActiveSectionTab] = useState<'notes' | 'transcript' | 'key-points' | 'actions'>('notes');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [isSynthesizing, setIsSynthesizing] = useState<boolean>(false);
+  // Meeting filter: 'ALL' or specific token
+  const [selectedMeetingFilter, setSelectedMeetingFilter] = useState<string>(
+    currentRoomToken || rooms[0]?.token || 'ALL'
+  );
 
-  // Manual note creation state
-  const [isAddingManualNote, setIsAddingManualNote] = useState<boolean>(false);
-  const [manualTitle, setManualTitle] = useState<string>('');
-  const [manualCategory, setManualCategory] = useState<'Decisions' | 'Action Items' | 'Tech Insights' | 'Summary'>('Decisions');
-  const [manualSpeaker, setManualSpeaker] = useState<string>('Me');
-  const [manualKeyPointsText, setManualKeyPointsText] = useState<string>('');
+  // Search query
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Active view: 'pad' (New Note Textpad) or 'history' (Saved Notes List)
+  const [activeView, setActiveView] = useState<'pad' | 'history'>('pad');
+
+  // Text pad state
+  const [targetRoomToken, setTargetRoomToken] = useState<string>(
+    currentRoomToken || rooms[0]?.token || ''
+  );
+  const [padTitle, setPadTitle] = useState<string>('');
+  const [padCategory, setPadCategory] = useState<'General' | 'Decisions' | 'Action Items' | 'Summary'>('General');
+  const [padContent, setPadContent] = useState<string>('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Keep selected meeting in sync when opened
   React.useEffect(() => {
     if (isOpen && currentRoomToken) {
       setSelectedMeetingFilter(currentRoomToken);
+      setTargetRoomToken(currentRoomToken);
     }
   }, [isOpen, currentRoomToken]);
 
-  // Categories list
-  const categories = ['All', 'Decisions', 'Action Items', 'Tech Insights', 'Summary'];
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
 
-  // Current active room object
-  const currentRoom = rooms.find((r) => r.token === selectedMeetingFilter) || rooms[0];
-
-  // Filter notes by meeting token, category, and search query
+  // Filter notes by meeting token and search query
   const filteredNotes = useMemo(() => {
     return notes.filter((note) => {
       const matchesMeeting =
         selectedMeetingFilter === 'ALL' || note.meetingToken === selectedMeetingFilter;
       if (!matchesMeeting) return false;
 
-      const matchesCategory =
-        selectedCategory === 'All' || note.category === selectedCategory;
-      if (!matchesCategory) return false;
-
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       const inTitle = note.title.toLowerCase().includes(q);
       const inMeeting = note.meetingToken.toLowerCase().includes(q) || note.meetingTitle.toLowerCase().includes(q);
-      const inPoints = note.keyPoints.some((p) => p.toLowerCase().includes(q));
-      const inSpeaker = note.speaker ? note.speaker.toLowerCase().includes(q) : false;
-      const inSummary = note.granolaSummary ? note.granolaSummary.toLowerCase().includes(q) : false;
-      return inTitle || inMeeting || inPoints || inSpeaker || inSummary;
+      const inPoints = note.keyPoints?.some((p) => p.toLowerCase().includes(q));
+      const inContent = note.content ? note.content.toLowerCase().includes(q) : false;
+      return inTitle || inMeeting || inPoints || inContent;
     });
-  }, [notes, selectedMeetingFilter, selectedCategory, searchQuery]);
+  }, [notes, selectedMeetingFilter, searchQuery]);
 
-  // Extract all transcripts for current meeting filter
-  const allTranscripts = useMemo(() => {
-    const list = filteredNotes.flatMap((n) => n.transcriptHistory || []);
-    const uniqueMap = new Map();
-    list.forEach((item) => {
-      if (!uniqueMap.has(item.id)) {
-        uniqueMap.set(item.id, item);
-      }
+  // Insert helper text into pad
+  const handleInsertSnippet = (prefix: string) => {
+    setPadContent((prev) => {
+      if (!prev) return prefix;
+      if (prev.endsWith('\n')) return prev + prefix;
+      return prev + '\n' + prefix;
     });
-    return Array.from(uniqueMap.values());
-  }, [filteredNotes]);
-
-  // Extract all action items for current meeting filter
-  const allActionItems = useMemo(() => {
-    const items = filteredNotes.flatMap((n) => n.actionItems || []);
-    const uniqueMap = new Map();
-    items.forEach((item) => {
-      if (!uniqueMap.has(item.id)) {
-        uniqueMap.set(item.id, item);
-      }
-    });
-    return Array.from(uniqueMap.values());
-  }, [filteredNotes]);
-
-  if (!isOpen) return null;
-
-  // Handle Granola AI Auto-Synthesis simulation
-  const handleTriggerGranolaSynthesis = () => {
-    setIsSynthesizing(true);
-    setTimeout(() => {
-      const tokenToUse = selectedMeetingFilter === 'ALL' ? (currentRoomToken || rooms[0]?.token || '#MEET-9021') : selectedMeetingFilter;
-      const targetRoom = rooms.find((r) => r.token === tokenToUse);
-      const newGeneratedNote: MeetingNote = {
-        id: 'granola_' + Date.now(),
-        meetingToken: tokenToUse,
-        meetingTitle: targetRoom ? targetRoom.title : 'Live Session',
-        title: `Granola AI Auto-Synthesis: ${targetRoom?.title || 'Session Highlights'}`,
-        category: 'Summary',
-        speaker: 'Granola Engine',
-        timestamp: 'Just now',
-        keyPoints: [
-          'Granola speech listener detected full alignment on sprint deliverables and deadlines',
-          'Automated audio envelope analysis verified 99.6% speech transcription accuracy',
-          'Action items assigned directly to respective team members with asynchronous notification',
-        ],
-        tags: ['Granola-AI', 'Auto-Note', 'Zero-Typing'],
-        granolaSummary: 'Granola AI captured this meeting in real-time. Manual note taking was completely bypassed while key commitments and architectural insights were structured into this digest.',
-        granolaEngineStatus: 'Synthesized',
-        keyDecisions: [
-          'Affirmed zero-typing policy with Granola AI actively managing meeting documentation.',
-        ],
-        actionItems: [
-          { id: 'act_gen_' + Date.now(), task: 'Sync Granola action items with project issue tracker', assignee: targetRoom?.host || 'Me', status: 'todo' },
-        ],
-        transcriptHistory: [
-          { id: 'tr_gen_1', speaker: targetRoom?.host || 'Host', timestamp: 'Just now', text: 'Granola Engine automatically synthesized our discussion points into structured notes.', sentiment: 'key-insight' },
-          { id: 'tr_gen_2', speaker: 'Team', timestamp: 'Just now', text: 'All action items and decisions are saved and ready to export to Post.', sentiment: 'decision' },
-        ],
-      };
-
-      if (onAddNote) {
-        onAddNote(newGeneratedNote);
-      }
-      setIsSynthesizing(false);
-    }, 1200);
   };
 
-  // Handle manual note submit
-  const handleCreateManualNote = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualTitle.trim()) return;
+  const handleInsertTimestamp = () => {
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    handleInsertSnippet(`[${timeStr}] `);
+  };
 
-    const points = manualKeyPointsText
+  // Save note to state
+  const handleSaveNote = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!padContent.trim()) {
+      showToast('⚠️ Note ရိုက်ထည့်ပါ');
+      return;
+    }
+
+    const roomObj = rooms.find((r) => r.token === targetRoomToken) || rooms[0];
+    const points = padContent
       .split('\n')
-      .map((p) => p.trim())
+      .map((l) => l.replace(/^[•\-\*]\s*/, '').trim())
       .filter(Boolean);
 
-    const tokenToUse = selectedMeetingFilter === 'ALL' ? (currentRoomToken || rooms[0]?.token) : selectedMeetingFilter;
-    const targetRoom = rooms.find((r) => r.token === tokenToUse);
-
     const newNote: MeetingNote = {
-      id: 'manual_note_' + Date.now(),
-      meetingToken: tokenToUse,
-      meetingTitle: targetRoom ? targetRoom.title : 'Live Discussion',
-      title: manualTitle.trim(),
-      category: manualCategory,
-      speaker: manualSpeaker.trim() || 'Me',
+      id: `note_${Date.now()}`,
+      meetingToken: roomObj ? roomObj.token : targetRoomToken,
+      meetingTitle: roomObj ? roomObj.title : 'Live Meeting',
+      title: padTitle.trim() || `Meeting Note (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`,
+      category: padCategory,
+      content: padContent,
+      keyPoints: points.length > 0 ? points : [padContent],
       timestamp: 'Just now',
-      keyPoints: points.length > 0 ? points : ['Note captured by participant'],
-      tags: ['Manual', manualCategory],
-      granolaSummary: manualTitle.trim(),
-      granolaEngineStatus: 'Synthesized',
-      keyDecisions: manualCategory === 'Decisions' ? [manualTitle.trim()] : [],
-      actionItems: manualCategory === 'Action Items' ? [{ id: 'act_m_' + Date.now(), task: manualTitle.trim(), assignee: manualSpeaker, status: 'todo' }] : [],
+      speaker: 'Me',
+      tags: [padCategory.toLowerCase().replace(/\s+/g, '-')],
     };
 
     if (onAddNote) {
       onAddNote(newNote);
     }
 
-    setManualTitle('');
-    setManualKeyPointsText('');
-    setIsAddingManualNote(false);
+    showToast('✅ Note သိမ်းဆည်းပြီးပါပြီ!');
+    setPadTitle('');
+    setPadContent('');
+    setActiveView('history');
   };
 
-  const handleCopyNote = (note: MeetingNote) => {
-    const text = `📝 [Granola Note · ${note.meetingToken}]\n${note.title}\nCategory: ${note.category}\n\nSummary:\n${note.granolaSummary || note.title}\n\nKey Points:\n• ` +
-      note.keyPoints.join('\n• ');
-    navigator.clipboard?.writeText(text);
-    setCopiedId(note.id);
+  // Load a note into pad for viewing/editing
+  const handleLoadNoteToPad = (note: MeetingNote) => {
+    setTargetRoomToken(note.meetingToken);
+    setPadTitle(note.title);
+    setPadCategory((note.category as any) || 'General');
+    setPadContent(note.content || note.keyPoints.map((p) => `• ${p}`).join('\n'));
+    setActiveView('pad');
+    showToast(`📝 Note loaded: ${note.title}`);
+  };
+
+  const handleCopyNote = (text: string, id: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    setCopiedId(id);
+    showToast('📋 Note ကူးယူပြီးပါပြီ!');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleShareToFeed = (note: MeetingNote) => {
-    const text = `🎙️ [Granola AI Note · ${note.meetingToken}]\n📌 ${note.title}\nCategory: ${note.category}\n\n• ` +
-      note.keyPoints.join('\n• ');
-    onExportToFeed(text);
-    onClose();
-  };
+  if (!isOpen) return null;
 
   return (
     <div
-      id="granola-notes-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
+      id="meeting-notes-modal-backdrop"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
-        id="granola-notes-modal-dialog"
-        className="relative w-full h-full sm:h-[88vh] max-w-2xl bg-neutral-950 border border-neutral-800 sm:rounded-2xl flex flex-col overflow-hidden text-white shadow-2xl select-none"
+        id="meeting-notes-modal-container"
+        className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92dvh] text-neutral-100"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 1. Header: Granola Branding & Actions */}
-        <header className="px-4 py-3 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-sm">
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-800 text-white text-xs px-4 py-2 rounded-full border border-neutral-700 shadow-xl animate-in fade-in">
+            {toastMessage}
+          </div>
+        )}
+
+        {/* 1. Header Bar */}
+        <div className="p-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/80">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center">
               <NotebookTabs className="w-5 h-5" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-bold text-base text-amber-400 truncate">
-                  Granola Engine
-                </h2>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-semibold shrink-0">
-                  AI Notes
-                </span>
-              </div>
-              <p className="text-[11px] text-neutral-400 truncate">
-                Meeting တက်ရင် Note လိုက်ရေးစရာမလိုတော့ဘူး · AI စုစည်းချက်
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-1.5">
+                Meeting Notes Pad
+              </h2>
+              <p className="text-[11px] text-neutral-400">
+                ရိုးရိုးရှင်းရှင်း မှတ်စုရေးသားခြင်းနှင့် မှတ်တမ်းများ
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {/* AI Auto-Synthesize Button */}
-            <button
-              id="btn-granola-modal-synthesize"
-              type="button"
-              onClick={handleTriggerGranolaSynthesis}
-              disabled={isSynthesizing}
-              className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-950/40 transition disabled:opacity-50 cursor-pointer"
-              title="Auto-Synthesize audio with Granola AI Engine"
-            >
-              <Zap className={`w-3.5 h-3.5 ${isSynthesizing ? 'animate-spin' : 'text-amber-200'}`} />
-              <span className="hidden sm:inline">{isSynthesizing ? 'Synthesizing...' : 'Granola AI Note'}</span>
-              <span className="sm:hidden">{isSynthesizing ? '...' : 'Auto-Note'}</span>
-            </button>
-
-            {/* Close Button */}
-            <button
-              id="btn-close-granola-modal"
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white transition cursor-pointer"
-              title="Close Notes"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </header>
-
-        {/* 2. Granola AI Engine Live Status Banner */}
-        <div className="px-4 py-2 bg-amber-950/30 border-b border-amber-900/30 flex items-center justify-between text-xs text-amber-200 shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="flex items-center gap-1 text-emerald-400 shrink-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono text-[11px] font-semibold">Granola Live Engine</span>
-            </div>
-            <span className="text-neutral-500 hidden sm:inline">|</span>
-            <span className="text-[11px] text-amber-200/90 truncate">
-              အသံနားထောင်ပြီး Transcript + အရေးကြီးအချက်များကို အလိုအလျောက် စုစည်းပေးနေသည်
-            </span>
-          </div>
-
           <button
+            id="btn-close-notes-modal"
             type="button"
-            onClick={() => setIsAddingManualNote(!isAddingManualNote)}
-            className="text-[11px] text-amber-300 hover:text-white bg-amber-900/40 hover:bg-amber-900/70 px-2 py-0.5 rounded-lg border border-amber-800/60 transition shrink-0 flex items-center gap-1 cursor-pointer"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center transition"
           >
-            <Plus className="w-3 h-3" />
-            <span>{isAddingManualNote ? 'Cancel' : 'New Note'}</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Manual Note Creation Form (Collapsible) */}
-        {isAddingManualNote && (
-          <form
-            onSubmit={handleCreateManualNote}
-            className="p-3 bg-neutral-900 border-b border-neutral-800 space-y-2.5 animate-in slide-in-from-top duration-200 shrink-0"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5" />
-                Add Custom Meeting Note
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <input
-                type="text"
-                required
-                placeholder="Note Title / Decision summary..."
-                value={manualTitle}
-                onChange={(e) => setManualTitle(e.target.value)}
-                className="bg-neutral-950 border border-neutral-750 text-white text-xs px-3 py-1.5 rounded-lg outline-none focus:border-amber-400"
-              />
-
-              <div className="flex items-center gap-2">
-                <select
-                  value={manualCategory}
-                  onChange={(e) => setManualCategory(e.target.value as any)}
-                  className="bg-neutral-950 border border-neutral-750 text-white text-xs px-2 py-1.5 rounded-lg outline-none flex-1"
-                >
-                  <option value="Decisions">Decisions</option>
-                  <option value="Action Items">Action Items</option>
-                  <option value="Tech Insights">Tech Insights</option>
-                  <option value="Summary">Summary</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Speaker Name"
-                  value={manualSpeaker}
-                  onChange={(e) => setManualSpeaker(e.target.value)}
-                  className="bg-neutral-950 border border-neutral-750 text-white text-xs px-2 py-1.5 rounded-lg outline-none w-28"
-                />
-              </div>
-            </div>
-
-            <textarea
-              rows={2}
-              placeholder="Bullet points (one per line)..."
-              value={manualKeyPointsText}
-              onChange={(e) => setManualKeyPointsText(e.target.value)}
-              className="w-full bg-neutral-950 border border-neutral-750 text-white text-xs p-2 rounded-lg outline-none resize-none focus:border-amber-400"
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsAddingManualNote(false)}
-                className="px-3 py-1 rounded-lg text-xs text-neutral-400 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition"
-              >
-                Save Note
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* 3. Top Meeting Selector & Search Filter Bar ("Meeting အလိုက် filter") */}
-        <div className="px-4 py-2.5 bg-neutral-900/60 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
-          {/* Meeting Dropdown Selector */}
-          <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <span className="text-xs font-bold text-neutral-400 shrink-0">Meeting:</span>
-            <div className="relative flex items-center flex-1 max-w-[280px]">
+        {/* 2. Top Controls: Meeting Filter & View Switcher */}
+        <div className="p-3 bg-neutral-950/40 border-b border-neutral-800/80 flex flex-col gap-2.5">
+          {/* Meeting Filter Row */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-neutral-400 font-medium whitespace-nowrap">Meeting:</span>
+            <div className="relative flex-1">
               <select
-                id="select-granola-modal-meeting-filter"
+                id="select-meeting-filter"
                 value={selectedMeetingFilter}
                 onChange={(e) => {
                   setSelectedMeetingFilter(e.target.value);
-                  if (onSelectMeetingRoom && e.target.value !== 'ALL') {
-                    onSelectMeetingRoom(e.target.value);
+                  if (e.target.value !== 'ALL') {
+                    setTargetRoomToken(e.target.value);
+                    if (onSelectMeetingRoom) onSelectMeetingRoom(e.target.value);
                   }
                 }}
-                className="appearance-none w-full bg-neutral-800 hover:bg-neutral-750 border border-neutral-700 text-white font-bold text-xs pl-7 pr-6 py-1.5 rounded-xl cursor-pointer outline-none transition focus:ring-1 focus:ring-amber-400 truncate"
+                className="w-full bg-neutral-800/90 border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white appearance-none cursor-pointer focus:border-amber-500 outline-none pr-8 font-medium"
               >
-                {rooms.map((r) => (
-                  <option key={r.id} value={r.token} className="bg-neutral-900 text-white">
-                    {r.token} · {r.title}
-                  </option>
-                ))}
-                <option value="ALL" className="bg-neutral-900 text-white">
-                  All Meetings (#Global Notes)
-                </option>
+                <option value="ALL">🌐 All Meetings ({notes.length} notes)</option>
+                {rooms.map((r) => {
+                  const count = notes.filter((n) => n.meetingToken === r.token).length;
+                  return (
+                    <option key={r.token} value={r.token}>
+                      {r.token} · {r.title} ({count})
+                    </option>
+                  );
+                })}
               </select>
-              <Radio className="w-3.5 h-3.5 text-amber-400 absolute left-2 pointer-events-none" />
-              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
 
-          {/* Search Notes Input */}
-          <div className="relative flex items-center flex-1 max-w-[220px] min-w-[150px]">
-            <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 pointer-events-none" />
-            <input
-              id="input-search-granola-modal-notes"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes, insights..."
-              className="w-full bg-neutral-800/90 border border-neutral-750 text-white text-xs pl-7 pr-3 py-1.5 rounded-xl outline-none placeholder:text-neutral-500 focus:border-amber-400 transition"
-            />
-          </div>
-        </div>
-
-        {/* 4. Granola Structured View Tabs: Notes, Transcript, Key Points, Action Items */}
-        <div className="px-4 py-2 bg-neutral-900/30 border-b border-neutral-800/80 flex items-center justify-between gap-1 overflow-x-auto scrollbar-none shrink-0">
-          <div className="flex items-center gap-1.5">
+          {/* View Tab Switcher: Text Pad vs Saved Notes List */}
+          <div className="flex items-center gap-1.5 p-1 bg-neutral-950 rounded-xl border border-neutral-800/80">
             <button
-              id="tab-granola-modal-notes"
+              id="tab-view-pad"
               type="button"
-              onClick={() => setActiveSectionTab('notes')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                activeSectionTab === 'notes'
-                  ? 'bg-amber-500 text-neutral-950 shadow-sm'
-                  : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-750'
+              onClick={() => setActiveView('pad')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                activeView === 'pad'
+                  ? 'bg-amber-500 text-neutral-950 shadow-md'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Text Pad (ရိုက်ထည့်ရန်)</span>
+            </button>
+            <button
+              id="tab-view-history"
+              type="button"
+              onClick={() => setActiveView('history')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+                activeView === 'history'
+                  ? 'bg-amber-500 text-neutral-950 shadow-md'
+                  : 'text-neutral-400 hover:text-white'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Notes ({filteredNotes.length})</span>
-            </button>
-
-            <button
-              id="tab-granola-modal-transcript"
-              type="button"
-              onClick={() => setActiveSectionTab('transcript')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                activeSectionTab === 'transcript'
-                  ? 'bg-amber-500 text-neutral-950 shadow-sm'
-                  : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-750'
-              }`}
-            >
-              <Volume2 className="w-3.5 h-3.5" />
-              <span>Transcript ({allTranscripts.length})</span>
-            </button>
-
-            <button
-              id="tab-granola-modal-keypoints"
-              type="button"
-              onClick={() => setActiveSectionTab('key-points')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                activeSectionTab === 'key-points'
-                  ? 'bg-amber-500 text-neutral-950 shadow-sm'
-                  : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-750'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>အရေးကြီးအချက်များ</span>
-            </button>
-
-            <button
-              id="tab-granola-modal-actions"
-              type="button"
-              onClick={() => setActiveSectionTab('actions')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
-                activeSectionTab === 'actions'
-                  ? 'bg-amber-500 text-neutral-950 shadow-sm'
-                  : 'bg-neutral-800/80 text-neutral-300 hover:text-white hover:bg-neutral-750'
-              }`}
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-              <span>Action Items ({allActionItems.length})</span>
+              <span>Saved Notes ({filteredNotes.length})</span>
             </button>
           </div>
-
-          {/* Category Filter Pills (Notes Tab) */}
-          {activeSectionTab === 'notes' && (
-            <div className="hidden sm:flex items-center gap-1 shrink-0">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition cursor-pointer ${
-                    selectedCategory === cat
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* 5. Main Scrollable Content */}
+        {/* 3. Main Body */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* TAB 1: MEETING NOTES (Granola AI Digest) */}
-          {activeSectionTab === 'notes' && (
-            <>
+          {/* VIEW A: TEXT PAD (Manual Note Pad) */}
+          {activeView === 'pad' && (
+            <form onSubmit={handleSaveNote} className="space-y-3.5">
+              {/* Target Meeting Selector if writing a note */}
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="text-neutral-400">Save To Meeting:</span>
+                <select
+                  value={targetRoomToken}
+                  onChange={(e) => setTargetRoomToken(e.target.value)}
+                  className="bg-neutral-800 border border-neutral-700 rounded-lg px-2.5 py-1 text-xs text-amber-300 font-mono focus:border-amber-500 outline-none"
+                >
+                  {rooms.map((r) => (
+                    <option key={r.token} value={r.token}>
+                      {r.token} ({r.title.slice(0, 24)}...)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Title & Category Row */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Note Title (e.g. Architecture decisions)"
+                  value={padTitle}
+                  onChange={(e) => setPadTitle(e.target.value)}
+                  className="flex-1 bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white outline-none placeholder:text-neutral-500"
+                />
+                <select
+                  value={padCategory}
+                  onChange={(e) => setPadCategory(e.target.value as any)}
+                  className="bg-neutral-950 border border-neutral-800 rounded-xl px-2.5 py-2 text-xs text-neutral-300 outline-none"
+                >
+                  <option value="General">General</option>
+                  <option value="Decisions">Decisions</option>
+                  <option value="Action Items">Action Items</option>
+                  <option value="Summary">Summary</option>
+                </select>
+              </div>
+
+              {/* Quick Snippet Inserts */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] text-neutral-500 mr-1">Quick:</span>
+                <button
+                  type="button"
+                  onClick={() => handleInsertSnippet('• ')}
+                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                >
+                  <ListPlus className="w-3 h-3 text-amber-400" />
+                  <span>Bullet (•)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInsertSnippet('[ ] ')}
+                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                >
+                  <ListChecks className="w-3 h-3 text-amber-400" />
+                  <span>Task ([ ])</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleInsertTimestamp}
+                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                >
+                  <Clock className="w-3 h-3 text-amber-400" />
+                  <span>Timestamp</span>
+                </button>
+              </div>
+
+              {/* Big Text Pad (Textarea) */}
+              <div className="relative">
+                <textarea
+                  id="textarea-meeting-notes-pad"
+                  rows={9}
+                  value={padContent}
+                  onChange={(e) => setPadContent(e.target.value)}
+                  placeholder="ဒီ meeting အတွက် note ရေးပါ... (Type your meeting notes here)...&#10;• အဓိက ဆွေးနွေးချက်များ&#10;• လုပ်ဆောင်ရမည့် လုပ်ငန်းစဉ်များ"
+                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-2xl p-3.5 text-xs text-neutral-100 font-sans leading-relaxed outline-none resize-none placeholder:text-neutral-600 focus:ring-1 focus:ring-amber-500/50"
+                />
+                <span className="absolute right-3 bottom-3 text-[10px] text-neutral-500">
+                  {padContent.length} chars
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPadTitle('');
+                    setPadContent('');
+                  }}
+                  className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-xs font-medium transition"
+                  title="Clear pad"
+                >
+                  Clear
+                </button>
+
+                {padContent.trim() && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyNote(padContent, 'current-pad')}
+                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onExportToFeed(`📝 Meeting Note (${targetRoomToken}):\n\n${padContent}`);
+                        showToast('📤 Exported to Post!');
+                        onClose();
+                      }}
+                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>To Post</span>
+                    </button>
+                  </>
+                )}
+
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold transition shadow-lg shadow-amber-950/40 flex items-center justify-center gap-1.5 cursor-pointer ml-auto"
+                >
+                  <Check className="w-4 h-4 stroke-[2.5]" />
+                  <span>Save Note (သိမ်းဆည်းမည်)</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* VIEW B: SAVED NOTES LIST (Meeting History) */}
+          {activeView === 'history' && (
+            <div className="space-y-3">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Search saved notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-amber-500"
+                />
+              </div>
+
               {filteredNotes.length === 0 ? (
-                <div className="h-64 flex flex-col items-center justify-center text-neutral-500 text-xs text-center p-8">
-                  <FileText className="w-10 h-10 stroke-1 text-neutral-600 mb-2" />
-                  <span className="font-semibold text-neutral-300 text-sm">No notes found for this filter</span>
-                  <span className="text-neutral-500 mt-1 max-w-[280px]">
-                    Click "Granola AI Note" above to automatically generate notes from live meeting conversation!
-                  </span>
+                <div className="py-10 text-center text-neutral-500 space-y-2">
+                  <FileText className="w-8 h-8 mx-auto text-neutral-600" />
+                  <p className="text-xs">မှတ်စု မရှိသေးပါ။</p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('pad')}
+                    className="text-xs text-amber-400 hover:underline"
+                  >
+                    + Write first note
+                  </button>
                 </div>
               ) : (
-                filteredNotes.map((note) => {
-                  const isCopied = copiedId === note.id;
-                  return (
-                    <div
-                      key={note.id}
-                      id={`modal-granola-note-${note.id}`}
-                      className="bg-neutral-900/90 hover:bg-neutral-850 border border-neutral-800 hover:border-neutral-700/80 rounded-2xl p-4 transition shadow-sm flex flex-col gap-3"
-                    >
-                      {/* Category, Token, Timestamp, Status */}
-                      <div className="flex items-start justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-amber-500/10 text-amber-300 border-amber-500/30">
-                            {note.category}
-                          </span>
-                          <span className="text-[10px] font-mono bg-neutral-800 text-neutral-300 border border-neutral-700 px-2 py-0.5 rounded-full">
+                filteredNotes.map((note) => (
+                  <div
+                    key={note.id}
+                    className="p-3.5 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 rounded-2xl transition space-y-2 group"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
                             {note.meetingToken}
                           </span>
-                          <span className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1">
-                            <Bot className="w-3 h-3 text-emerald-400" />
-                            <span>Granola Engine</span>
+                          <span className="text-[11px] text-neutral-400 truncate max-w-[200px]">
+                            {note.meetingTitle}
                           </span>
                         </div>
-                        <span className="text-[10px] text-neutral-500 font-mono">
-                          {note.timestamp}
-                        </span>
+                        <h4 className="text-xs font-bold text-white mt-1">{note.title}</h4>
                       </div>
+                      <span className="text-[10px] text-neutral-500 whitespace-nowrap">
+                        {note.timestamp}
+                      </span>
+                    </div>
 
-                      {/* Title & Meeting Name */}
-                      <div>
-                        <h3 className="font-bold text-base text-neutral-100 leading-snug">
-                          {note.title}
-                        </h3>
-                        <p className="text-xs text-neutral-400 mt-0.5 font-medium">
-                          {note.meetingTitle}
-                        </p>
-                      </div>
-
-                      {/* Granola Executive Summary */}
-                      {note.granolaSummary && (
-                        <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-900/30 text-xs text-amber-100/90 leading-relaxed">
-                          <span className="font-bold text-amber-300 block mb-1">
-                            📋 Granola Executive Summary:
-                          </span>
-                          {note.granolaSummary}
-                        </div>
-                      )}
-
-                      {/* Key Points (အရေးကြီးတဲ့အချက်များ) */}
-                      <div className="space-y-1.5 bg-neutral-950/70 p-3 rounded-xl border border-neutral-800/80">
-                        <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1 mb-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>အရေးကြီးတဲ့အချက်များ (Key Insights)</span>
-                        </div>
-                        {note.keyPoints.map((point, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-xs text-neutral-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                            <span className="leading-relaxed">{point}</span>
+                    {/* Key points / Content */}
+                    <div className="space-y-1 bg-neutral-900/60 p-2.5 rounded-xl text-[11px] text-neutral-300 leading-relaxed font-sans">
+                      {note.keyPoints && note.keyPoints.length > 0 ? (
+                        note.keyPoints.map((pt, idx) => (
+                          <div key={idx} className="flex items-start gap-1.5">
+                            <span className="text-amber-500 mt-0.5">•</span>
+                            <span>{pt}</span>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Key Decisions */}
-                      {note.keyDecisions && note.keyDecisions.length > 0 && (
-                        <div className="space-y-1 bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-900/30 text-xs text-emerald-200">
-                          <span className="font-bold text-emerald-400 block text-[11px]">
-                            ⚖️ Key Decisions Finalized:
-                          </span>
-                          {note.keyDecisions.map((dec, i) => (
-                            <p key={i} className="leading-relaxed pl-2 border-l-2 border-emerald-500/50">
-                              {dec}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Footer Actions */}
-                      <div className="pt-2 border-t border-neutral-800/80 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                          {note.tags?.map((t) => (
-                            <span key={t} className="text-[9px] text-neutral-400 bg-neutral-800/70 px-2 py-0.5 rounded-full">
-                              #{t}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyNote(note)}
-                            className="px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-750 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1 border border-neutral-700/60 transition cursor-pointer"
-                          >
-                            {isCopied ? (
-                              <>
-                                <Check className="w-3 h-3 text-emerald-400" />
-                                <span className="text-emerald-400 text-[11px]">Copied</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3 h-3 text-neutral-400" />
-                                <span className="text-[11px]">Copy</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleShareToFeed(note)}
-                            className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium flex items-center gap-1 shadow-sm transition active:scale-95 cursor-pointer"
-                            title="Share Granola Note to Post"
-                          >
-                            <Share2 className="w-3 h-3" />
-                            <span className="text-[11px]">To Post</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </>
-          )}
-
-          {/* TAB 2: LIVE TRANSCRIPT */}
-          {activeSectionTab === 'transcript' && (
-            <div className="space-y-3">
-              <div className="p-3 bg-neutral-900/60 rounded-xl border border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
-                <span className="flex items-center gap-1.5">
-                  <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
-                  Granola Live Audio Transcript ({selectedMeetingFilter})
-                </span>
-                <span className="font-mono text-[10px] text-emerald-400">Real-Time STT</span>
-              </div>
-
-              {allTranscripts.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-neutral-500 text-xs text-center">
-                  No transcript lines logged for this meeting yet.
-                </div>
-              ) : (
-                allTranscripts.map((t) => (
-                  <div
-                    key={t.id}
-                    className="p-3 bg-neutral-900/80 hover:bg-neutral-850 rounded-xl border border-neutral-800 flex flex-col gap-1 transition"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-amber-400">{t.speaker}</span>
-                        {t.sentiment === 'decision' && (
-                          <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.2 rounded font-semibold">
-                            Decision
-                          </span>
-                        )}
-                        {t.sentiment === 'key-insight' && (
-                          <span className="text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-800 px-1.5 py-0.2 rounded font-semibold">
-                            Key Insight
-                          </span>
-                        )}
-                        {t.sentiment === 'action' && (
-                          <span className="text-[9px] bg-purple-950 text-purple-400 border border-purple-800 px-1.5 py-0.2 rounded font-semibold">
-                            Action
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-neutral-500 font-mono">{t.timestamp}</span>
-                    </div>
-                    <p className="text-xs text-neutral-200 leading-relaxed font-normal">
-                      "{t.text}"
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: KEY POINTS ONLY */}
-          {activeSectionTab === 'key-points' && (
-            <div className="space-y-3">
-              <div className="p-3 bg-amber-950/20 rounded-xl border border-amber-900/40 text-xs text-amber-200">
-                <span className="font-bold text-amber-300 block mb-0.5">
-                  ⚡ Granola Key Insights (အရေးကြီးအချက်များ):
-                </span>
-                Meeting အလိုက် အသံ stream မှ တိုက်ရိုက် ခွဲထုတ်ရရှိသော အဓိက မှတ်သားဖွယ်ရာများ
-              </div>
-
-              {filteredNotes.map((note) => (
-                <div
-                  key={'modal_kp_' + note.id}
-                  className="p-3.5 bg-neutral-900/80 rounded-xl border border-neutral-800 flex flex-col gap-2"
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-neutral-100">{note.title}</span>
-                    <span className="font-mono text-[10px] text-neutral-400">{note.meetingToken}</span>
-                  </div>
-                  <ul className="space-y-1.5">
-                    {note.keyPoints.map((pt, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-neutral-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                        <span className="leading-relaxed">{pt}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* TAB 4: ACTION ITEMS & DECISIONS */}
-          {activeSectionTab === 'actions' && (
-            <div className="space-y-3">
-              <div className="p-3 bg-neutral-900/70 rounded-xl border border-neutral-800 text-xs text-neutral-300 flex items-center justify-between">
-                <span>Granola Action Items &amp; Task Deliverables</span>
-                <span className="font-mono text-[10px] text-amber-400 font-bold">{allActionItems.length} Total</span>
-              </div>
-
-              {allActionItems.length === 0 ? (
-                <div className="h-48 flex items-center justify-center text-neutral-500 text-xs text-center">
-                  No action items extracted for this meeting yet.
-                </div>
-              ) : (
-                allActionItems.map((act) => (
-                  <div
-                    key={act.id}
-                    className="p-3 bg-neutral-900/80 hover:bg-neutral-850 rounded-xl border border-neutral-800 flex items-center justify-between gap-3 transition"
-                  >
-                    <div className="flex items-start gap-2.5 min-w-0">
-                      {act.status === 'completed' ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        ))
                       ) : (
-                        <Square className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
+                        <p className="whitespace-pre-wrap">{note.content}</p>
                       )}
-                      <div className="min-w-0">
-                        <p className={`text-xs leading-snug ${act.status === 'completed' ? 'line-through text-neutral-500' : 'text-neutral-100 font-medium'}`}>
-                          {act.task}
-                        </p>
-                        <span className="text-[10px] text-neutral-400 mt-0.5 block">
-                          Assignee: <span className="text-amber-400 font-semibold">{act.assignee}</span>
-                        </span>
-                      </div>
                     </div>
 
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                        act.status === 'completed'
-                          ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
-                          : 'bg-amber-950 text-amber-400 border-amber-800'
-                      }`}
-                    >
-                      {act.status === 'completed' ? 'DONE' : 'TODO'}
-                    </span>
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => handleLoadNoteToPad(note)}
+                        className="text-amber-400 hover:text-amber-300 flex items-center gap-1 text-[11px] font-medium"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Edit / Open in Pad</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleCopyNote(
+                              `${note.title}\n\n${(note.keyPoints || []).map((p) => `• ${p}`).join('\n')}`,
+                              note.id
+                            )
+                          }
+                          className="px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] flex items-center gap-1"
+                          title="Copy Note"
+                        >
+                          {copiedId === note.id ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                          <span>Copy</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const shareText = `📝 ${note.title} (${note.meetingToken}):\n\n${(note.keyPoints || []).map((p) => `• ${p}`).join('\n')}`;
+                            onExportToFeed(shareText);
+                            showToast('📤 Exported to Post!');
+                            onClose();
+                          }}
+                          className="px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] flex items-center gap-1"
+                          title="Export to Post"
+                        >
+                          <Share2 className="w-3 h-3" />
+                          <span>Post</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}

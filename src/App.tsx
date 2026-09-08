@@ -52,8 +52,16 @@ export default function App() {
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
-  // User Profile state
-  const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
+  // User Profile state with local persistence
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    try {
+      const saved = localStorage.getItem('user_profile_data');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return initialUserProfile;
+  });
   // Meeting Recordings (persisted recordings for profile)
   const [recordings, setRecordings] = useState<MeetingRecording[]>(initialRecordings);
   // Active Recording state per meeting room
@@ -155,9 +163,78 @@ export default function App() {
     setNotes((prev) => [newNote, ...prev]);
   };
 
-  // Update User Profile details
+  // Update User Profile details & synchronize with meeting rooms
   const handleUpdateProfile = (updated: Partial<UserProfile>) => {
-    setUserProfile((prev) => ({ ...prev, ...updated }));
+    const oldName = userProfile.name;
+    const oldHandle = userProfile.handle;
+    const nextProfile = { ...userProfile, ...updated };
+    setUserProfile(nextProfile);
+
+    // Save to localStorage
+    try {
+      localStorage.setItem('user_profile_data', JSON.stringify(nextProfile));
+    } catch {}
+
+    // Synchronize user name, handle, and avatar with rooms, posts, and comments
+    if (updated.name || updated.handle || updated.avatar) {
+      const newName = updated.name || userProfile.name;
+      const newHandle = updated.handle || userProfile.handle;
+
+      setRooms((prevRooms) =>
+        prevRooms.map((r) => {
+          const isHostMe =
+            r.host === oldName ||
+            r.host === 'Aung Myint' ||
+            r.host === 'Aung Aung' ||
+            r.host === 'Aung Aung (Me)' ||
+            r.host === oldHandle;
+          const updatedHost = isHostMe ? newName : r.host;
+          const updatedParticipants = r.participants.map((p) =>
+            p === oldName ||
+            p === 'Aung Myint' ||
+            p === 'Aung Aung' ||
+            p === 'Aung Aung (Me)' ||
+            p.includes('(Me)')
+              ? newName
+              : p
+          );
+          return {
+            ...r,
+            host: updatedHost,
+            participants: updatedParticipants,
+          };
+        })
+      );
+
+      // Synchronize posts author
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
+          p.author === oldName || p.author === 'Aung Aung' || p.author === 'Aung Myint'
+            ? { ...p, author: newName }
+            : p
+        )
+      );
+
+      // Synchronize comments author & handle
+      setComments((prevComments) => {
+        const next: Record<string, MeetingComment[]> = {};
+        for (const [token, list] of Object.entries(prevComments) as [string, MeetingComment[]][]) {
+          next[token] = list.map((c) => ({
+            ...c,
+            author: c.isMe ? newName : c.author,
+            handle: c.isMe ? newHandle : c.handle,
+            avatar: c.isMe && updated.avatar ? updated.avatar : c.avatar,
+            replies: (c.replies || []).map((rep) => ({
+              ...rep,
+              author: rep.isMe ? newName : rep.author,
+              handle: rep.isMe ? newHandle : rep.handle,
+              avatar: rep.isMe && updated.avatar ? updated.avatar : rep.avatar,
+            })),
+          }));
+        }
+        return next;
+      });
+    }
   };
 
   // Toggle favorite on recording

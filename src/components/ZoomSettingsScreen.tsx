@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { UserSettings } from '../types';
-import { languageOptions } from '../data/initialData';
+import React, { useState, useRef } from 'react';
+import { UserSettings, UserProfile } from '../types';
+import { languageOptions, virtualBackgroundPresets } from '../data/initialData';
 import {
   User,
   ChevronRight,
@@ -13,24 +13,61 @@ import {
   Info,
   Check,
   Sparkles,
-  Sliders
+  Sliders,
+  Upload,
+  Image as ImageIcon,
+  Camera,
+  X,
+  Trash2
 } from 'lucide-react';
 
 interface ZoomSettingsScreenProps {
   settings: UserSettings;
+  userProfile?: UserProfile;
   onUpdateSettings: (newSettings: Partial<UserSettings>) => void;
 }
 
 export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
   settings,
+  userProfile,
   onUpdateSettings,
 }) => {
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [isChatFilterModalOpen, setIsChatFilterModalOpen] = useState(false);
   const [isBgThemeModalOpen, setIsBgThemeModalOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      onUpdateSettings({
+        enableVirtualBackground: true,
+        virtualBackgroundType: 'custom',
+        virtualBackgroundCustomImage: dataUrl,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCustomImage = () => {
+    onUpdateSettings({
+      virtualBackgroundCustomImage: '',
+      virtualBackgroundType: 'studio',
+    });
+  };
+
+  const currentLanguage =
+    settings.subtitleLanguage || settings.whisperLanguage || 'Myanmar (MM)';
 
   return (
-    <div id="zoom-settings-screen" className="relative w-full h-full bg-black text-white flex flex-col overflow-hidden">
+    <div
+      id="zoom-settings-screen"
+      className="relative w-full h-full bg-black text-white flex flex-col overflow-hidden"
+    >
       {/* App Bar */}
       <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md border-b border-neutral-800 px-4 py-3 flex items-center justify-between">
         <h1 className="font-bold text-base text-white">Settings</h1>
@@ -38,25 +75,34 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-900">
-        {/* 1. Profile Banner */}
+        {/* 1. Profile Banner (Synchronized with User Profile) */}
         <div
           id="settings-profile-banner"
-          className="p-4 flex items-center justify-between hover:bg-neutral-950/60 transition cursor-pointer"
+          className="p-4 flex items-center justify-between hover:bg-neutral-950/60 transition"
         >
           <div className="flex items-center gap-3">
-            <div className="w-13 h-13 rounded-full bg-red-600/20 border border-red-500/40 text-red-400 flex items-center justify-center font-bold text-lg shadow-md">
-              <User className="w-6 h-6 text-red-500" />
-            </div>
+            {userProfile?.avatar ? (
+              <img
+                src={userProfile.avatar}
+                alt={userProfile.name}
+                className="w-13 h-13 rounded-full object-cover border-2 border-red-500/60 shadow-md"
+              />
+            ) : (
+              <div className="w-13 h-13 rounded-full bg-red-600/20 border border-red-500/40 text-red-400 flex items-center justify-center font-bold text-lg shadow-md">
+                <User className="w-6 h-6 text-red-500" />
+              </div>
+            )}
             <div>
-              <h2 className="font-bold text-base text-white">Aung Aung</h2>
-              <p className="text-xs text-neutral-400">aung@example.com · Basic Plan</p>
+              <h2 className="font-bold text-base text-white">{userProfile?.name || 'Aung Myint'}</h2>
+              <p className="text-xs text-neutral-400">
+                {userProfile?.handle || '@aungmyint'} · Standard Account
+              </p>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] text-emerald-400 font-medium">Whisper STT Active</span>
+                <span className="text-[10px] text-emerald-400 font-medium">Ready & Connected</span>
               </div>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-neutral-500" />
         </div>
 
         {/* 2. MEETING SETTINGS */}
@@ -91,7 +137,7 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           />
         </div>
 
-        {/* 3. VIDEO & AUDIO */}
+        {/* 3. VIDEO & AUDIO & VIRTUAL BACKGROUND */}
         <div className="py-2">
           <SectionTitle title="VIDEO & AUDIO" />
 
@@ -115,33 +161,39 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
 
           <SwitchItem
             id="setting-noise-suppression"
-            title="AI Noise Suppression"
-            subtitle="Filter background clicks, fans and echoes"
+            title="Noise Suppression"
+            subtitle="Filter background clicks, fans and room echoes"
             checked={settings.noiseSuppression}
             onChange={(val) => onUpdateSettings({ noiseSuppression: val })}
             icon={<Volume2 className="w-4 h-4 text-neutral-400" />}
           />
 
+          {/* Virtual Background Configuration Row */}
           <div
             id="setting-virtual-bg-row"
             className="px-4 py-3 flex items-center justify-between hover:bg-neutral-950/60 transition"
           >
             <div className="flex items-center gap-3">
-              <Sparkles className="w-4 h-4 text-neutral-400" />
+              <ImageIcon className="w-4 h-4 text-amber-400" />
               <div>
                 <span className="text-sm font-medium text-neutral-200">Virtual Background</span>
-                <p className="text-xs text-neutral-500 capitalize">
-                  Theme: {settings.virtualBackgroundType}
+                <p className="text-xs text-neutral-400 capitalize">
+                  {settings.enableVirtualBackground
+                    ? settings.virtualBackgroundType === 'custom'
+                      ? 'Custom Uploaded Image'
+                      : `Theme: ${settings.virtualBackgroundType}`
+                    : 'Disabled (Normal Camera)'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <button
+                id="btn-open-virtual-bg-modal"
                 type="button"
                 onClick={() => setIsBgThemeModalOpen(true)}
-                className="text-xs text-red-400 hover:text-red-300 font-semibold px-2.5 py-1 bg-red-950/40 rounded-lg border border-red-800/40"
+                className="text-xs text-amber-400 hover:text-amber-300 font-semibold px-2.5 py-1 bg-amber-950/40 rounded-lg border border-amber-800/40 cursor-pointer"
               >
-                Change
+                Change / Upload
               </button>
               <Switch
                 id="toggle-virtual-bg"
@@ -152,9 +204,9 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* 4. CHAT & NOTIFICATIONS */}
+        {/* 4. CHAT & SUBTITLES */}
         <div className="py-2">
-          <SectionTitle title="CHAT & NOTIFICATIONS" />
+          <SectionTitle title="CHAT & SUBTITLES" />
 
           {/* Chat Filter */}
           <div
@@ -169,24 +221,24 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
                 <p className="text-xs text-neutral-400">
                   {settings.chatFilter === 'all'
                     ? 'View All Messages Across Rooms'
-                    : 'Filter History Strictly by Token'}
+                    : 'Filter History Strictly by Active Meeting Token'}
                 </p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-neutral-500" />
           </div>
 
-          {/* Whisper AI Language Selection */}
+          {/* Subtitle Language Selection */}
           <div
-            id="setting-whisper-language"
+            id="setting-subtitle-language"
             onClick={() => setIsLangModalOpen(true)}
             className="px-4 py-3 flex items-center justify-between hover:bg-neutral-950/60 transition cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <Languages className="w-4 h-4 text-red-400" />
               <div>
-                <p className="text-sm font-medium text-neutral-200">Whisper AI Engine Language</p>
-                <p className="text-xs text-neutral-400">Current: {settings.whisperLanguage}</p>
+                <p className="text-sm font-medium text-neutral-200">Live Subtitle Language</p>
+                <p className="text-xs text-neutral-400">Current: {currentLanguage}</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-red-400 font-semibold">
@@ -202,7 +254,7 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           <div className="px-4 py-3 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-200">Version</p>
-              <p className="text-xs text-neutral-500">2.4.0-build.2026</p>
+              <p className="text-xs text-neutral-500">2.5.0-clean.2026</p>
             </div>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-900 border border-neutral-800 text-neutral-400 font-mono">
               STABLE
@@ -210,12 +262,12 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           </div>
           <div className="px-4 py-2 flex items-center gap-2 text-xs text-neutral-500">
             <Info className="w-3.5 h-3.5" />
-            <span>TikTok Vertical Meeting Feed & Post Protocol</span>
+            <span>Real-Time WebRTC Meeting Feed & Video Pad</span>
           </div>
         </div>
       </div>
 
-      {/* Language Selection Modal */}
+      {/* Subtitle Language Selection Modal */}
       {isLangModalOpen && (
         <div
           id="lang-modal-backdrop"
@@ -229,19 +281,22 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           >
             <div className="flex items-center gap-2 pb-3 border-b border-neutral-800">
               <Languages className="w-5 h-5 text-red-500" />
-              <h3 className="font-bold text-base">Whisper AI Engine Language</h3>
+              <h3 className="font-bold text-base">Subtitle Language</h3>
             </div>
 
             <div className="py-3 space-y-1">
               {languageOptions.map((lang) => {
-                const isSelected = settings.whisperLanguage === lang.name;
+                const isSelected = currentLanguage === lang.name;
                 return (
                   <button
                     key={lang.code}
                     id={`lang-option-${lang.code}`}
                     type="button"
                     onClick={() => {
-                      onUpdateSettings({ whisperLanguage: lang.name });
+                      onUpdateSettings({
+                        subtitleLanguage: lang.name,
+                        whisperLanguage: lang.name,
+                      });
                       setIsLangModalOpen(false);
                     }}
                     className={`w-full flex items-center justify-between p-3 rounded-xl transition ${
@@ -326,39 +381,202 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
         </div>
       )}
 
-      {/* Virtual Background Theme Modal */}
+      {/* Virtual Background & Custom Image Upload Modal */}
       {isBgThemeModalOpen && (
         <div
           id="bg-theme-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in"
           onClick={() => setIsBgThemeModalOpen(false)}
         >
           <div
             id="bg-theme-modal-container"
-            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl"
+            className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-bold text-base pb-3 border-b border-neutral-800">
-              Select Virtual Background
-            </h3>
-            <div className="py-3 grid grid-cols-2 gap-2">
-              {(['studio', 'cyberpunk', 'blur', 'office'] as const).map((bg) => (
-                <button
-                  key={bg}
-                  type="button"
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+              <div>
+                <h3 className="font-bold text-base text-white">Virtual Background</h3>
+                <p className="text-xs text-neutral-400">
+                  ပုံ upload လုပ်နိုင်သလို မလုပ်ရင် camera အတိုင်း ပေါ်ပါမည်
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBgThemeModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Mode: Default Camera vs Virtual Background */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onUpdateSettings({ enableVirtualBackground: false })}
+                className={`p-3 rounded-xl border text-left transition flex items-center gap-2.5 ${
+                  !settings.enableVirtualBackground
+                    ? 'border-red-500 bg-red-500/10 text-white'
+                    : 'border-neutral-800 text-neutral-400 hover:bg-neutral-800'
+                }`}
+              >
+                <Camera className="w-5 h-5 text-neutral-300" />
+                <div>
+                  <p className="text-xs font-bold text-white">Normal Camera</p>
+                  <p className="text-[10px] text-neutral-400">မူလ ကင်မရာပုံအတိုင်း</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onUpdateSettings({ enableVirtualBackground: true })}
+                className={`p-3 rounded-xl border text-left transition flex items-center gap-2.5 ${
+                  settings.enableVirtualBackground
+                    ? 'border-amber-500 bg-amber-500/10 text-white'
+                    : 'border-neutral-800 text-neutral-400 hover:bg-neutral-800'
+                }`}
+              >
+                <ImageIcon className="w-5 h-5 text-amber-400" />
+                <div>
+                  <p className="text-xs font-bold text-white">Virtual Background</p>
+                  <p className="text-[10px] text-neutral-400">ရုပ်ပေါ် background ချိန်း</p>
+                </div>
+              </button>
+            </div>
+
+            {/* Upload Custom Image Section */}
+            <div className="p-3.5 bg-neutral-950 border border-neutral-800 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-neutral-300 flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Upload Custom Background Photo</span>
+                </span>
+                {settings.virtualBackgroundCustomImage && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCustomImage}
+                    className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+
+              {settings.virtualBackgroundCustomImage ? (
+                <div
                   onClick={() => {
-                    onUpdateSettings({ virtualBackgroundType: bg });
-                    setIsBgThemeModalOpen(false);
+                    onUpdateSettings({
+                      enableVirtualBackground: true,
+                      virtualBackgroundType: 'custom',
+                    });
                   }}
-                  className={`p-3 rounded-xl border capitalize text-sm font-medium transition ${
-                    settings.virtualBackgroundType === bg
-                      ? 'border-red-500 bg-red-600/20 text-white'
-                      : 'border-neutral-800 hover:bg-neutral-800 text-neutral-300'
+                  className={`relative rounded-xl overflow-hidden h-28 border-2 cursor-pointer group ${
+                    settings.virtualBackgroundType === 'custom' && settings.enableVirtualBackground
+                      ? 'border-amber-500 ring-2 ring-amber-500/30'
+                      : 'border-neutral-700'
                   }`}
                 >
-                  {bg}
-                </button>
-              ))}
+                  <img
+                    src={settings.virtualBackgroundCustomImage}
+                    alt="Custom Uploaded Background"
+                    className="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2 justify-between">
+                    <span className="text-[11px] font-semibold text-white">
+                      ✓ Your Uploaded Background
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-neutral-950 font-bold">
+                      Active
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-neutral-700 hover:border-amber-500/80 rounded-xl p-4 text-center cursor-pointer transition group bg-neutral-900/40"
+                >
+                  <Upload className="w-6 h-6 mx-auto text-neutral-400 group-hover:text-amber-400 mb-1.5 transition" />
+                  <p className="text-xs font-medium text-neutral-200">
+                    မိမိနှစ်သက်ရာ နောက်ခံပုံ Upload လုပ်ပါ
+                  </p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">
+                    JPG, PNG, WebP (ရုပ်ပဲပေါ်ပြီး background ချိန်းပါမည်)
+                  </p>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-xs font-medium text-neutral-200 rounded-lg flex items-center justify-center gap-1.5 transition"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>{settings.virtualBackgroundCustomImage ? 'Upload Different Image' : 'Choose Image File'}</span>
+              </button>
+            </div>
+
+            {/* Or Preset Background Themes */}
+            <div className="space-y-2">
+              <span className="text-xs text-neutral-400 font-medium">Or Preset Backgrounds:</span>
+              <div className="grid grid-cols-3 gap-2">
+                {virtualBackgroundPresets.map((preset) => {
+                  const isSelected =
+                    settings.enableVirtualBackground &&
+                    settings.virtualBackgroundType === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        onUpdateSettings({
+                          enableVirtualBackground: true,
+                          virtualBackgroundType: preset.id as any,
+                        });
+                      }}
+                      className={`relative rounded-xl overflow-hidden h-20 border-2 transition group ${
+                        isSelected
+                          ? 'border-amber-500 ring-2 ring-amber-500/40'
+                          : 'border-neutral-800 hover:border-neutral-600'
+                      }`}
+                    >
+                      <img
+                        src={preset.url}
+                        alt={preset.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition"
+                      />
+                      <div className="absolute inset-0 bg-black/40 flex items-end p-1.5">
+                        <span className="text-[10px] font-semibold text-white truncate">
+                          {preset.name}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 text-neutral-950 flex items-center justify-center shadow-md">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setIsBgThemeModalOpen(false)}
+                className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-white rounded-xl transition"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>

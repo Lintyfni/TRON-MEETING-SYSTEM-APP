@@ -25,7 +25,7 @@ import { MultiFilterDialog } from './MultiFilterDialog';
 import { GranolaNotesModal } from './GranolaNotesModal';
 import { MeetingChatModal } from './MeetingChatModal';
 import { TikTokCommentsModal } from './TikTokCommentsModal';
-import { languageOptions, initialUserProfile } from '../data/initialData';
+import { languageOptions, initialUserProfile, virtualBackgroundPresets } from '../data/initialData';
 
 interface MeetingRoomTileProps {
   room: MeetingRoom;
@@ -122,6 +122,15 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
   // Per-participant subtitle toggle (default OFF for all speakers as requested)
   const [userSubtitlesActive, setUserSubtitlesActive] = useState<Record<string, boolean>>({});
+
+  // Check if current user is the room host (supports profile edit sync)
+  const isHostMe =
+    room.host === userProfile.name ||
+    room.host === userProfile.handle ||
+    room.host === userProfile.handle.replace('@', '') ||
+    room.host === 'Aung Myint' ||
+    room.host === 'Aung Aung' ||
+    room.host === 'Aung Aung (Me)';
 
   // Poked users tracking & playful private poke state
   const [pokedUsers, setPokedUsers] = useState<Record<string, { timestamp: number; count: number }>>({});
@@ -519,6 +528,13 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
   const roomChats = chats.filter((c) => c.meetingToken === room.token);
 
+  // Active virtual background URL (custom uploaded image or selected preset)
+  const activeVirtualBgUrl =
+    settings.virtualBackgroundType === 'custom' && settings.virtualBackgroundCustomImage
+      ? settings.virtualBackgroundCustomImage
+      : virtualBackgroundPresets.find((p) => p.id === settings.virtualBackgroundType)?.url ||
+        virtualBackgroundPresets[0]?.url;
+
   return (
     <div
       id={`meeting-tile-${room.id}`}
@@ -550,13 +566,16 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           >
             {visibleUsers.map((user, idx) => {
               const isSpeaker = speakingUser === user;
-              const isHost = user === room.host;
               const isMe =
                 user === userProfile.name ||
                 user === 'Aung Myint' ||
                 user === 'Aung Aung' ||
                 user.toLowerCase().includes('aung') ||
                 user.includes('(Me)');
+              const displayName = isMe ? userProfile.name : user;
+              const isHost =
+                user === room.host ||
+                (isMe && (room.host === userProfile.name || room.host === 'Aung Myint' || room.host === 'Aung Aung' || isHostMe));
               const isLocalWebcam = isMe && isCameraOn && localStream;
               const isUserListening = isMe ? isMicOn : !mutedListeningUsers[user];
               // Subtitles only active for self when enabled
@@ -593,11 +612,11 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-neutral-950 border border-neutral-800 flex items-center justify-center mb-2 shadow-2xl">
                         <VideoOff className="w-6 h-6 sm:w-7 sm:h-7 text-red-500" />
                       </div>
-                      <span className="text-xs font-bold text-neutral-200 tracking-wide">
-                        Camera Off
+                      <span className="text-[11px] font-normal text-neutral-300 tracking-normal">
+                        {displayName.toLowerCase()}
                       </span>
-                      <span className="text-[10px] text-neutral-400 mt-0.5">
-                        မိမိ Screen ပိတ်ထားပါသည်
+                      <span className="text-[9px] text-neutral-500 mt-0.5">
+                        camera off
                       </span>
                       <button
                         type="button"
@@ -611,35 +630,97 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                   ) : isMe && isCameraOn ? (
                     /* 2. If Me and Camera is ON: Camera ပွင့်ပီး ရုပ်ထွက်လာမယ် (Live webcam or active video feed) */
                     <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
-                      {/* Live Camera Video Feed */}
-                      {localStream && !cameraError ? (
-                        <video
-                          ref={handleVideoRef}
-                          autoPlay
-                          playsInline
-                          muted
-                          onLoadedMetadata={(e) => {
-                            (e.target as HTMLVideoElement).play().catch(() => {});
-                          }}
-                          onCanPlay={(e) => {
-                            (e.target as HTMLVideoElement).play().catch(() => {});
-                          }}
-                          className={`w-full h-full object-cover transition-transform duration-200 ${
-                            settings.mirrorMyVideo ? '-scale-x-100' : ''
-                          }`}
-                        />
-                      ) : (
-                        /* Fallback image when camera is starting or permission pending */
-                        <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
+                      {settings.enableVirtualBackground ? (
+                        /* Virtual Background mode: background image behind, user's camera feed / person in front */
+                        <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                          {/* Background image (custom uploaded or preset) */}
                           <img
-                            src={userProfile.avatar}
-                            alt={user}
-                            className={`w-full h-full object-cover opacity-90 ${
-                              settings.mirrorMyVideo ? '-scale-x-100' : ''
-                            }`}
+                            src={activeVirtualBgUrl}
+                            alt="Virtual Background"
+                            className="absolute inset-0 w-full h-full object-cover z-0 filter brightness-90"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                          <div className="absolute inset-0 bg-black/20 z-1" />
+
+                          {/* Foreground: User live camera video or avatar */}
+                          <div className="relative z-10 w-full h-full flex items-center justify-center p-2">
+                            {localStream && !cameraError ? (
+                              <div className="relative w-[86%] h-[92%] rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-neutral-900/60 backdrop-blur-xs">
+                                <video
+                                  ref={handleVideoRef}
+                                  autoPlay
+                                  playsInline
+                                  muted
+                                  onLoadedMetadata={(e) => {
+                                    (e.target as HTMLVideoElement).play().catch(() => {});
+                                  }}
+                                  onCanPlay={(e) => {
+                                    (e.target as HTMLVideoElement).play().catch(() => {});
+                                  }}
+                                  className={`w-full h-full object-cover transition-transform duration-200 ${
+                                    settings.mirrorMyVideo ? '-scale-x-100' : ''
+                                  }`}
+                                />
+                              </div>
+                            ) : (
+                              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-amber-400 shadow-2xl">
+                                <img
+                                  src={userProfile.avatar}
+                                  alt={user}
+                                  className={`w-full h-full object-cover opacity-95 ${
+                                    settings.mirrorMyVideo ? '-scale-x-100' : ''
+                                  }`}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Virtual BG Active Badge */}
+                          <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 bg-amber-950/90 border border-amber-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-amber-300 backdrop-blur-md shadow-md">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            VIRTUAL BG
+                          </div>
                         </div>
+                      ) : (
+                        /* Direct Camera Mode: No virtual background */
+                        <>
+                          {localStream && !cameraError ? (
+                            <video
+                              ref={handleVideoRef}
+                              autoPlay
+                              playsInline
+                              muted
+                              onLoadedMetadata={(e) => {
+                                (e.target as HTMLVideoElement).play().catch(() => {});
+                              }}
+                              onCanPlay={(e) => {
+                                (e.target as HTMLVideoElement).play().catch(() => {});
+                              }}
+                              className={`w-full h-full object-cover transition-transform duration-200 ${
+                                settings.mirrorMyVideo ? '-scale-x-100' : ''
+                              }`}
+                            />
+                          ) : (
+                            /* Fallback image when camera is starting or permission pending */
+                            <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
+                              <img
+                                src={userProfile.avatar}
+                                alt={user}
+                                className={`w-full h-full object-cover opacity-90 ${
+                                  settings.mirrorMyVideo ? '-scale-x-100' : ''
+                                }`}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                            </div>
+                          )}
+
+                          {/* Live Cam Active Pill */}
+                          {!cameraError && !isCameraLoading && (
+                            <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400 backdrop-blur-md shadow-md">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              CAM LIVE
+                            </div>
+                          )}
+                        </>
                       )}
 
                       {/* Loading State while Camera is initializing */}
@@ -672,18 +753,10 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         </div>
                       )}
 
-                      {/* Live Cam Active Pill */}
-                      {!cameraError && !isCameraLoading && (
-                        <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400 backdrop-blur-md shadow-md">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          CAM LIVE
-                        </div>
-                      )}
-
-                      {/* Name Pill overlay */}
-                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-neutral-700/80 text-[10px] font-semibold text-white backdrop-blur-md">
-                        <span>{user} (Me)</span>
-                        {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold">HOST</span>}
+                      {/* Name Pill overlay: small text in lowercase */}
+                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-neutral-700/80 text-[10px] font-normal text-neutral-200 backdrop-blur-md">
+                        <span>{displayName.toLowerCase()}</span>
+                        {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
                       </div>
                     </div>
                   ) : (
@@ -703,33 +776,26 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                           className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                             isSpeaker ? 'scale-105 bg-red-600 text-white ring-2 ring-red-400' : 'bg-neutral-800 text-neutral-200 border border-neutral-700 hover:border-red-500'
                           }`}
-                          title={`Click to direct chat with ${user}`}
+                          title={`Click to direct chat with ${displayName}`}
                         >
-                          {user[0]}
+                          {displayName[0]?.toUpperCase()}
                         </button>
                       </div>
 
-                      {/* Participant name pill - Clickable for Direct Chat */}
-                      <button
-                        id={`btn-user-pill-chat-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDirectChat(user);
-                        }}
-                        className="mt-3 flex items-center gap-1.5 bg-black/70 hover:bg-red-950/80 active:scale-95 px-3 py-1 rounded-full border border-neutral-700/80 hover:border-red-500/80 transition cursor-pointer group shadow-lg"
-                        title={`Click to 1-on-1 direct chat with ${user}`}
+                      {/* Participant name pill: lowercase and small font, NO message icon */}
+                      <div
+                        id={`user-name-pill-${user.replace(/\s+/g, '-').toLowerCase()}`}
+                        className="mt-2.5 flex items-center gap-1.5 bg-black/60 px-2.5 py-0.5 rounded-full border border-neutral-800/80 shadow-md"
                       >
-                        <MessageSquare className="w-3 h-3 text-red-400 group-hover:scale-110 transition" />
-                        <span className="text-xs font-semibold text-white tracking-wide group-hover:text-red-200 transition">
-                          {user}
+                        <span className="text-[11px] font-normal text-neutral-200 tracking-normal">
+                          {displayName.toLowerCase()}
                         </span>
                         {isHost && (
-                          <span className="text-[10px] bg-red-600 text-white px-1.5 py-0.2 rounded font-bold">
+                          <span className="text-[9px] bg-red-600/90 text-white px-1 py-0.2 rounded font-semibold uppercase">
                             HOST
                           </span>
                         )}
-                      </button>
+                      </div>
 
                       {/* Waveform Equalizer when speaking */}
                       <div className="mt-2 flex items-center gap-1 h-3">
@@ -759,10 +825,10 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       <div className="flex items-center justify-between text-[9px] text-cyan-400 font-semibold mb-0.5">
                         <span className="flex items-center gap-1">
                           <Volume2 className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
-                          {user} ({settings.whisperLanguage})
+                          {user} ({settings.subtitleLanguage || 'Myanmar (MM)'})
                         </span>
                         <span className="text-[8px] bg-cyan-950/90 text-cyan-300 border border-cyan-800 px-1 py-0.2 rounded font-mono">
-                          STT LIVE
+                          SUBTITLE LIVE
                         </span>
                       </div>
                       <p className="text-[11px] text-neutral-100 font-medium leading-tight italic line-clamp-2">
@@ -966,13 +1032,13 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           </span>
         </button>
 
-        {/* Note (Granola AI Engine Meeting Notes) */}
+        {/* Note Pad */}
         <button
           id="btn-tile-notes"
           type="button"
           onClick={() => setIsNotesOpen(true)}
           className="flex flex-col items-center group cursor-pointer"
-          title="Meeting Notes (Granola Engine - Auto AI Synthesis)"
+          title="Meeting Notes Pad"
         >
           <div className="w-11 h-11 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center justify-center backdrop-blur-md transition hover:scale-105 shadow-lg shadow-amber-950/40 relative">
             <NotebookTabs className="w-5 h-5" />
@@ -1022,7 +1088,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         </button>
       </div>
 
-      {/* 4. BOTTOM OVERLAY: Host & Room Details + Speaker/Listener Role Radio Buttons */}
+      {/* 4. BOTTOM OVERLAY: Host & Room Details + Speaker Toggle (Listener = OFF, Speak = ON) */}
       <div className="relative z-30 p-3 pb-4 max-w-[calc(100%-80px)] space-y-1.5 pointer-events-auto">
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
@@ -1031,9 +1097,9 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
               type="button"
               onClick={() => onOpenProfile && onOpenProfile()}
               className="font-bold text-sm text-white hover:text-red-400 hover:underline transition drop-shadow-md cursor-pointer flex items-center gap-1 group text-left"
-              title={`Go to @${room.host}'s profile`}
+              title={`Go to @${isHostMe ? (userProfile.handle ? userProfile.handle.replace('@', '') : userProfile.name) : room.host}'s profile`}
             >
-              <span>@{room.host}</span>
+              <span>@{isHostMe ? (userProfile.handle ? userProfile.handle.replace('@', '') : userProfile.name) : room.host}</span>
               <span className="text-[10px] text-red-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition">↗</span>
             </button>
             <span className="text-[10px] text-neutral-400 bg-neutral-900/80 px-2 py-0.5 rounded-full border border-neutral-800">
@@ -1045,47 +1111,35 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
             {room.title}
           </p>
 
-          {/* Small text radio buttons for Speaker or Listener */}
-          <div className="flex items-center gap-2 pt-0.5">
-            <span className="text-[10px] font-semibold text-neutral-400">Mode:</span>
-
-            <label
-              id="radio-mode-speaker"
-              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition cursor-pointer border ${
+          {/* Single Speaker Button: Listerner = OFF, Speak = ON */}
+          <div className="pt-0.5">
+            <button
+              id="btn-toggle-speaker-role"
+              type="button"
+              onClick={() => handleSelectRole(userRole === 'speaker' ? 'listener' : 'speaker')}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition cursor-pointer border backdrop-blur-md shadow-sm active:scale-95 ${
                 userRole === 'speaker'
-                  ? 'bg-emerald-950/85 border-emerald-500/80 text-emerald-300 shadow-sm'
-                  : 'bg-black/60 border-neutral-800 text-neutral-400 hover:text-white'
+                  ? 'bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-300 border-emerald-500/80 shadow-emerald-950/30'
+                  : 'bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border-neutral-700/80'
               }`}
+              title={userRole === 'speaker' ? 'Speaker: ON (Click to turn OFF / Listener)' : 'Speaker: OFF (Click to turn ON / Speak)'}
             >
-              <input
-                type="radio"
-                name={`role-${room.id}`}
-                value="speaker"
-                checked={userRole === 'speaker'}
-                onChange={() => handleSelectRole('speaker')}
-                className="w-3 h-3 text-emerald-500 bg-neutral-900 border-neutral-700 accent-emerald-500 cursor-pointer"
+              <span
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  userRole === 'speaker' ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
+                }`}
               />
               <span>Speaker</span>
-            </label>
-
-            <label
-              id="radio-mode-listener"
-              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition cursor-pointer border ${
-                userRole === 'listener'
-                  ? 'bg-red-950/85 border-red-500/80 text-red-300 shadow-sm'
-                  : 'bg-black/60 border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              <input
-                type="radio"
-                name={`role-${room.id}`}
-                value="listener"
-                checked={userRole === 'listener'}
-                onChange={() => handleSelectRole('listener')}
-                className="w-3 h-3 text-red-500 bg-neutral-900 border-neutral-700 accent-red-500 cursor-pointer"
-              />
-              <span>Listener</span>
-            </label>
+              <span
+                className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
+                  userRole === 'speaker'
+                    ? 'bg-emerald-900 text-emerald-200 border border-emerald-500/50'
+                    : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                }`}
+              >
+                {userRole === 'speaker' ? 'ON' : 'OFF'}
+              </span>
+            </button>
           </div>
         </div>
       </div>

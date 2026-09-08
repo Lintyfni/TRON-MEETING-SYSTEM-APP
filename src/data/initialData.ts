@@ -10,10 +10,10 @@ import {
 } from '../types';
 
 export const initialUserProfile: UserProfile = {
-  name: 'Aung Aung (Me)',
-  handle: '@aungaung_tech',
+  name: 'Aung Myint',
+  handle: '@aungmyint',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
-  bio: 'AI & WebRTC Engineer 🚀 | Building future meeting tools & Granola Engine live synthesis. Always recording key syncs!',
+  bio: 'WebRTC & Video Systems Engineer 🚀 | Building real-time interactive meeting tools. Always recording key syncs!',
   following: 142,
   followers: '1.8K',
   likes: '12.4K',
@@ -23,8 +23,8 @@ export const initialRecordings: MeetingRecording[] = [
   {
     id: 'rec_1',
     meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech AI & Granola Engine Discussion',
-    title: 'Sprint Demo: Granola Engine Live Synthesis & Per-Speaker Mic Toggle',
+    meetingTitle: 'Tech Architecture & WebRTC Discussion',
+    title: 'Sprint Demo: Real-Time Audio & Per-Speaker Mic Toggle',
     date: 'Today 10:45 AM',
     duration: '04:12',
     views: 1280,
@@ -35,7 +35,7 @@ export const initialRecordings: MeetingRecording[] = [
     participants: ['Aung Aung', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
     notes: [
       'Validated sub-45ms WebRTC audio stream delivery across dynamic video tiles',
-      'Granola Engine automated synthesis active with zero manual note taking',
+      'Interactive meeting notepad active for rapid manual documentation',
       'Per-speaker audio mute toggle placed on individual video cells',
     ],
     subtitles: [
@@ -47,11 +47,11 @@ export const initialRecordings: MeetingRecording[] = [
         isMe: true,
         tag: 'Decision',
         textByLang: {
-          'Myanmar (MM)': 'အားလုံး မင်္ဂလာပါ! ဒီနေ့ Granola Engine စတင်အသုံးပြုပုံနဲ့ စကားပြောသူ တစ်ဦးချင်း မိုက် ထိန်းချုပ်မှုကို စမ်းသပ်ပါမယ်။',
-          'English (US)': 'Welcome everyone! Today we will test Granola Engine auto-synthesis and per-speaker mic controls.',
-          'Thai (TH)': 'ยินดีต้อนรับทุกคน! วันนี้เราจะทดสอบระบบ Granola Engine และการควบคุมไมค์แบบแยกคน',
-          'Japanese (JA)': '皆さんこんにちは！本日はGranola Engineの自動要約と話者ごとのマイク制御を検証します。',
-          'Chinese (ZH)': '大家好！今天我们将测试 Granola 引擎自动总结以及逐个说话人麦克风控制。',
+          'Myanmar (MM)': 'အားလုံး မင်္ဂလာပါ! ဒီနေ့ meeting စတင်အသုံးပြုပုံနဲ့ စကားပြောသူ တစ်ဦးချင်း မိုက် ထိန်းချုပ်မှုကို စမ်းသပ်ပါမယ်။',
+          'English (US)': 'Welcome everyone! Today we will test live audio and per-speaker mic controls.',
+          'Thai (TH)': 'ยินดีต้อนรับทุกคน! วันนี้เราจะทดสอบระบบและการควบคุมไมค์แบบแยกคน',
+          'Japanese (JA)': '皆さんこんにちは！本日は話者ごとのマイク制御を検証します。',
+          'Chinese (ZH)': '大家好！今天我们将测试逐个说话人麦克风控制。',
         },
       },
       {
@@ -237,122 +237,68 @@ export const initialMeetingNotes: MeetingNote[] = [
   {
     id: 'note_1',
     meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech AI & Granola Engine Discussion',
-    title: 'Granola Engine: Automated Live Meeting Synthesis',
+    meetingTitle: 'Tech Architecture & WebRTC Discussion',
+    title: 'WebRTC Architecture & Real-Time Audio Delivery',
     category: 'Tech Insights',
-    speaker: 'Aung Aung',
+    speaker: 'Aung Myint',
     timestamp: 'Today 10:15 AM',
-    whisperSTTQuote: 'Granola Engine listens to conversational audio in real-time, eliminating manual note taking.',
+    content: `• Sub-45ms WebRTC audio stream delivery across dynamic video tiles\n• Interactive meeting notepad active for rapid manual documentation\n• Multilingual subtitle detection supporting Myanmar (MM), English (US), Thai, Japanese, and Chinese\n• Speaker attribution tags each discussion point directly to participant audio envelopes`,
     keyPoints: [
-      'Zero manual typing: Granola Engine extracts speaker transcripts, key insights, and action items automatically',
-      'AI speech model latency benchmarked below 45ms over WebRTC stream packets',
-      'Automatic multilingual speech detection supporting Myanmar (MM), English (US), Thai, Japanese, and Chinese',
+      'Sub-45ms WebRTC audio stream delivery across dynamic video tiles',
+      'Interactive meeting notepad active for rapid manual documentation',
+      'Multilingual subtitle detection supporting Myanmar (MM), English (US), Thai, Japanese, and Chinese',
       'Speaker attribution tags each discussion point directly to participant audio envelopes',
     ],
-    tags: ['Granola-AI', 'Auto-Notes', 'RealTime-STT', 'WebRTC'],
-    granolaSummary: 'The engineering team evaluated Granola Engine for autonomous meeting note-taking. Manual note writing is now unnecessary as Granola synchronizes live transcripts with actionable takeaways and exportable summaries.',
-    granolaEngineStatus: 'Listening',
-    keyDecisions: [
-      'Adopt Granola Engine across all team syncs to save 45 minutes of post-meeting manual documentation daily.',
-      'Place subtitle controls and individual mic listen toggles directly on each participant tile.',
-    ],
-    actionItems: [
-      { id: 'act_1', task: 'Deploy ONNX quantized Whisper model to regional edge containers', assignee: 'Aung Aung', status: 'completed' },
-      { id: 'act_2', task: 'Implement 1-click Granola summary export to Post', assignee: 'Su Su', status: 'todo' },
-      { id: 'act_3', task: 'Validate per-participant audio mute/listen toggles on mobile touchscreens', assignee: 'Kyaw Kyaw', status: 'todo' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_1', speaker: 'Aung Aung', timestamp: '10:12 AM', text: 'Welcome everyone! Today we are introducing Granola Engine so no one has to type notes during meetings.', sentiment: 'key-insight' },
-      { id: 'tr_2', speaker: 'Kyaw Kyaw', timestamp: '10:14 AM', text: 'The speech recognition latency is down to 42ms with ONNX quantized weights.', sentiment: 'normal' },
-      { id: 'tr_3', speaker: 'Su Su', timestamp: '10:18 AM', text: 'I love that it generates action items and lets us export directly to our team Post.', sentiment: 'action' },
-      { id: 'tr_4', speaker: 'Mya Mya', timestamp: '10:25 AM', text: 'We agreed to make speaker subtitles toggleable right next to each participant mic icon.', sentiment: 'decision' },
-    ],
+    tags: ['WebRTC', 'Notes', 'Audio-Stream', 'Architecture'],
   },
   {
     id: 'note_2',
     meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech AI & Granola Engine Discussion',
+    meetingTitle: 'Tech Architecture & WebRTC Discussion',
     title: 'Multi-User Dynamic Video Grid & Per-Speaker Audio Muting',
     category: 'Decisions',
     speaker: 'Kyaw Kyaw',
     timestamp: 'Today 10:24 AM',
-    whisperSTTQuote: 'Dynamic video grid automatically elevates active speaker with animated audio pulse rings.',
+    content: `• Multi-user filter dialog supports selective participant viewing for focused collaboration\n• Users can click any speaker mic icon to selectively listen or mute that specific participant\n• Dedicated subtitle on/off toggle placed directly on each speaker video tile\n• Dynamic CSS grid automatically adapts to 1, 2, 3, or 4+ active video tiles`,
     keyPoints: [
       'Multi-user filter dialog supports selective participant viewing for focused collaboration',
-      'Users can now click any speaker mic icon to selectively listen or mute that specific participant',
+      'Users can click any speaker mic icon to selectively listen or mute that specific participant',
       'Dedicated subtitle on/off toggle placed directly on each speaker video tile',
       'Dynamic CSS grid automatically adapts to 1, 2, 3, or 4+ active video tiles',
     ],
     tags: ['UI/UX', 'Video-Grid', 'Audio-Pulse', 'Mic-Toggle'],
-    granolaSummary: 'Architectural sign-off on participant video tile controls. Each participant cell now hosts independent Mic listening toggle and Subtitle display switches.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'Approved per-speaker audio listening control to reduce background noise from secondary participants.',
-      'Removed global subtitles from bottom bar and placed controls at speaker cell level.',
-    ],
-    actionItems: [
-      { id: 'act_4', task: 'Benchmark CSS grid rendering performance with 8 simultaneous streams', assignee: 'Kyaw Kyaw', status: 'completed' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_5', speaker: 'Kyaw Kyaw', timestamp: '10:21 AM', text: 'Each video tile now has its own Mic icon where clicking it toggles listening on or off.', sentiment: 'key-insight' },
-      { id: 'tr_6', speaker: 'Aung Aung', timestamp: '10:23 AM', text: 'Confirmed. And right next to the mic icon is the subtitles toggle.', sentiment: 'decision' },
-    ],
   },
   {
     id: 'note_3',
     meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech AI & Granola Engine Discussion',
-    title: 'Granola Meeting Notes Export & Post Integration',
+    meetingTitle: 'Tech Architecture & WebRTC Discussion',
+    title: 'Meeting Notes Export & Post Integration',
     category: 'Action Items',
     speaker: 'Su Su',
     timestamp: 'Today 10:35 AM',
-    whisperSTTQuote: 'Export Granola engine key points directly into Post channel for instant asynchronous recap.',
+    content: `• Token-linked meeting notes export to team Post with 1-click\n• Ensure summary includes user-written bullet points, decisions, and speaker attribution\n• Deploy v1.2 release by end of current sprint`,
     keyPoints: [
       'Token-linked meeting notes export to team Post with 1-click',
-      'Ensure summary includes automated Granola bullet points, decisions, and speaker attribution',
+      'Ensure summary includes user-written bullet points, decisions, and speaker attribution',
       'Deploy v1.2 release by end of current sprint',
     ],
-    tags: ['Post', 'Recap', 'Export', 'Granola'],
-    granolaSummary: 'Meeting recap pipeline connected to the Post social channel. Team members absent from live calls receive full Granola digests in their asynchronous feed.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'Post will serve as the primary asynchronous knowledge repository for recorded Granola digests.',
-    ],
-    actionItems: [
-      { id: 'act_5', task: 'Review webhook triggers for automated Post publishing', assignee: 'Su Su', status: 'completed' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_7', speaker: 'Su Su', timestamp: '10:32 AM', text: 'Team members who missed the call can read the Granola bullet points in Post.', sentiment: 'key-insight' },
-    ],
+    tags: ['Post', 'Recap', 'Export', 'Notes'],
   },
   {
     id: 'note_4',
     meetingToken: '#MEET-4412',
     meetingTitle: 'Crypto Market & Web3 Meetup',
-    title: 'Solana Liquidity Pools & Granola DeFi Audit',
+    title: 'Solana Liquidity Pools & DeFi Audit',
     category: 'Tech Insights',
     speaker: 'David',
     timestamp: 'Today 09:30 AM',
-    whisperSTTQuote: 'Automated rebalancing pool minimizes impermanent loss during high volatility spikes.',
+    content: `• Solana meme coin liquidity pool depth analysis completed across decentralized DEXes\n• Smart contract automated rebalancing protocol audit passed with zero vulnerabilities\n• Regional RPC node failovers deployed to avoid transaction drops`,
     keyPoints: [
       'Solana meme coin liquidity pool depth analysis completed across decentralized DEXes',
       'Smart contract automated rebalancing protocol audit passed with zero vulnerabilities',
       'Regional RPC node failovers deployed to avoid transaction drops',
     ],
     tags: ['Solana', 'Liquidity', 'Smart-Contract'],
-    granolaSummary: 'Analysis of automated market maker algorithms under high network congestion on Solana. Granola captured pool rebalance triggers and safety parameters.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'Allocate 35% of liquidity reserves to the auto-rebalancing Raydium vault.',
-    ],
-    actionItems: [
-      { id: 'act_6', task: 'Run simulation on Solana devnet under 5,000 TPS stress', assignee: 'David', status: 'todo' },
-      { id: 'act_7', task: 'Configure slippage tolerance alarms on Telegram bot', assignee: 'Alex', status: 'completed' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_8', speaker: 'David', timestamp: '09:28 AM', text: 'Liquidity depth on Solana has doubled since last week.', sentiment: 'key-insight' },
-      { id: 'tr_9', speaker: 'Alex', timestamp: '09:34 AM', text: 'Let us keep slippage capped below 0.8 percent.', sentiment: 'decision' },
-    ],
   },
   {
     id: 'note_5',
@@ -362,53 +308,29 @@ export const initialMeetingNotes: MeetingNote[] = [
     category: 'Action Items',
     speaker: 'Alex',
     timestamp: 'Today 09:48 AM',
-    whisperSTTQuote: 'Snapshot proposal goes live this Friday at 00:00 UTC for token holder voting.',
+    content: `• Draft formal governance improvement proposal for treasury allocation\n• Snapshot voting window configured for 72 hours\n• Multisig execution requires 3 of 5 authorized hardware keys`,
     keyPoints: [
       'Draft formal governance improvement proposal for treasury allocation',
       'Snapshot voting window configured for 72 hours',
       'Multisig execution requires 3 of 5 authorized hardware keys',
     ],
     tags: ['Governance', 'DAO', 'Snapshot'],
-    granolaSummary: 'Governance schedule ratified for DAO treasury disbursement. Voting opens Friday with strict quorum criteria.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'Set quorum threshold at 15% of circulating governance tokens.',
-    ],
-    actionItems: [
-      { id: 'act_8', task: 'Publish proposal draft to Discourse forum', assignee: 'Alex', status: 'todo' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_10', speaker: 'Alex', timestamp: '09:45 AM', text: 'Snapshot proposal goes live Friday at midnight UTC.', sentiment: 'decision' },
-    ],
   },
   {
     id: 'note_6',
     meetingToken: '#MEET-8833',
     meetingTitle: 'Design System & UI/UX Sprint',
-    title: 'Mobile Ergonomics & Granola Real-Time Note Cards',
+    title: 'Mobile Ergonomics & Real-Time Note Cards',
     category: 'Decisions',
     speaker: 'Elena',
     timestamp: 'Yesterday 04:15 PM',
-    whisperSTTQuote: 'Vertical meeting feed physics should feel snappy with rubber-band edge dampening.',
+    content: `• Pure OLED deep neutral palette reduces battery drain on mobile AMOLED screens\n• Natural vertical gesture flick with momentum scrolling between meeting rooms\n• Real-time note cards format key takeaways into high-contrast scannable blocks`,
     keyPoints: [
       'Pure OLED deep neutral palette reduces battery drain on mobile AMOLED screens',
       'Natural vertical gesture flick with momentum scrolling between meeting rooms',
-      'Granola real-time note cards format key takeaways into high-contrast scannable blocks',
+      'Real-time note cards format key takeaways into high-contrast scannable blocks',
     ],
-    tags: ['Mobile-UX', 'Gestures', 'OLED', 'Granola'],
-    granolaSummary: 'Design critique finalized for mobile device frame. Gestures and tactile feedback optimized for single-thumb navigation.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'Retain pure dark mode #000000 background for video feed immersion.',
-    ],
-    actionItems: [
-      { id: 'act_9', task: 'Refine micro-spring animation on heart particle burst', assignee: 'Elena', status: 'completed' },
-      { id: 'act_10', task: 'Audit touch targets for 44px minimum tap area', assignee: 'Marcus', status: 'completed' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_11', speaker: 'Elena', timestamp: '04:12 PM', text: 'The vertical gesture feels much more natural than horizontal pagination.', sentiment: 'normal' },
-      { id: 'tr_12', speaker: 'Marcus', timestamp: '04:18 PM', text: 'Agreed, and users love having Granola notes right in the bottom tab.', sentiment: 'key-insight' },
-    ],
+    tags: ['Mobile-UX', 'Gestures', 'OLED', 'Notes'],
   },
   {
     id: 'note_7',
@@ -418,24 +340,13 @@ export const initialMeetingNotes: MeetingNote[] = [
     category: 'Summary',
     speaker: 'Marcus',
     timestamp: 'Yesterday 04:40 PM',
-    whisperSTTQuote: 'Subtitles must be directly positioned next to the speaker mic icon for contextual clarity.',
+    content: `• Subtitle toggle placed directly next to the Mic icon inside each speaker video cell\n• Clicking participant mic icon selectively listens or mutes audio for that person\n• Transcribed dialogue renders right over the speaker video tile without blocking the meeting view`,
     keyPoints: [
       'Subtitle toggle placed directly next to the Mic icon inside each speaker video cell',
       'Clicking participant mic icon selectively listens or mutes audio for that person',
       'Transcribed dialogue renders right over the speaker video tile without blocking the meeting view',
     ],
     tags: ['Accessibility', 'Subtitles', 'Mic-Listen', 'Video-Tile'],
-    granolaSummary: 'Consensus reached on per-speaker accessibility controls. Moving subtitles and audio toggles into individual video cells delivers superior context compared to a global footer.',
-    granolaEngineStatus: 'Synthesized',
-    keyDecisions: [
-      'De-clutter bottom bar by removing Subtitles and placing controls on speaker cells.',
-    ],
-    actionItems: [
-      { id: 'act_11', task: 'Implement visual audio waveform pulse for unmuted speakers', assignee: 'Marcus', status: 'completed' },
-    ],
-    transcriptHistory: [
-      { id: 'tr_13', speaker: 'Marcus', timestamp: '04:35 PM', text: 'Having the subtitle toggle right by the mic icon on each person is much more intuitive.', sentiment: 'decision' },
-    ],
   },
 ];
 
@@ -443,15 +354,16 @@ export const initialRooms: MeetingRoom[] = [
   {
     id: 'room_1',
     token: '#MEET-9021',
-    title: 'Tech AI & Granola Engine Discussion',
+    title: 'Tech Architecture & WebRTC Discussion',
     host: 'Aung Myint',
     participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
     keyPoints: [
-      'Granola AI integration for real-time speech translation and notes',
+      'Real-time low latency WebRTC communication and dynamic video grid',
       'Multi-user Video Filter for dynamic participant focus',
+      'Interactive Meeting Notepad for manual note taking',
       'Live Subtitles streaming in low-latency WebRTC'
     ],
-    category: 'Artificial Intelligence',
+    category: 'WebRTC & Systems',
     isLive: true,
   },
   {
@@ -595,16 +507,26 @@ export const initialChats: ChatMessage[] = [
   },
 ];
 
+export const virtualBackgroundPresets = [
+  { id: 'office', name: 'Modern Office', url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop' },
+  { id: 'studio', name: 'Minimal Studio', url: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=600&fit=crop' },
+  { id: 'cyberpunk', name: 'Neon City', url: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&h=600&fit=crop' },
+  { id: 'library', name: 'Cozy Library', url: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&h=600&fit=crop' },
+  { id: 'blur', name: 'Warm Interior', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=600&fit=crop' },
+];
+
 export const initialSettings: UserSettings = {
-  autoMuteMic: true,
+  autoMuteMic: false,
   turnOffVideoOnJoin: false,
   showNonVideoParticipants: true,
   hdVideo: true,
   mirrorMyVideo: true,
   noiseSuppression: true,
-  enableVirtualBackground: true,
+  enableVirtualBackground: false,
   virtualBackgroundType: 'studio',
+  virtualBackgroundCustomImage: '',
   chatFilter: 'all',
+  subtitleLanguage: 'Myanmar (MM)',
   whisperLanguage: 'Myanmar (MM)',
 };
 
@@ -619,36 +541,36 @@ export const languageOptions = [
 
 export const sampleSubtitles: Record<string, string[]> = {
   'Myanmar (MM)': [
-    'အသံလှိုင်းကို Whisper AI ဖြင့် အချိန်နှင့်တပြေးညီ တိုက်ရိုက် စာသားပြောင်းနေပါသည်...',
+    'အသံလှိုင်းကို အချိန်နှင့်တပြေးညီ တိုက်ရိုက် စာသားပြောင်းနေပါသည်...',
     'ဆွေးနွေးချက် အဓိကအချက်များအား အလိုအလျောက် သီးခြားခွဲထုတ် သိမ်းဆည်းနေပါသည်...',
     'ပါဝင်သူများ၏ အသံကြိမ်နှုန်း စစ်ဆေးမှု အောင်မြင်ပါသည်...',
-    'Post သို့ အလိုအလျောက် ရလဒ် ပို့ဆောင်နိုင်ရန် အဆင်သင့်ဖြစ်ပါပြီ...',
+    'Post သို့ ရလဒ် ပို့ဆောင်နိုင်ရန် အဆင်သင့်ဖြစ်ပါပြီ...',
   ],
   'English (US)': [
-    'Audio stream translated to text in real-time with Whisper AI...',
+    'Audio stream translated to text in real-time...',
     'Multi-user dynamic grid layout actively synchronizing...',
-    'Capturing key discussion points for automated Post recap...',
-    'Whisper AI speech model latency below 45ms across WebRTC streams...',
+    'Capturing key discussion points for meeting recap...',
+    'Real-time low-latency audio stream across WebRTC...',
   ],
   'Thai (TH)': [
-    'กำลังแปลสตรีมเสียงเป็นข้อความแบบเรียลไทม์ด้วย Whisper AI...',
-    'กำลังบันทึกประเด็นสำคัญของการประชุมโดยอัตโนมัติ...',
+    'กำลังแปลสตรีมเสียงเป็นข้อความแบบเรียลไทม์...',
+    'กำลังบันทึกประเด็นสำคัญของการประชุม...',
     'การประชุมออนไลน์ความละเอียดสูงกำลังดำเนินอยู่...',
   ],
   'Chinese (ZH)': [
-    '使用 Whisper AI 实时将会议音频流转写为文本字幕...',
-    '自动提取关键要点并即时同步到会议笔记中...',
+    '实时将会议音频流转写为文本字幕...',
+    '提取关键要点并即时同步到会议笔记中...',
     '超低延迟语音识别通道稳定运行中...',
   ],
   'Japanese (JA)': [
-    'Whisper AIにより会議音声をリアルタイムで文字起こし中...',
-    '重要な討議ポイントを自動でキャプチャしてノートに保存中...',
+    '会議音声をリアルタイムで文字起こし中...',
+    '重要な討議ポイントをノートに保存中...',
     'WebRTC低遅延オーディオストリームが正常に動作しています...',
   ],
   'Spanish (ES)': [
-    'Transmisión de audio traducida a texto en tiempo real con Whisper AI...',
-    'Capturando puntos clave de la reunión para el resumen automatizado...',
-    'Latencia del modelo Whisper por debajo de 45 ms en WebRTC...',
+    'Transmisión de audio traducida a texto en tiempo real...',
+    'Capturando puntos clave de la reunión para el resumen...',
+    'Transmisión de voz en directo con baja latencia...',
   ],
 };
 

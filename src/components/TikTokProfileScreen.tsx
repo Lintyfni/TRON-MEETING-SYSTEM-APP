@@ -10,7 +10,7 @@ import { languageOptions } from '../data/initialData';
 import {
   Grid,
   Heart,
-  Bookmark,
+  FileText,
   MessageSquareCode,
   Edit3,
   Camera,
@@ -20,16 +20,16 @@ import {
   Eye,
   Share2,
   Filter,
-  CheckCircle2,
   ChevronDown,
   Volume2,
   VolumeX,
   X,
-  Sparkles,
   Check,
-  Video,
   UserCheck,
-  Send
+  Copy,
+  ChevronRight,
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 
 interface TikTokProfileScreenProps {
@@ -43,7 +43,7 @@ interface TikTokProfileScreenProps {
   onJumpToMeeting?: (token: string) => void;
 }
 
-type ProfileTabType = 'recordings' | 'favorites' | 'notes' | 'subtitles';
+type ProfileTabType = 'recordings' | 'favorites' | 'notes' | 'chats';
 
 export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   userProfile,
@@ -55,7 +55,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   onExportToPost,
   onJumpToMeeting,
 }) => {
-  // 4 TikTok Profile tabs replacing lock/repost/bookmark/favourite
+  // 4 Tabs: Recordings, Favourites, Note History, Chat History
   const [activeTab, setActiveTab] = useState<ProfileTabType>('recordings');
 
   // Edit Profile Modal
@@ -73,18 +73,20 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackProgress, setPlaybackProgress] = useState(35);
 
-  // Tab 3: Meeting filter for Notes
+  // Tab 3 (Note History): Meeting filter ('All' or room token) and selected note detail
   const [selectedNoteMeetingFilter, setSelectedNoteMeetingFilter] = useState<string>('All');
+  const [selectedNoteDetail, setSelectedNoteDetail] = useState<MeetingNote | null>(null);
 
-  // Tab 4: Meeting filter & Language selector for Subtitles Chat
-  const [selectedSubtitleMeetingFilter, setSelectedSubtitleMeetingFilter] = useState<string>(
-    recordings[0]?.meetingToken || rooms[0]?.token || '#MEET-9021'
-  );
+  // Tab 4 (Chat History): Meeting filter ('All' or room token) and selected chat detail
+  const [selectedChatMeetingFilter, setSelectedChatMeetingFilter] = useState<string>('All');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('Myanmar (MM)');
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [selectedChatDetailRecording, setSelectedChatDetailRecording] = useState<MeetingRecording | null>(null);
 
-  // Share profile feedback toast
+  // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
@@ -123,20 +125,33 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       avatar: editAvatar,
     });
     setIsEditProfileOpen(false);
-    showToast('✅ Profile saved successfully!');
+    showToast('✅ Profile saved & updated on Main Screen!');
   };
 
-  // Filter notes by selected meeting token
+  // Filter notes by meeting token or All
   const filteredNotes = notes.filter((n) =>
     selectedNoteMeetingFilter === 'All' ? true : n.meetingToken === selectedNoteMeetingFilter
   );
 
-  // Current meeting recording or room for subtitle chat
-  const currentSubtitleRecording =
-    recordings.find((r) => r.meetingToken === selectedSubtitleMeetingFilter) || recordings[0];
+  // Filter recordings for Chat History by meeting token or All
+  const filteredChatRecordings = recordings.filter((r) =>
+    selectedChatMeetingFilter === 'All' ? true : r.meetingToken === selectedChatMeetingFilter
+  );
+
+  const handleCopyText = (text: string, id: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    setCopiedId(id);
+    showToast('📋 Copied to clipboard!');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
-    <div id="tiktok-profile-screen" className="relative w-full h-full bg-black text-white flex flex-col overflow-hidden">
+    <div
+      id="tiktok-profile-screen"
+      className="relative w-full h-full bg-black text-white flex flex-col overflow-hidden"
+    >
       {/* Toast Feedback */}
       {toastMessage && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-neutral-900/95 border border-red-500/60 text-white text-xs font-medium shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
@@ -180,7 +195,10 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
         {/* 2. PROFILE HEADER & EDIT BIO */}
         <div className="p-4 flex flex-col items-center text-center">
           {/* Avatar with Camera Overlay */}
-          <div className="relative mb-3 group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+          <div
+            className="relative mb-3 group cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
             <div className="w-22 h-22 rounded-full p-0.5 bg-gradient-to-tr from-red-600 via-amber-500 to-cyan-500 shadow-xl">
               <img
                 src={userProfile.avatar}
@@ -204,7 +222,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </h2>
           <p className="text-xs text-neutral-400 mt-0.5 font-mono">{userProfile.handle}</p>
 
-          {/* TikTok Stats Row */}
+          {/* Stats Row */}
           <div className="flex items-center justify-center gap-6 my-3.5 text-center">
             <div>
               <span className="font-bold text-sm text-white block">{userProfile.following}</span>
@@ -257,8 +275,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
         </div>
 
-        {/* 3. TIKTOK REPLACEMENT TAB ROW */}
-        {/* Replacing lock/repost/Bookmark/Favourite with: Recordings (Grid), Favorite (Heart), Meeting Notes (Bookmark), Subtitle Chat (MessageSquareCode) */}
+        {/* 3. PROFILE TABS ROW: Recordings, Favourites, Note History, Chat History */}
         <div className="sticky top-[53px] z-10 bg-black/95 backdrop-blur-md border-b border-neutral-800 flex items-center justify-around px-2">
           {/* Tab 1: Recordings */}
           <button
@@ -270,7 +287,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 ? 'border-white text-white font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-300'
             }`}
-            title="My Recorded Meetings (#MEET Video Grid)"
+            title="My Recorded Meetings"
           >
             <Grid className="w-5 h-5" />
             <span className="text-[10px] mt-1">Recordings ({userRecordings.length})</span>
@@ -286,13 +303,13 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 ? 'border-red-500 text-red-500 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-300'
             }`}
-            title="Favourite / Loved Recordings"
+            title="Favourites"
           >
             <Heart className={`w-5 h-5 ${activeTab === 'favorites' ? 'fill-red-500' : ''}`} />
             <span className="text-[10px] mt-1">Favourites</span>
           </button>
 
-          {/* Tab 3: Meeting Filter & Notes */}
+          {/* Tab 3: Note History (Renamed from Note Filter) */}
           <button
             id="tab-profile-notes"
             type="button"
@@ -302,98 +319,65 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 ? 'border-amber-400 text-amber-400 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-300'
             }`}
-            title="Note List by Meeting Filter"
+            title="Note History (All or Meeting Filter)"
           >
-            <Bookmark className="w-5 h-5" />
-            <span className="text-[10px] mt-1">Notes Filter</span>
+            <FileText className="w-5 h-5" />
+            <span className="text-[10px] mt-1">Note History</span>
           </button>
 
-          {/* Tab 4: Subtitles Chat Format */}
+          {/* Tab 4: Chat History (Renamed from Chat Subtitle) */}
           <button
             id="tab-profile-subtitles"
             type="button"
-            onClick={() => setActiveTab('subtitles')}
+            onClick={() => setActiveTab('chats')}
             className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
-              activeTab === 'subtitles'
+              activeTab === 'chats'
                 ? 'border-cyan-400 text-cyan-400 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-300'
             }`}
-            title="Subtitle Chat with Speaker & Language Selector"
+            title="Chat History (All or Meeting Filter)"
           >
             <MessageSquareCode className="w-5 h-5" />
-            <span className="text-[10px] mt-1">Chat Subtitles</span>
+            <span className="text-[10px] mt-1">Chat History</span>
           </button>
         </div>
 
         {/* 4. TAB CONTENTS */}
 
-        {/* TAB 1: USER RECORDINGS VIDEO GRID */}
+        {/* TAB 1: RECORDINGS */}
         {activeTab === 'recordings' && (
-          <div className="p-2 sm:p-3">
+          <div className="p-2">
             {userRecordings.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 px-4">
-                <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-3 text-red-500/60">
-                  <Video className="w-7 h-7" />
-                </div>
-                <h4 className="text-sm font-semibold text-neutral-300 mb-1">No Recorded Meetings Yet</h4>
-                <p className="text-xs text-neutral-500 max-w-xs mx-auto leading-relaxed">
-                  To save a meeting here, join any live meeting and turn <span className="text-red-400 font-bold">ON</span> the Recording button at the top!
+              <div className="py-16 text-center text-neutral-500 space-y-2">
+                <Grid className="w-10 h-10 text-neutral-700 mx-auto" />
+                <p className="text-xs">No meetings recorded yet.</p>
+                <p className="text-[11px] text-neutral-600">
+                  Tap 'Record' on any active meeting screen to capture a session!
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {userRecordings.map((rec) => (
                   <div
                     key={rec.id}
-                    onClick={() => {
-                      setActivePlaybackRecording(rec);
-                      setIsPlaying(true);
-                    }}
-                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800/80 group cursor-pointer shadow-md hover:border-red-500/60 transition"
+                    onClick={() => setActivePlaybackRecording(rec)}
+                    className="relative aspect-[3/4] bg-neutral-900 rounded-xl overflow-hidden group cursor-pointer border border-neutral-800 hover:border-red-500/60 transition shadow-md"
                   >
-                    {/* Thumbnail Image */}
                     <img
                       src={rec.thumbnailUrl}
                       alt={rec.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
-
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/60 pointer-events-none" />
-
-                    {/* Top Badge: Meeting Token */}
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-md border border-neutral-700/60 text-[10px] font-mono text-red-400 font-bold">
-                      <span>{rec.meetingToken}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-mono text-red-400 border border-red-950">
+                      {rec.meetingToken}
                     </div>
-
-                    {/* Top Right: Favorite Love Pill */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleFavoriteRecording(rec.id);
-                        showToast(rec.isFavorited ? 'Removed from favorites' : 'Added to favorites ❤️');
-                      }}
-                      className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/60 hover:bg-black text-white backdrop-blur-md transition active:scale-90"
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${rec.isFavorited ? 'fill-red-500 text-red-500' : 'text-white'}`} />
-                    </button>
-
-                    {/* Bottom Info: Duration & Views */}
-                    <div className="absolute bottom-2 left-2 right-2 z-10">
-                      <p className="text-[11px] font-semibold text-white truncate leading-tight mb-1">
-                        {rec.title}
-                      </p>
-                      <div className="flex items-center justify-between text-[10px] text-neutral-300">
-                        <span className="flex items-center gap-1 font-mono">
-                          <Clock className="w-3 h-3 text-neutral-400" />
-                          {rec.duration}
-                        </span>
-                        <span className="flex items-center gap-1 font-mono text-neutral-400">
-                          <Play className="w-2.5 h-2.5 fill-current" />
-                          {rec.views}
-                        </span>
-                      </div>
+                    <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
+                      <span className="flex items-center gap-1">
+                        <Play className="w-3 h-3 fill-current text-red-400" />
+                        {rec.views}
+                      </span>
+                      <span className="font-mono text-neutral-400 text-[9px]">{rec.duration}</span>
                     </div>
                   </div>
                 ))}
@@ -402,61 +386,40 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
         )}
 
-        {/* TAB 2: FAVORITE / LOVE RECORDINGS */}
+        {/* TAB 2: FAVOURITES */}
         {activeTab === 'favorites' && (
-          <div className="p-2 sm:p-3">
+          <div className="p-2">
             {favoriteRecordings.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 px-4">
-                <Heart className="w-12 h-12 text-neutral-700 mx-auto mb-3" />
-                <h4 className="text-sm font-semibold text-neutral-300 mb-1">No Favorite Recordings Yet</h4>
-                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
-                  Tap the heart icon on any recorded meeting to pin it to your favorites list.
+              <div className="py-16 text-center text-neutral-500 space-y-2">
+                <Heart className="w-10 h-10 text-neutral-700 mx-auto" />
+                <p className="text-xs">No favourite meetings saved.</p>
+                <p className="text-[11px] text-neutral-600">
+                  Tap the heart icon on any recording to save it to your favourites.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {favoriteRecordings.map((rec) => (
                   <div
                     key={rec.id}
-                    onClick={() => {
-                      setActivePlaybackRecording(rec);
-                      setIsPlaying(true);
-                    }}
-                    className="relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 group cursor-pointer shadow-md hover:border-red-500/60 transition"
+                    onClick={() => setActivePlaybackRecording(rec)}
+                    className="relative aspect-[3/4] bg-neutral-900 rounded-xl overflow-hidden group cursor-pointer border border-neutral-800 hover:border-red-500/60 transition shadow-md"
                   >
                     <img
                       src={rec.thumbnailUrl}
                       alt={rec.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/60 pointer-events-none" />
-
-                    <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-black/75 backdrop-blur-md px-2 py-0.5 rounded-md border border-neutral-700/60 text-[10px] font-mono text-red-400 font-bold">
-                      <span>{rec.meetingToken}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-mono text-red-400 border border-red-950">
+                      {rec.meetingToken}
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleFavoriteRecording(rec.id);
-                      }}
-                      className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/60 hover:bg-black text-red-500 backdrop-blur-md transition active:scale-90"
-                    >
-                      <Heart className="w-3.5 h-3.5 fill-red-500" />
-                    </button>
-
-                    <div className="absolute bottom-2 left-2 right-2 z-10">
-                      <p className="text-[11px] font-semibold text-white truncate leading-tight mb-1">
-                        {rec.title}
-                      </p>
-                      <div className="flex items-center justify-between text-[10px] text-neutral-300">
-                        <span className="font-mono text-neutral-400">{rec.duration}</span>
-                        <span className="flex items-center gap-1 text-red-400 font-mono">
-                          <Heart className="w-2.5 h-2.5 fill-current" />
-                          {rec.likes}
-                        </span>
-                      </div>
+                    <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                        {rec.likes}
+                      </span>
+                      <span className="font-mono text-neutral-400 text-[9px]">{rec.duration}</span>
                     </div>
                   </div>
                 ))}
@@ -465,85 +428,85 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
         )}
 
-        {/* TAB 3: NOTE LIST BY MEETING FILTER */}
+        {/* TAB 3: NOTE HISTORY (All or Meeting Filter with click-to-view detail) */}
         {activeTab === 'notes' && (
           <div className="p-3 space-y-3">
-            {/* Filter Bar by Meeting Token */}
-            <div className="flex items-center justify-between gap-2 bg-neutral-950 p-2.5 rounded-xl border border-neutral-800">
-              <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+            {/* Meeting Filter Dropdown */}
+            <div className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 flex items-center justify-between gap-2">
+              <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
                 <Filter className="w-3.5 h-3.5 text-amber-400" />
-                <span>Filter by Meeting:</span>
-              </div>
-              <div className="relative">
+                <span>Filter:</span>
+              </label>
+              <div className="relative flex-1 max-w-[220px]">
                 <select
                   id="select-profile-notes-filter"
                   value={selectedNoteMeetingFilter}
                   onChange={(e) => setSelectedNoteMeetingFilter(e.target.value)}
-                  className="bg-neutral-900 border border-neutral-700/80 rounded-lg px-3 py-1 text-xs text-amber-300 font-semibold focus:outline-none focus:border-amber-400 appearance-none pr-6 cursor-pointer"
+                  className="w-full bg-neutral-900 border border-neutral-700/80 rounded-lg px-2.5 py-1 text-xs text-amber-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer truncate"
                 >
-                  <option value="All">All Meetings</option>
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.token}>
-                      {r.token} · {r.title.slice(0, 20)}...
-                    </option>
-                  ))}
+                  <option value="All">🌐 All Meetings ({notes.length} notes)</option>
+                  {rooms.map((r) => {
+                    const count = notes.filter((n) => n.meetingToken === r.token).length;
+                    return (
+                      <option key={r.token} value={r.token}>
+                        {r.token} · {r.title.slice(0, 16)}... ({count})
+                      </option>
+                    );
+                  })}
                 </select>
-                <ChevronDown className="w-3 h-3 text-amber-400 absolute right-1.5 top-2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-amber-400 absolute right-2 top-2 pointer-events-none" />
               </div>
             </div>
 
-            {/* Notes List */}
+            {/* Note List */}
             {filteredNotes.length === 0 ? (
-              <div className="py-12 text-center text-neutral-500">
-                <Bookmark className="w-10 h-10 text-neutral-700 mx-auto mb-2" />
-                <p className="text-xs">No Granola notes found for {selectedNoteMeetingFilter}</p>
+              <div className="py-16 text-center text-neutral-500 space-y-2">
+                <FileText className="w-10 h-10 text-neutral-700 mx-auto" />
+                <p className="text-xs">မှတ်စု မရှိသေးပါ။</p>
+                <p className="text-[11px] text-neutral-600">
+                  Meeting ခန်းအတွင်းရှိ Note ခလုတ်ကို နှိပ်၍ မှတ်စုရေးသားနိုင်ပါသည်။
+                </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {filteredNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="bg-neutral-950 border border-neutral-800 rounded-xl p-3.5 space-y-2.5 shadow-sm"
+                    onClick={() => setSelectedNoteDetail(note)}
+                    className="bg-neutral-950 border border-neutral-800 hover:border-amber-500/60 rounded-xl p-3 space-y-2 shadow-sm transition cursor-pointer group"
                   >
-                    <div className="flex items-center justify-between">
+                    {/* Meeting Title & Category */}
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-red-400">
+                        <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">
                           {note.meetingToken}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-medium">
-                          {note.category}
+                        <span className="text-[11px] text-neutral-400 font-medium truncate max-w-[180px]">
+                          {note.meetingTitle}
                         </span>
                       </div>
-                      <span className="text-[10px] text-neutral-500">{note.timestamp}</span>
+                      <span className="text-[10px] text-neutral-500 shrink-0">{note.timestamp}</span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-white">{note.title}</h4>
-
-                    {/* Key Takeaways */}
-                    <div className="bg-neutral-900/70 rounded-lg p-2 space-y-1">
-                      <p className="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> Granola Key Points:
-                      </p>
-                      <ul className="text-[11px] text-neutral-300 space-y-1 pl-3 list-disc">
-                        {note.keyPoints.map((pt, i) => (
-                          <li key={i}>{pt}</li>
-                        ))}
-                      </ul>
+                    {/* Note Title */}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-white group-hover:text-amber-300 transition">
+                        {note.title}
+                      </h4>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800">
+                        {note.category}
+                      </span>
                     </div>
 
-                    {/* Action button to share to Post */}
-                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-900">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const postText = `📌 Recap from ${note.meetingToken} (${note.title}):\n• ${note.keyPoints.join('\n• ')}`;
-                          onExportToPost(postText);
-                        }}
-                        className="px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-[11px] font-medium text-neutral-300 hover:text-white flex items-center gap-1 transition"
-                      >
-                        <Share2 className="w-3 h-3 text-red-400" />
-                        <span>Export to Post</span>
-                      </button>
+                    {/* Preview snippet */}
+                    <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">
+                      {note.content || (note.keyPoints || []).join(' • ')}
+                    </p>
+
+                    {/* Footer click hint */}
+                    <div className="flex items-center justify-between pt-1 border-t border-neutral-900 text-[10px] text-neutral-500 group-hover:text-amber-400 transition">
+                      <span>Click to view Note History detail</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 ))}
@@ -552,48 +515,49 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
         )}
 
-        {/* TAB 4: SUBTITLES AS CHAT FORMAT WITH SPEAKER NAMES AND LANGUAGE SELECTOR */}
-        {activeTab === 'subtitles' && (
+        {/* TAB 4: CHAT HISTORY (All or Meeting Filter with click-to-view detail) */}
+        {activeTab === 'chats' && (
           <div className="p-3 space-y-3">
             {/* Top Controls: Meeting Filter & Language Selector */}
             <div className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1">
-                  <Filter className="w-3 h-3 text-cyan-400" />
-                  <span>Meeting:</span>
+                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Filter:</span>
                 </label>
-                <div className="relative flex-1 max-w-[200px]">
+                <div className="relative flex-1 max-w-[220px]">
                   <select
-                    id="select-subtitles-meeting-token"
-                    value={selectedSubtitleMeetingFilter}
-                    onChange={(e) => setSelectedSubtitleMeetingFilter(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-700/80 rounded-lg px-2.5 py-1 text-xs text-red-400 font-semibold focus:outline-none appearance-none pr-6 cursor-pointer truncate"
+                    id="select-profile-chat-filter"
+                    value={selectedChatMeetingFilter}
+                    onChange={(e) => setSelectedChatMeetingFilter(e.target.value)}
+                    className="w-full bg-neutral-900 border border-neutral-700/80 rounded-lg px-2.5 py-1 text-xs text-cyan-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer truncate"
                   >
+                    <option value="All">🌐 All Meetings ({recordings.length} sessions)</option>
                     {recordings.map((r) => (
                       <option key={r.id} value={r.meetingToken}>
-                        {r.meetingToken} · {r.title.slice(0, 18)}...
+                        {r.meetingToken} · {r.title.slice(0, 16)}...
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3 h-3 text-red-400 absolute right-2 top-2 pointer-events-none" />
+                  <ChevronDown className="w-3 h-3 text-cyan-400 absolute right-2 top-2 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Language Selector Dropdown */}
+              {/* Language Selector */}
               <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-900">
-                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1">
-                  <MessageSquareCode className="w-3 h-3 text-cyan-400" />
+                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
+                  <MessageSquareCode className="w-3.5 h-3.5 text-cyan-400" />
                   <span>Subtitle Language:</span>
                 </label>
                 <div className="relative">
                   <select
-                    id="select-subtitles-language"
+                    id="select-chat-history-language"
                     value={selectedLanguage}
                     onChange={(e) => {
                       setSelectedLanguage(e.target.value);
-                      showToast(`Language set to ${e.target.value}`);
+                      showToast(`Language: ${e.target.value}`);
                     }}
-                    className="bg-neutral-900 border border-cyan-500/50 rounded-lg px-3 py-1 text-xs text-cyan-300 font-semibold focus:outline-none focus:border-cyan-400 appearance-none pr-6 cursor-pointer"
+                    className="bg-neutral-900 border border-cyan-500/50 rounded-lg px-2.5 py-1 text-xs text-cyan-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer"
                   >
                     {languageOptions.map((lang) => (
                       <option key={lang.code} value={lang.name}>
@@ -606,10 +570,238 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
               </div>
             </div>
 
-            {/* Chat Style Subtitles Container */}
-            <div className="space-y-3 pt-1">
-              {currentSubtitleRecording?.subtitles && currentSubtitleRecording.subtitles.length > 0 ? (
-                currentSubtitleRecording.subtitles.map((sub) => {
+            {/* Chat Sessions List (Meeting-by-meeting or All) */}
+            {filteredChatRecordings.length === 0 ? (
+              <div className="py-16 text-center text-neutral-500 space-y-2">
+                <MessageSquareCode className="w-10 h-10 text-neutral-700 mx-auto" />
+                <p className="text-xs">Chat History မရှိသေးပါ။</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredChatRecordings.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden shadow-sm"
+                  >
+                    {/* Meeting Session Header */}
+                    <div
+                      onClick={() => setSelectedChatDetailRecording(rec)}
+                      className="p-3 bg-neutral-900/80 border-b border-neutral-800/80 flex items-center justify-between cursor-pointer hover:bg-neutral-900 transition"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-1.5 py-0.5 rounded">
+                          {rec.meetingToken}
+                        </span>
+                        <span className="text-xs font-semibold text-white truncate max-w-[180px]">
+                          {rec.title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-medium">
+                        <span>View ({rec.subtitles?.length || 0})</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+
+                    {/* Chat Messages Stream for this Meeting */}
+                    <div className="p-3 space-y-2.5">
+                      {rec.subtitles && rec.subtitles.length > 0 ? (
+                        rec.subtitles.slice(0, 3).map((sub) => {
+                          const translatedText =
+                            sub.textByLang[selectedLanguage] ||
+                            sub.textByLang['English (US)'] ||
+                            Object.values(sub.textByLang)[0] ||
+                            '';
+
+                          return (
+                            <div
+                              key={sub.id}
+                              className={`flex gap-2 items-start ${sub.isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                            >
+                              <img
+                                src={sub.avatar}
+                                alt={sub.speaker}
+                                className="w-7 h-7 rounded-full object-cover shrink-0 border border-neutral-700 mt-0.5"
+                              />
+                              <div
+                                className={`max-w-[80%] rounded-2xl p-2.5 shadow-sm text-xs ${
+                                  sub.isMe
+                                    ? 'bg-red-950/70 border border-red-800/80 text-white rounded-tr-xs'
+                                    : 'bg-neutral-900 border border-neutral-800 text-white rounded-tl-xs'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <span className={`font-bold text-[11px] ${sub.isMe ? 'text-red-300' : 'text-neutral-300'}`}>
+                                    {sub.speaker}
+                                  </span>
+                                  <span className="text-[9px] text-neutral-400 font-mono">{sub.time}</span>
+                                </div>
+                                <p className="leading-relaxed">{translatedText}</p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-xs text-neutral-500 text-center py-2">No messages recorded</p>
+                      )}
+
+                      {rec.subtitles && rec.subtitles.length > 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedChatDetailRecording(rec)}
+                          className="w-full py-1.5 text-center text-[11px] text-cyan-400 hover:underline cursor-pointer"
+                        >
+                          View all {rec.subtitles.length} messages...
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 5. INDIVIDUAL NOTE HISTORY DETAIL MODAL */}
+      {selectedNoteDetail && (
+        <div
+          id="note-detail-modal-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 animate-in fade-in"
+          onClick={() => setSelectedNoteDetail(null)}
+        >
+          <div
+            id="note-detail-modal-container"
+            className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden text-white shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-3.5 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">
+                  {selectedNoteDetail.meetingToken}
+                </span>
+                <span className="text-xs text-neutral-300 truncate max-w-[180px]">
+                  {selectedNoteDetail.meetingTitle}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedNoteDetail(null)}
+                className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 space-y-3 overflow-y-auto flex-1">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                    {selectedNoteDetail.category}
+                  </span>
+                  <span className="text-[10px] text-neutral-500">{selectedNoteDetail.timestamp}</span>
+                </div>
+                <h3 className="text-base font-bold text-white mt-1.5">{selectedNoteDetail.title}</h3>
+              </div>
+
+              {/* Note Content / Key Points */}
+              <div className="bg-neutral-900/70 border border-neutral-800 rounded-xl p-3 space-y-2">
+                <h5 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Note Content &amp; Points:</span>
+                </h5>
+
+                {selectedNoteDetail.keyPoints && selectedNoteDetail.keyPoints.length > 0 ? (
+                  <ul className="space-y-1.5 text-xs text-neutral-200 leading-relaxed pl-1">
+                    {selectedNoteDetail.keyPoints.map((pt, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5">•</span>
+                        <span>{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-neutral-200 whitespace-pre-wrap leading-relaxed">
+                    {selectedNoteDetail.content}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-3 bg-neutral-900/80 border-t border-neutral-800 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleCopyText(
+                    `${selectedNoteDetail.title} (${selectedNoteDetail.meetingToken}):\n\n${(selectedNoteDetail.keyPoints || []).map((p) => `• ${p}`).join('\n') || selectedNoteDetail.content}`,
+                    selectedNoteDetail.id
+                  )
+                }
+                className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+              >
+                {copiedId === selectedNoteDetail.id ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+                <span>Copy</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const postContent = `📝 Note from ${selectedNoteDetail.meetingToken} (${selectedNoteDetail.title}):\n• ${(selectedNoteDetail.keyPoints || []).join('\n• ')}`;
+                  onExportToPost(postContent);
+                  setSelectedNoteDetail(null);
+                  showToast('📤 Exported to Post!');
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center gap-1.5 transition"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Export to Post</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. INDIVIDUAL CHAT HISTORY DETAIL MODAL */}
+      {selectedChatDetailRecording && (
+        <div
+          id="chat-detail-modal-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 animate-in fade-in"
+          onClick={() => setSelectedChatDetailRecording(null)}
+        >
+          <div
+            id="chat-detail-modal-container"
+            className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden text-white shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-3.5 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-2 py-0.5 rounded">
+                  {selectedChatDetailRecording.meetingToken}
+                </span>
+                <span className="text-xs text-neutral-300 truncate max-w-[180px]">
+                  {selectedChatDetailRecording.title}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedChatDetailRecording(null)}
+                className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Chat list */}
+            <div className="p-4 space-y-3 overflow-y-auto flex-1">
+              {selectedChatDetailRecording.subtitles && selectedChatDetailRecording.subtitles.length > 0 ? (
+                selectedChatDetailRecording.subtitles.map((sub) => {
                   const translatedText =
                     sub.textByLang[selectedLanguage] ||
                     sub.textByLang['English (US)'] ||
@@ -623,42 +815,29 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       key={sub.id}
                       className={`flex gap-2.5 items-start ${sub.isMe ? 'flex-row-reverse' : 'flex-row'}`}
                     >
-                      {/* Speaker Avatar */}
                       <img
                         src={sub.avatar}
                         alt={sub.speaker}
-                        className="w-8 h-8 rounded-full object-cover shrink-0 border border-neutral-700/80 mt-0.5"
+                        className="w-8 h-8 rounded-full object-cover shrink-0 border border-neutral-700 mt-0.5"
                       />
-
-                      {/* Chat Bubble with Speaker Name & Timestamp */}
                       <div
                         className={`max-w-[80%] rounded-2xl p-3 shadow-md ${
                           sub.isMe
                             ? 'bg-red-950/70 border border-red-800/80 text-white rounded-tr-xs'
-                            : 'bg-neutral-900/90 border border-neutral-800 text-white rounded-tl-xs'
+                            : 'bg-neutral-900 border border-neutral-800 text-white rounded-tl-xs'
                         }`}
                       >
-                        {/* Header: Name, Tag, Time */}
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className={`text-xs font-bold ${sub.isMe ? 'text-red-300' : 'text-neutral-200'}`}>
                             {sub.speaker}
                           </span>
-                          <div className="flex items-center gap-1.5">
-                            {sub.tag && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-cyan-950/80 text-cyan-300 border border-cyan-800 font-mono">
-                                {sub.tag}
-                              </span>
-                            )}
-                            <span className="text-[10px] text-neutral-400 font-mono">{sub.time}</span>
-                          </div>
+                          <span className="text-[10px] text-neutral-400 font-mono">{sub.time}</span>
                         </div>
 
-                        {/* Subtitle Text in Selected Language */}
                         <p className="text-xs text-neutral-100 leading-relaxed font-sans">
                           {translatedText}
                         </p>
 
-                        {/* Audio Simulation Preview Button */}
                         <div className="flex items-center justify-end gap-2 mt-2 pt-1 border-t border-white/5">
                           <button
                             type="button"
@@ -690,17 +869,24 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                   );
                 })
               ) : (
-                <div className="py-12 text-center text-neutral-500">
-                  <MessageSquareCode className="w-10 h-10 text-neutral-700 mx-auto mb-2" />
-                  <p className="text-xs">No subtitle transcript recorded for this meeting.</p>
-                </div>
+                <p className="text-xs text-neutral-500 text-center py-10">No messages in this chat history.</p>
               )}
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* 5. EDIT PROFILE MODAL */}
+            <div className="p-3 bg-neutral-900/80 border-t border-neutral-800 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedChatDetailRecording(null)}
+                className="px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. EDIT PROFILE MODAL */}
       {isEditProfileOpen && (
         <div
           id="edit-profile-modal-backdrop"
@@ -793,7 +979,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 <button
                   id="btn-save-profile"
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition shadow-lg shadow-red-950/50"
+                  className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition shadow-lg shadow-red-950/50 cursor-pointer"
                 >
                   Save Profile
                 </button>
@@ -803,7 +989,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
         </div>
       )}
 
-      {/* 6. INTERACTIVE VIDEO PLAYBACK MODAL */}
+      {/* 8. INTERACTIVE VIDEO PLAYBACK MODAL */}
       {activePlaybackRecording && (
         <div
           id="video-playback-modal-backdrop"
@@ -843,10 +1029,8 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 className="w-full h-full object-cover opacity-80"
               />
 
-              {/* Scanning WebRTC lines */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/10 to-transparent animate-pulse pointer-events-none" />
 
-              {/* Center Play/Pause button */}
               <button
                 type="button"
                 onClick={() => setIsPlaying(!isPlaying)}
@@ -855,13 +1039,15 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
               </button>
 
-              {/* Progress timeline bar */}
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
-                <div className="w-full bg-neutral-700/60 h-1.5 rounded-full overflow-hidden cursor-pointer" onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const clickX = e.clientX - rect.left;
-                  setPlaybackProgress(Math.max(5, Math.min(95, Math.round((clickX / rect.width) * 100))));
-                }}>
+                <div
+                  className="w-full bg-neutral-700/60 h-1.5 rounded-full overflow-hidden cursor-pointer"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    setPlaybackProgress(Math.max(5, Math.min(95, Math.round((clickX / rect.width) * 100))));
+                  }}
+                >
                   <div className="bg-red-500 h-full rounded-full transition-all" style={{ width: `${playbackProgress}%` }} />
                 </div>
                 <div className="flex items-center justify-between text-[9px] text-neutral-400 font-mono mt-1">
@@ -873,7 +1059,6 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
             {/* Playback Content Details & Actions */}
             <div className="p-3.5 space-y-3 overflow-y-auto max-h-[300px]">
-              {/* Action Bar */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button
@@ -920,11 +1105,11 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 </div>
               </div>
 
-              {/* Granola Notes Recap */}
+              {/* Notes Recap */}
               {activePlaybackRecording.notes && activePlaybackRecording.notes.length > 0 && (
                 <div className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-2.5 space-y-1">
                   <p className="text-[10px] text-amber-400 font-bold flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Granola AI Summary Points:
+                    <FileText className="w-3 h-3" /> Meeting Notes Recap:
                   </p>
                   <ul className="text-[11px] text-neutral-300 space-y-1 pl-3 list-disc">
                     {activePlaybackRecording.notes.map((note, i) => (

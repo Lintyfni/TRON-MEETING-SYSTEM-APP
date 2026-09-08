@@ -9,38 +9,18 @@ export interface MeetingRoom {
   isLive?: boolean;
 }
 
-export interface GranolaTranscriptLine {
-  id: string;
-  speaker: string;
-  timestamp: string;
-  text: string;
-  sentiment?: 'key-insight' | 'decision' | 'action' | 'normal';
-}
-
-export interface GranolaActionItem {
-  id: string;
-  task: string;
-  assignee: string;
-  status: 'todo' | 'completed';
-}
-
 export interface MeetingNote {
   id: string;
   meetingToken: string;
   meetingTitle: string;
   title: string;
-  category: 'Decisions' | 'Action Items' | 'Tech Insights' | 'Summary';
+  category?: 'Decisions' | 'Action Items' | 'Tech Insights' | 'Summary' | 'General';
+  content?: string;
   keyPoints: string[];
-  whisperSTTQuote?: string;
   speaker?: string;
   timestamp: string;
   tags?: string[];
-  // Granola Engine AI Features
-  granolaSummary?: string;
-  transcriptHistory?: GranolaTranscriptLine[];
-  keyDecisions?: string[];
-  actionItems?: GranolaActionItem[];
-  granolaEngineStatus?: 'Listening' | 'Synthesized' | 'Live';
+  author?: string;
 }
 
 export interface PostItem {
@@ -74,9 +54,11 @@ export interface UserSettings {
   mirrorMyVideo: boolean;
   noiseSuppression: boolean;
   enableVirtualBackground: boolean;
-  virtualBackgroundType: 'studio' | 'blur' | 'cyberpunk' | 'office';
+  virtualBackgroundType: 'studio' | 'blur' | 'cyberpunk' | 'office' | 'library' | 'custom';
+  virtualBackgroundCustomImage?: string;
   chatFilter: 'all' | 'token';
-  whisperLanguage: string;
+  subtitleLanguage?: string;
+  whisperLanguage?: string; // Kept for backwards compatibility
 }
 
 export interface UserProfile {
