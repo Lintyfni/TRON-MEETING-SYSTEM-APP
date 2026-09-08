@@ -123,6 +123,26 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   // Per-participant subtitle toggle (default OFF for all speakers as requested)
   const [userSubtitlesActive, setUserSubtitlesActive] = useState<Record<string, boolean>>({});
 
+  // Poked users tracking & playful private poke state
+  const [pokedUsers, setPokedUsers] = useState<Record<string, { timestamp: number; count: number }>>({});
+  const [lastPokedUser, setLastPokedUser] = useState<string | null>(null);
+
+  const handlePokeUser = (targetUser: string) => {
+    setPokedUsers((prev) => {
+      const current = prev[targetUser] || { timestamp: 0, count: 0 };
+      return {
+        ...prev,
+        [targetUser]: { timestamp: Date.now(), count: current.count + 1 },
+      };
+    });
+    setLastPokedUser(targetUser);
+
+    // Reset visual floating poke icon after 2 seconds
+    setTimeout(() => {
+      setLastPokedUser((prev) => (prev === targetUser ? null : prev));
+    }, 2000);
+  };
+
   // Floating feedback toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -531,11 +551,18 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
             {visibleUsers.map((user, idx) => {
               const isSpeaker = speakingUser === user;
               const isHost = user === room.host;
-              const isMe = isHost || user === userProfile.name || user.toLowerCase().includes('aung') || user.includes('(Me)');
+              const isMe =
+                user === userProfile.name ||
+                user === 'Aung Myint' ||
+                user === 'Aung Aung' ||
+                user.toLowerCase().includes('aung') ||
+                user.includes('(Me)');
               const isLocalWebcam = isMe && isCameraOn && localStream;
-              const isUserListening = !mutedListeningUsers[user];
-              // Subtitles OFF by default as requested
-              const isUserSubtitlesOn = Boolean(userSubtitlesActive[user]);
+              const isUserListening = isMe ? isMicOn : !mutedListeningUsers[user];
+              // Subtitles only active for self when enabled
+              const isUserSubtitlesOn = isMe
+                ? Boolean(userSubtitlesActive[user] ?? userSubtitlesActive[userProfile.name] ?? userSubtitlesActive['Aung Myint'])
+                : false;
               const userOffset = user.charCodeAt(0) % currentSubtitlesList.length;
               const userSubtitleText = currentSubtitlesList[(subtitlesIndex + userOffset) % currentSubtitlesList.length];
 
@@ -704,25 +731,27 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         )}
                       </button>
 
-                      {/* Waveform Equalizer when speaking & listening vs Audio Muted Badge */}
-                      {isUserListening ? (
-                        <div className="mt-2 flex items-center gap-1 h-3">
-                          <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-3 animate-pulse' : 'h-1 opacity-40'}`} />
-                          <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-4 animate-bounce' : 'h-1 opacity-40'}`} />
-                          <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-2 animate-pulse' : 'h-1 opacity-40'}`} />
-                          <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-3.5 animate-bounce' : 'h-1 opacity-40'}`} />
-                        </div>
-                      ) : (
-                        <div className="mt-2 flex items-center gap-1 bg-red-950/80 border border-red-800/80 px-2 py-0.5 rounded-full text-[9px] text-red-300 font-mono">
-                          <MicOff className="w-2.5 h-2.5" />
-                          <span>AUDIO MUTED</span>
-                        </div>
-                      )}
+                      {/* Waveform Equalizer when speaking */}
+                      <div className="mt-2 flex items-center gap-1 h-3">
+                        <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-3 animate-pulse' : 'h-1 opacity-40'}`} />
+                        <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-4 animate-bounce' : 'h-1 opacity-40'}`} />
+                        <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-2 animate-pulse' : 'h-1 opacity-40'}`} />
+                        <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-3.5 animate-bounce' : 'h-1 opacity-40'}`} />
+                      </div>
                     </div>
                   )}
 
-                  {/* Floating Live Subtitle Bubble inside speaker cell (when subtitles on for this user) */}
-                  {isUserSubtitlesOn && isTranscribeOn && (
+                  {/* Playful Private Poke Animation Overlay: Floating swirl/bounce icon only, NO text */}
+                  {lastPokedUser === user && !isMe && (
+                    <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+                      <div className="text-6xl animate-bounce drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)] animate-in zoom-in-50 duration-200">
+                        👉
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Floating Live Subtitle Bubble inside speaker cell (when subtitles on for Me) */}
+                  {isMe && isUserSubtitlesOn && isTranscribeOn && (
                     <div
                       id={`bubble-subtitles-${user.replace(/\s+/g, '-').toLowerCase()}`}
                       className="absolute bottom-11 left-2 right-2 z-20 p-2 rounded-xl bg-black/85 backdrop-blur-md border border-cyan-500/50 text-white shadow-xl animate-in fade-in slide-in-from-bottom-1 pointer-events-none"
@@ -742,66 +771,112 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                     </div>
                   )}
 
-                  {/* Top-Right Quick Direct Chat Button (Only for other participants) */}
-                  {!isMe && (
-                    <button
-                      id={`btn-corner-chat-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenDirectChat(user);
-                      }}
-                      className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/70 hover:bg-red-600 active:scale-90 text-neutral-300 hover:text-white px-2 py-0.5 rounded-full border border-neutral-700/60 text-[10px] font-medium backdrop-blur-md transition shadow-md cursor-pointer"
-                      title={`Direct 1-on-1 Chat with ${user}`}
-                    >
-                      <MessageSquare className="w-3 h-3 text-red-400 group-hover:text-white" />
-                      <span>Chat</span>
-                    </button>
-                  )}
+                  {/* Corner Controls: Differentiated between "Me" and "Other Users" */}
+                  {isMe ? (
+                    /* For Me: LIVE + My Mic Toggle + My Subtitle Toggle + My Cam Toggle (Directly toggleable from screen tile) */
+                    <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5">
+                      <div className="hidden sm:flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 text-[9px] text-emerald-400 font-mono">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        ME
+                      </div>
 
-                  {/* Corner Status: LIVE + Interactive Mic listening on/off + Subtitle on/off */}
-                  <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1">
-                    <div className="hidden sm:flex items-center gap-1 bg-black/70 backdrop-blur-md px-1.5 py-0.5 rounded-full border border-white/10 text-[9px] text-emerald-400 font-mono">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      LIVE
+                      {/* 1. Mic Mute / Unmute for Myself */}
+                      <button
+                        id="btn-my-tile-mic"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMicOn((prev) => {
+                            const next = !prev;
+                            setToastMessage(next ? '🎙️ Mic ON (မိမိအသံ ဖွင့်လိုက်ပါပြီ)' : '🔇 Mic Muted (မိမိအသံ ပိတ်လိုက်ပါပြီ)');
+                            setTimeout(() => setToastMessage(null), 2000);
+                            return next;
+                          });
+                        }}
+                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
+                          isMicOn
+                            ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500 shadow-sm hover:bg-emerald-900 ring-1 ring-emerald-500/30'
+                            : 'bg-red-950/90 text-red-400 border-red-800 hover:bg-red-900 ring-1 ring-red-500/30'
+                        }`}
+                        title={isMicOn ? 'My Mic ON - Click to Mute (မိမိအသံပိတ်ရန်)' : 'My Mic MUTED - Click to Unmute (မိမိအသံဖွင့်ရန်)'}
+                      >
+                        {isMicOn ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+                      </button>
+
+                      {/* 2. Subtitle Toggle for Myself */}
+                      <button
+                        id="btn-my-tile-subtitles"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUserSubtitlesActive((prev) => {
+                            const current = Boolean(prev[user] ?? prev[userProfile.name] ?? prev['Aung Myint']);
+                            const next = !current;
+                            setToastMessage(next ? '💬 My Subtitles ON (စာတန်းဖွင့်ပါပြီ)' : '💬 My Subtitles OFF (စာတန်းပိတ်ပါပြီ)');
+                            setTimeout(() => setToastMessage(null), 2000);
+                            return { ...prev, [user]: next, [userProfile.name]: next, 'Aung Myint': next };
+                          });
+                        }}
+                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
+                          isUserSubtitlesOn
+                            ? 'bg-cyan-950/90 text-cyan-300 border-cyan-500/70 shadow-sm hover:bg-cyan-900 ring-1 ring-cyan-500/30'
+                            : 'bg-black/70 text-neutral-400 border-neutral-700/60 hover:text-white'
+                        }`}
+                        title={isUserSubtitlesOn ? 'My Subtitles ON - Click to Turn Off (စာတန်းပိတ်မည်)' : 'My Subtitles OFF - Click to Turn On (စာတန်းဖွင့်မည်)'}
+                      >
+                        <Subtitles className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* 3. Cam Toggle right next to Subtitle - Toggles live camera directly from user tile! */}
+                      <button
+                        id="btn-my-tile-cam"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleCamera();
+                        }}
+                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
+                          isCameraOn
+                            ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500 shadow-sm hover:bg-emerald-900 ring-1 ring-emerald-500/30'
+                            : 'bg-red-950/90 text-red-400 border-red-800 hover:bg-red-900 ring-1 ring-red-500/30'
+                        }`}
+                        title={isCameraOn ? 'My Camera ON - Click to Turn Off (Camera ပိတ်မည်)' : 'My Camera OFF - Click to Turn On (Camera ဖွင့်မည်)'}
+                      >
+                        {isCameraOn ? <VideoIcon className="w-3.5 h-3.5" /> : <VideoOff className="w-3.5 h-3.5" />}
+                      </button>
                     </div>
+                  ) : (
+                    /* For Other Participants: ONLY Chat icon and Poke icon! NO text labels */
+                    <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5">
+                      {/* 1. Chat icon only */}
+                      <button
+                        id={`btn-tile-chat-${user.replace(/\s+/g, '-').toLowerCase()}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDirectChat(user);
+                        }}
+                        className="p-1.5 rounded-full bg-black/80 hover:bg-red-600 active:scale-90 text-neutral-200 hover:text-white border border-neutral-700/80 hover:border-red-500 backdrop-blur-md transition shadow-md cursor-pointer flex items-center justify-center group"
+                        title={`Chat with ${user}`}
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-red-400 group-hover:text-white transition" />
+                      </button>
 
-                    {/* Interactive Mic Listening Button (on/off per participant) */}
-                    <button
-                      id={`btn-mic-listen-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleUserListening(user);
-                      }}
-                      className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 ${
-                        isUserListening
-                          ? 'bg-emerald-950/85 text-emerald-400 border-emerald-600/70 hover:bg-emerald-900 shadow-sm'
-                          : 'bg-red-950/90 text-red-400 border-red-800 hover:bg-red-900'
-                      }`}
-                      title={isUserListening ? `Listening to ${user} - Click to Mute` : `Muted ${user} - Click to Listen`}
-                    >
-                      {isUserListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
-                    </button>
-
-                    {/* Subtitle On/Off Button right next to Mic */}
-                    <button
-                      id={`btn-subtitles-toggle-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleUserSubtitles(user);
-                      }}
-                      className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 ${
-                        isUserSubtitlesOn
-                          ? 'bg-cyan-950/90 text-cyan-300 border-cyan-500/70 shadow-sm hover:bg-cyan-900'
-                          : 'bg-black/70 text-neutral-400 border-neutral-700/60 hover:text-white'
-                      }`}
-                      title={isUserSubtitlesOn ? `Subtitles ON for ${user} - Click to Turn Off` : `Subtitles OFF for ${user} - Click to Turn On`}
-                    >
-                      <Subtitles className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                      {/* 2. Poke icon only */}
+                      <button
+                        id={`btn-tile-poke-${user.replace(/\s+/g, '-').toLowerCase()}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePokeUser(user);
+                        }}
+                        className="p-1.5 rounded-full bg-black/80 hover:bg-amber-600 active:scale-90 text-neutral-200 hover:text-white border border-neutral-700/80 hover:border-amber-500 backdrop-blur-md transition shadow-md cursor-pointer flex items-center justify-center group"
+                        title={`Poke ${user}`}
+                      >
+                        <span className="text-sm leading-none group-hover:scale-125 transition-transform duration-150">👉</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -868,51 +943,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
       {/* 3. RIGHT OVERLAY: TikTok Action Buttons */}
       <div className="absolute right-3 bottom-24 z-30 flex flex-col items-center gap-3">
-        {/* Mic Toggle - Master toggle: Off mutes all user mics, On activates all user mics */}
-        <button
-          id="btn-tile-mic"
-          type="button"
-          onClick={handleToggleGlobalMic}
-          className="flex flex-col items-center group cursor-pointer"
-          title={isMicOn ? "All Mics Active - Click to Mute All" : "Muted - Click to Activate All Mics"}
-        >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-md transition shadow-lg ${
-              isMicOn
-                ? 'bg-black/65 text-emerald-400 border border-emerald-500/50 hover:bg-neutral-800'
-                : 'bg-red-600 text-white border border-red-500 shadow-red-900/50'
-            }`}
-          >
-            {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-          </div>
-          <span className="text-[10px] font-medium text-white/90 mt-1 drop-shadow-sm">
-            {isMicOn ? 'Mic' : 'Muted'}
-          </span>
-        </button>
-
-        {/* Cam Toggle: Off hides user screen, On opens camera & shows face */}
-        <button
-          id="btn-tile-cam"
-          type="button"
-          onClick={handleToggleCamera}
-          className="flex flex-col items-center group cursor-pointer"
-          title={isCameraOn ? "Camera ON - Click to Turn Off Screen" : "Camera OFF - Click to Turn On Camera"}
-        >
-          <div
-            className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-md transition shadow-lg ${
-              isCameraOn
-                ? 'bg-black/65 text-emerald-400 border border-emerald-500/50 hover:bg-neutral-800'
-                : 'bg-red-600 text-white border border-red-500 shadow-red-900/50'
-            }`}
-          >
-            {isCameraOn ? <VideoIcon className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-          </div>
-          <span className="text-[10px] font-medium text-white/90 mt-1 drop-shadow-sm">
-            {isCameraOn ? 'Cam' : 'Off'}
-          </span>
-        </button>
-
-        {/* Share Meeting Link Button (Between Cam and Note) */}
+        {/* Share Meeting Link Button */}
         <button
           id="btn-tile-share"
           type="button"

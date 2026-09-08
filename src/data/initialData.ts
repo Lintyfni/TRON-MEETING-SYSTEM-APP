@@ -444,8 +444,8 @@ export const initialRooms: MeetingRoom[] = [
     id: 'room_1',
     token: '#MEET-9021',
     title: 'Tech AI & Granola Engine Discussion',
-    host: 'Aung Aung',
-    participants: ['Aung Aung', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
+    host: 'Aung Myint',
+    participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
     keyPoints: [
       'Granola AI integration for real-time speech translation and notes',
       'Multi-user Video Filter for dynamic participant focus',
@@ -459,7 +459,7 @@ export const initialRooms: MeetingRoom[] = [
     token: '#MEET-4412',
     title: 'Crypto Market & Web3 Meetup',
     host: 'David',
-    participants: ['David', 'Alex', 'John'],
+    participants: ['David', 'Alex', 'John', 'Aung Myint'],
     keyPoints: [
       'Solana meme coin liquidity pool analysis',
       'Smart contract automated rebalancing protocol',
@@ -473,7 +473,7 @@ export const initialRooms: MeetingRoom[] = [
     token: '#MEET-8833',
     title: 'Design System & UI/UX Sprint',
     host: 'Elena',
-    participants: ['Elena', 'Marcus', 'Chloe', 'Su Su'],
+    participants: ['Elena', 'Marcus', 'Chloe', 'Aung Myint'],
     keyPoints: [
       'Dark OLED UI contrast & mobile ergonomics',
       'Fluid vertical swipe gesture physics',
