@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  Home,
   Mic,
   MicOff,
   Video as VideoIcon,
@@ -18,13 +19,23 @@ import {
   Plus,
   Edit3,
   X,
-  Share2
+  Share2,
+  Users,
+  Shield,
+  Smile,
+  PhoneOff,
+  Hand
 } from 'lucide-react';
-import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile } from '../types';
+import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile, ParticipantState } from '../types';
 import { MultiFilterDialog } from './MultiFilterDialog';
 import { GranolaNotesModal } from './GranolaNotesModal';
 import { MeetingChatModal } from './MeetingChatModal';
 import { TikTokCommentsModal } from './TikTokCommentsModal';
+import { ZoomParticipantsDrawer } from './ZoomParticipantsDrawer';
+import { ZoomSecurityModal } from './ZoomSecurityModal';
+import { ZoomAiCompanionModal } from './ZoomAiCompanionModal';
+import { ZoomReactionsTray } from './ZoomReactionsTray';
+import { api } from '../services/api';
 import { languageOptions, initialUserProfile, virtualBackgroundPresets } from '../data/initialData';
 
 interface MeetingRoomTileProps {
@@ -47,6 +58,7 @@ interface MeetingRoomTileProps {
   isRecording?: boolean;
   onToggleRecording?: (token: string, isStart: boolean, durationSec?: number) => void;
   onOpenProfile?: () => void;
+  onBackToHome?: () => void;
   comments?: Record<string, MeetingComment[]>;
   userProfile?: UserProfile;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
@@ -79,6 +91,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   isRecording = false,
   onToggleRecording,
   onOpenProfile,
+  onBackToHome,
   comments = {},
   userProfile = initialUserProfile,
   onAddComment,
@@ -122,6 +135,44 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
   // Per-participant subtitle toggle (default OFF for all speakers as requested)
   const [userSubtitlesActive, setUserSubtitlesActive] = useState<Record<string, boolean>>({});
+
+  // Zoom Standard Features State
+  const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [isAiCompanionModalOpen, setIsAiCompanionModalOpen] = useState(false);
+  const [isReactionsTrayOpen, setIsReactionsTrayOpen] = useState(false);
+  const [isHandRaised, setIsHandRaised] = useState(false);
+  const [showEndMeetingDialog, setShowEndMeetingDialog] = useState(false);
+  const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
+
+  // Screen Sharing State
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+
+  // Synchronized Room Participants State with Backend
+  const [participantsList, setParticipantsList] = useState<ParticipantState[]>(() => {
+    return room.participants.map((name) => ({
+      name,
+      role: name === room.host ? 'host' : 'participant',
+      isAudioMuted: name !== room.host,
+      isVideoMuted: false,
+      isHandRaised: false,
+    }));
+  });
+
+  // Fetch live participants from backend API
+  useEffect(() => {
+    let isMounted = true;
+    api.fetchRoomParticipants(room.token).then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setParticipantsList(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [room.token]);
 
   // Check if current user is the room host (supports profile edit sync)
   const isHostMe =
@@ -297,6 +348,115 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         : '🚫 Camera Turned OFF (Your Screen Hidden)'
     );
     setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  // ZOOM SCREEN SHARING
+  const handleStartScreenShare = async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        screenStreamRef.current = stream;
+        setScreenStream(stream);
+        setIsScreenSharing(true);
+        setToastMessage('🖥️ Screen Sharing Started');
+        stream.getVideoTracks()[0].onended = () => {
+          handleStopScreenShare();
+        };
+      } else {
+        // Presentation window mode if display media blocked by browser context
+        setIsScreenSharing(true);
+        setToastMessage('🖥️ Presentation Screen Mode Active');
+      }
+    } catch (err) {
+      console.warn('Screen share cancelled or restricted, enabling interactive presentation window:', err);
+      setIsScreenSharing(true);
+      setToastMessage('🖥️ Presentation Screen Mode Active');
+    }
+    setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  const handleStopScreenShare = () => {
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach((track) => track.stop());
+      screenStreamRef.current = null;
+    }
+    setScreenStream(null);
+    setIsScreenSharing(false);
+    setToastMessage('🛑 Screen Sharing Stopped');
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  // ZOOM REACTIONS & RAISE HAND
+  const handleToggleRaiseHand = () => {
+    const nextHand = !isHandRaised;
+    setIsHandRaised(nextHand);
+    setToastMessage(nextHand ? '✋ Hand Raised! (လက်ထောင်ထားသည်)' : 'Hand Lowered (လက်ပြန်ချသည်)');
+    api.updateParticipantState(room.token, userProfile.name, { isHandRaised: nextHand });
+    setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  const handleSelectReaction = (emoji: string) => {
+    const newReaction = {
+      id: Date.now() + Math.random(),
+      emoji,
+      x: (Math.random() - 0.5) * 60,
+    };
+    setFloatingReactions((prev) => [...prev, newReaction]);
+    api.sendReaction(room.token, emoji, userProfile.name);
+    setTimeout(() => {
+      setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
+    }, 2500);
+  };
+
+  // ZOOM HOST MODERATION & SECURITY
+  const handleMuteAll = () => {
+    api.updateRoomSettings(room.token, { muteAll: true });
+    setParticipantsList((prev) =>
+      prev.map((p) => (p.role !== 'host' ? { ...p, isAudioMuted: true } : p))
+    );
+    setToastMessage('🔇 Host Muted All Participants');
+    setTimeout(() => setToastMessage(null), 2200);
+  };
+
+  const handleMuteParticipant = (name: string) => {
+    api.updateParticipantState(room.token, name, { isAudioMuted: true });
+    setParticipantsList((prev) =>
+      prev.map((p) => (p.name === name ? { ...p, isAudioMuted: true } : p))
+    );
+    setToastMessage(`🔇 Muted ${name}`);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  const handleUnmuteParticipant = (name: string) => {
+    api.updateParticipantState(room.token, name, { isAudioMuted: false });
+    setParticipantsList((prev) =>
+      prev.map((p) => (p.name === name ? { ...p, isAudioMuted: false } : p))
+    );
+    setToastMessage(`🎙️ Asked ${name} to unmute`);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  const handleLowerParticipantHand = (name: string) => {
+    api.updateParticipantState(room.token, name, { isHandRaised: false });
+    setParticipantsList((prev) =>
+      prev.map((p) => (p.name === name ? { ...p, isHandRaised: false } : p))
+    );
+  };
+
+  const handleRemoveParticipant = (name: string) => {
+    api.removeParticipant(room.token, name);
+    setParticipantsList((prev) => prev.filter((p) => p.name !== name));
+    setToastMessage(`🚪 Removed ${name} from room`);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  const handleSecurityUpdate = (updates: Partial<MeetingRoom> & { muteAll?: boolean }) => {
+    api.updateRoomSettings(room.token, updates);
+    if (updates.muteAll) {
+      handleMuteAll();
+    }
+    setToastMessage('🛡️ Meeting Security Settings Updated');
+    setTimeout(() => setToastMessage(null), 2000);
   };
 
   // Active speaker cycling simulation
@@ -553,6 +713,77 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
             >
               Reset to All
             </button>
+          </div>
+        ) : isScreenSharing ? (
+          <div className="w-full h-full relative rounded-2xl overflow-hidden bg-neutral-950 flex flex-col border border-emerald-500/40 shadow-2xl">
+            {/* Top Green Zoom Banner */}
+            <div className="bg-emerald-950/90 border-b border-emerald-500/50 px-4 py-2 flex items-center justify-between text-xs text-white z-30 backdrop-blur-md">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="font-bold text-emerald-300">You are sharing your screen (Zoom Stage)</span>
+                <span className="text-neutral-400 hidden sm:inline">| {room.token}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleStopScreenShare}
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 active:scale-95 rounded-full text-xs font-bold text-white shadow-lg transition cursor-pointer border border-red-400/50"
+              >
+                Stop Share
+              </button>
+            </div>
+
+            {/* Screen Content */}
+            <div className="flex-1 relative flex items-center justify-center bg-neutral-900 overflow-hidden">
+              {screenStream ? (
+                <video
+                  ref={(el) => {
+                    if (el && screenStream) {
+                      el.srcObject = screenStream;
+                      el.play().catch(() => {});
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="p-8 text-center space-y-3">
+                  <div className="w-16 h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center mx-auto text-emerald-400 shadow-xl">
+                    <Share2 className="w-8 h-8 animate-pulse" />
+                  </div>
+                  <h4 className="font-bold text-base text-white">Live Presentation Mode Active</h4>
+                  <p className="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                    Broadcasting interactive screen &amp; slides to {participantsList.length} participants in {room.token}.
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-800/80 border border-neutral-700 text-[11px] text-neutral-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span>HD 1080p Stream Active</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Floating Participant Video PIP */}
+              <div className="absolute top-4 right-4 z-20 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden bg-neutral-900/90 border border-neutral-700 shadow-2xl backdrop-blur-md">
+                {isCameraOn && localStream ? (
+                  <video
+                    ref={handleVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
+                    <img src={userProfile.avatar} alt="Me" className="w-8 h-8 rounded-full mb-1 object-cover" />
+                    <span className="text-[10px] text-neutral-300 font-medium truncate">{userProfile.name}</span>
+                  </div>
+                )}
+                <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[8px] text-white">
+                  You
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div
@@ -953,6 +1184,17 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
       {/* 2. TOP OVERLAY: Current Group Chat / Meeting Title & Number Button (Click to Edit) + Recording Button */}
       {/* (Old MEET row completely removed from top feed as requested; original selectors preserved in Note/Chat modals) */}
       <div className="relative z-30 pt-3 px-3 flex items-center justify-between gap-2 pointer-events-auto">
+        {onBackToHome && (
+          <button
+            id="btn-meeting-back-home"
+            type="button"
+            onClick={onBackToHome}
+            className="p-2 rounded-full bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-300 hover:text-white transition shadow-lg cursor-pointer shrink-0"
+            title="Back to Home Screen"
+          >
+            <Home className="w-4 h-4 text-neutral-300" />
+          </button>
+        )}
         {/* Current Meeting Button: Click to edit name / # */}
         <button
           id="btn-active-meeting-header"
@@ -1088,61 +1330,240 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         </button>
       </div>
 
-      {/* 4. BOTTOM OVERLAY: Host & Room Details + Speaker Toggle (Listener = OFF, Speak = ON) */}
-      <div className="relative z-30 p-3 pb-4 max-w-[calc(100%-80px)] space-y-1.5 pointer-events-auto">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <button
-              id="btn-bottom-host-profile"
-              type="button"
-              onClick={() => onOpenProfile && onOpenProfile()}
-              className="font-bold text-sm text-white hover:text-red-400 hover:underline transition drop-shadow-md cursor-pointer flex items-center gap-1 group text-left"
-              title={`Go to @${isHostMe ? (userProfile.handle ? userProfile.handle.replace('@', '') : userProfile.name) : room.host}'s profile`}
-            >
-              <span>@{isHostMe ? (userProfile.handle ? userProfile.handle.replace('@', '') : userProfile.name) : room.host}</span>
-              <span className="text-[10px] text-red-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition">↗</span>
-            </button>
-            <span className="text-[10px] text-neutral-400 bg-neutral-900/80 px-2 py-0.5 rounded-full border border-neutral-800">
-              {room.participants.length} joined
+      {/* 4. BOTTOM OVERLAY: Speaker Role Toggle (Clean & Unobstructed, without @handle or Bio text) */}
+      <div className="relative z-30 p-3 pb-2 pointer-events-auto">
+        <button
+          id="btn-toggle-speaker-role"
+          type="button"
+          onClick={() => handleSelectRole(userRole === 'speaker' ? 'listener' : 'speaker')}
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition cursor-pointer border backdrop-blur-md shadow-sm active:scale-95 ${
+            userRole === 'speaker'
+              ? 'bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-300 border-emerald-500/80 shadow-emerald-950/30'
+              : 'bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border-neutral-700/80'
+          }`}
+          title={userRole === 'speaker' ? 'Speaker: ON (Click to turn OFF / Listener)' : 'Speaker: OFF (Click to turn ON / Speak)'}
+        >
+          <span
+            className={`w-2 h-2 rounded-full transition-colors ${
+              userRole === 'speaker' ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
+            }`}
+          />
+          <span>Speaker</span>
+          <span
+            className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
+              userRole === 'speaker'
+                ? 'bg-emerald-900 text-emerald-200 border border-emerald-500/50'
+                : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+            }`}
+          >
+            {userRole === 'speaker' ? 'ON' : 'OFF'}
+          </span>
+        </button>
+      </div>
+
+      {/* Floating Reaction Emojis Container */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-28 pointer-events-none z-40 overflow-hidden w-64 h-64 flex justify-center">
+        {floatingReactions.map((r) => (
+          <div
+            key={r.id}
+            className="absolute bottom-0 text-3xl animate-float-heart drop-shadow-lg"
+            style={{
+              transform: `translateX(${r.x}px)`,
+            }}
+          >
+            {r.emoji}
+          </div>
+        ))}
+      </div>
+
+      {/* 5. ZOOM BOTTOM ACTION DOCK (Standard Zoom Bar) */}
+      <div className="relative z-30 px-2 py-1.5 bg-neutral-950/95 border-t border-neutral-800 backdrop-blur-md flex items-center justify-around gap-1 text-[10px] text-neutral-300 pointer-events-auto">
+        {/* Audio Mic Mute / Unmute */}
+        <button
+          id="zoom-btn-mic"
+          type="button"
+          onClick={handleToggleGlobalMic}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+          title={isMicOn ? "Mute Microphone" : "Unmute Microphone"}
+        >
+          <div className={`p-2 rounded-xl transition ${isMicOn ? 'bg-neutral-800 text-emerald-400' : 'bg-red-950/80 text-red-400 border border-red-800'}`}>
+            {isMicOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+          </div>
+          <span className="truncate max-w-[46px]">{isMicOn ? 'Mute' : 'Unmute'}</span>
+        </button>
+
+        {/* Video Start / Stop */}
+        <button
+          id="zoom-btn-video"
+          type="button"
+          onClick={handleToggleCamera}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+          title={isCameraOn ? "Stop Video" : "Start Video"}
+        >
+          <div className={`p-2 rounded-xl transition ${isCameraOn ? 'bg-neutral-800 text-emerald-400' : 'bg-red-950/80 text-red-400 border border-red-800'}`}>
+            {isCameraOn ? <VideoIcon className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
+          </div>
+          <span className="truncate max-w-[46px]">{isCameraOn ? 'Stop Video' : 'Start Video'}</span>
+        </button>
+
+        {/* Security (Host) */}
+        {isHostMe && (
+          <button
+            id="zoom-btn-security"
+            type="button"
+            onClick={() => setIsSecurityModalOpen(true)}
+            className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+            title="Host Security Controls"
+          >
+            <div className="p-2 rounded-xl bg-neutral-800 text-emerald-400 hover:bg-neutral-750 transition">
+              <Shield className="w-4 h-4" />
+            </div>
+            <span>Security</span>
+          </button>
+        )}
+
+        {/* Participants (Live count badge) */}
+        <button
+          id="zoom-btn-participants"
+          type="button"
+          onClick={() => setIsParticipantsDrawerOpen(true)}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer relative"
+          title="Participants List & Moderation"
+        >
+          <div className="p-2 rounded-xl bg-neutral-800 text-neutral-200 hover:bg-neutral-750 transition relative">
+            <Users className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[9px] px-1 rounded-full font-bold">
+              {participantsList.length}
             </span>
           </div>
+          <span>Participants</span>
+        </button>
 
-          <p className="text-xs text-neutral-300 font-medium line-clamp-1 leading-snug drop-shadow-sm">
-            {room.title}
-          </p>
+        {/* Screen Share (Zoom signature green) */}
+        <button
+          id="zoom-btn-share"
+          type="button"
+          onClick={() => {
+            if (isScreenSharing) {
+              handleStopScreenShare();
+            } else {
+              handleStartScreenShare();
+            }
+          }}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+          title="Share Screen"
+        >
+          <div className={`p-2 rounded-xl transition ${isScreenSharing ? 'bg-emerald-600 text-white animate-pulse' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800 hover:bg-emerald-900'}`}>
+            <Share2 className="w-4 h-4" />
+          </div>
+          <span className="text-emerald-400 font-semibold">{isScreenSharing ? 'Sharing' : 'Share'}</span>
+        </button>
 
-          {/* Single Speaker Button: Listerner = OFF, Speak = ON */}
-          <div className="pt-0.5">
-            <button
-              id="btn-toggle-speaker-role"
-              type="button"
-              onClick={() => handleSelectRole(userRole === 'speaker' ? 'listener' : 'speaker')}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition cursor-pointer border backdrop-blur-md shadow-sm active:scale-95 ${
-                userRole === 'speaker'
-                  ? 'bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-300 border-emerald-500/80 shadow-emerald-950/30'
-                  : 'bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border-neutral-700/80'
-              }`}
-              title={userRole === 'speaker' ? 'Speaker: ON (Click to turn OFF / Listener)' : 'Speaker: OFF (Click to turn ON / Speak)'}
-            >
-              <span
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  userRole === 'speaker' ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
-                }`}
-              />
-              <span>Speaker</span>
-              <span
-                className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
-                  userRole === 'speaker'
-                    ? 'bg-emerald-900 text-emerald-200 border border-emerald-500/50'
-                    : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
-                }`}
+        {/* Reactions & Raise Hand */}
+        <button
+          id="zoom-btn-reactions"
+          type="button"
+          onClick={() => setIsReactionsTrayOpen(true)}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer relative"
+          title="Reactions & Raise Hand"
+        >
+          <div className={`p-2 rounded-xl transition ${isHandRaised ? 'bg-amber-500 text-neutral-950' : 'bg-neutral-800 text-neutral-200 hover:bg-neutral-750'}`}>
+            {isHandRaised ? <Hand className="w-4 h-4" /> : <Smile className="w-4 h-4" />}
+          </div>
+          <span>{isHandRaised ? 'Hand ✋' : 'React'}</span>
+        </button>
+
+        {/* Zoom AI Companion */}
+        <button
+          id="zoom-btn-ai-companion"
+          type="button"
+          onClick={() => setIsAiCompanionModalOpen(true)}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+          title="Zoom AI Companion & Live Notes"
+        >
+          <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/40 hover:scale-105 transition shadow-sm">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <span className="text-amber-300 font-semibold">AI Notes</span>
+        </button>
+
+        {/* End / Leave */}
+        <button
+          id="zoom-btn-leave"
+          type="button"
+          onClick={() => setShowEndMeetingDialog(true)}
+          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
+          title="Leave / End Meeting"
+        >
+          <div className="p-2 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 transition">
+            <PhoneOff className="w-4 h-4" />
+          </div>
+          <span className="text-red-400 font-bold">{isHostMe ? 'End' : 'Leave'}</span>
+        </button>
+      </div>
+
+      {/* End / Leave Meeting Confirmation Dialog */}
+      {showEndMeetingDialog && (
+        <div
+          id="zoom-end-meeting-dialog-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setShowEndMeetingDialog(false)}
+        >
+          <div
+            id="zoom-end-meeting-dialog"
+            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center space-y-1">
+              <h3 className="font-bold text-base text-white">
+                {isHostMe ? 'End Meeting for All?' : 'Leave Meeting?'}
+              </h3>
+              <p className="text-xs text-neutral-400">
+                {isHostMe
+                  ? 'As the host, you can end this meeting for everyone or leave to the Home Screen.'
+                  : `Are you sure you want to leave ${room.title} (${room.token})?`}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              {isHostMe && (
+                <button
+                  id="btn-end-meeting-for-all"
+                  type="button"
+                  onClick={() => {
+                    setShowEndMeetingDialog(false);
+                    if (onBackToHome) onBackToHome();
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-950/50 transition cursor-pointer"
+                >
+                  End Meeting for All
+                </button>
+              )}
+
+              <button
+                id="btn-leave-meeting-confirm"
+                type="button"
+                onClick={() => {
+                  setShowEndMeetingDialog(false);
+                  if (onBackToHome) onBackToHome();
+                }}
+                className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs transition cursor-pointer"
               >
-                {userRole === 'speaker' ? 'ON' : 'OFF'}
-              </span>
-            </button>
+                Leave Meeting
+              </button>
+
+              <button
+                id="btn-leave-meeting-cancel"
+                type="button"
+                onClick={() => setShowEndMeetingDialog(false)}
+                className="w-full py-2 rounded-xl text-neutral-400 hover:text-white text-xs font-medium transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Feedback Toast Notification when toggling per-speaker audio or subtitle */}
       {toastMessage && (
@@ -1151,6 +1572,57 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Zoom Modals */}
+      <ZoomParticipantsDrawer
+        isOpen={isParticipantsDrawerOpen}
+        onClose={() => setIsParticipantsDrawerOpen(false)}
+        roomToken={room.token}
+        participants={participantsList}
+        isHost={isHostMe}
+        onMuteAll={handleMuteAll}
+        onMuteParticipant={handleMuteParticipant}
+        onUnmuteParticipant={handleUnmuteParticipant}
+        onLowerHand={handleLowerParticipantHand}
+        onRemoveParticipant={handleRemoveParticipant}
+      />
+
+      <ZoomSecurityModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
+        room={room}
+        onUpdateSettings={handleSecurityUpdate}
+      />
+
+      <ZoomReactionsTray
+        isOpen={isReactionsTrayOpen}
+        onClose={() => setIsReactionsTrayOpen(false)}
+        isHandRaised={isHandRaised}
+        onToggleRaiseHand={handleToggleRaiseHand}
+        onSelectEmoji={handleSelectReaction}
+      />
+
+      <ZoomAiCompanionModal
+        isOpen={isAiCompanionModalOpen}
+        onClose={() => setIsAiCompanionModalOpen(false)}
+        roomTitle={room.title}
+        roomToken={room.token}
+        keyPoints={room.keyPoints}
+        chats={chats.filter((c) => c.meetingToken === room.token).map((c) => ({ sender: c.sender, text: c.text }))}
+        onSaveToNotes={(note) => {
+          onAddNote(note);
+          api.createNote(note);
+          setToastMessage('✅ AI Summary saved to Notes!');
+          setTimeout(() => setToastMessage(null), 2200);
+        }}
+        onExportToPost={(content) => {
+          if (onExportToFeed) {
+            onExportToFeed(content);
+            setToastMessage('🚀 AI Takeaways shared to Feed!');
+            setTimeout(() => setToastMessage(null), 2200);
+          }
+        }}
+      />
 
       {/* Modals */}
       <MultiFilterDialog

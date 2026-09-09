@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TabType,
   MeetingRoom,
@@ -9,8 +9,11 @@ import {
   UserProfile,
   MeetingRecording,
   MeetingComment,
-  CommentReply
+  CommentReply,
+  ScheduledMeeting,
+  DateNote
 } from './types';
+import { api } from './services/api';
 import {
   initialRooms,
   initialMeetingNotes,
@@ -20,7 +23,10 @@ import {
   initialUserProfile,
   initialRecordings,
   initialMeetingComments,
+  initialScheduledMeetings,
+  initialDateNotes,
 } from './data/initialData';
+import { MeetingHomeScreen } from './components/MeetingHomeScreen';
 import { TikTokMeetingFeed } from './components/TikTokMeetingFeed';
 import { XFeedScreen } from './components/XFeedScreen';
 import { MeetingChatScreen } from './components/MeetingChatScreen';
@@ -37,16 +43,21 @@ import {
   Video,
   MessageSquare,
   Settings,
-  User
+  User,
+  Home
 } from 'lucide-react';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<TabType>('meetings');
+  // Starts with 'home' screen as requested by user ("app စစချင်း ဝင်တဲ့ Screen တခုထည့်ပါ")
+  const [currentTab, setCurrentTab] = useState<TabType>('home');
+  const [profileActiveTab, setProfileActiveTab] = useState<'recordings' | 'favorites' | 'notes' | 'chats'>('recordings');
   const [rooms, setRooms] = useState<MeetingRoom[]>(initialRooms);
   const [posts, setPosts] = useState<PostItem[]>(initialPosts);
   const [chats, setChats] = useState<ChatMessage[]>(initialChats);
   const [settings, setSettings] = useState<UserSettings>(initialSettings);
   const [notes, setNotes] = useState<MeetingNote[]>(initialMeetingNotes);
+  const [scheduledMeetings, setScheduledMeetings] = useState<ScheduledMeeting[]>(initialScheduledMeetings);
+  const [dateNotes, setDateNotes] = useState<DateNote[]>(initialDateNotes);
   const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '#MEET-9021');
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
@@ -68,6 +79,39 @@ export default function App() {
   const [activeRecordingTokens, setActiveRecordingTokens] = useState<Record<string, boolean>>({});
   // TikTok Meeting Comments state per room token
   const [comments, setComments] = useState<Record<string, MeetingComment[]>>(initialMeetingComments);
+
+  // Synchronize with Backend API on mount
+  useEffect(() => {
+    let isMounted = true;
+    api.fetchRooms().then((backendRooms) => {
+      if (isMounted && backendRooms && backendRooms.length > 0) {
+        setRooms(backendRooms);
+      }
+    });
+    api.fetchNotes().then((backendNotes) => {
+      if (isMounted && backendNotes && backendNotes.length > 0) {
+        setNotes(backendNotes);
+      }
+    });
+    api.fetchChats().then((backendChats) => {
+      if (isMounted && backendChats && backendChats.length > 0) {
+        setChats(backendChats);
+      }
+    });
+    api.fetchSchedules().then((backendSchedules) => {
+      if (isMounted && backendSchedules && backendSchedules.length > 0) {
+        setScheduledMeetings(backendSchedules);
+      }
+    });
+    api.fetchRecordings().then((backendRecordings) => {
+      if (isMounted && backendRecordings && backendRecordings.length > 0) {
+        setRecordings(backendRecordings);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Add Comment or Reply
   const handleAddComment = (
@@ -161,6 +205,7 @@ export default function App() {
   // Add new meeting note
   const handleAddNote = (newNote: MeetingNote) => {
     setNotes((prev) => [newNote, ...prev]);
+    api.createNote(newNote).catch((e) => console.warn('Backend createNote sync error:', e));
   };
 
   // Update User Profile details & synchronize with meeting rooms
@@ -345,6 +390,7 @@ export default function App() {
       isDirect: isDirect,
     };
     setChats((prev) => [...prev, newMsg]);
+    api.sendChatMessage(newMsg).catch((e) => console.warn('Backend sendChatMessage error:', e));
 
     // If direct message to another user, simulate realistic reply
     if (recipient && recipient !== 'Me') {
@@ -389,6 +435,7 @@ export default function App() {
           isDirect: true,
         };
         setChats((prev) => [...prev, replyMsg]);
+        api.sendChatMessage(replyMsg).catch((e) => console.warn('Backend reply chat sync error:', e));
       }, 1100);
     }
   };
@@ -436,12 +483,13 @@ export default function App() {
 
   // Add new meeting room
   const handleAddNewRoom = (title: string, token: string) => {
+    const formattedToken = token.startsWith('#') ? token : `#${token}`;
     const newRoom: MeetingRoom = {
       id: `room_${Date.now()}`,
-      token,
+      token: formattedToken,
       title,
-      host: 'Aung Aung',
-      participants: ['Aung Aung', 'Kyaw Kyaw', 'Su Su'],
+      host: userProfile.name,
+      participants: [userProfile.name, 'Kyaw Kyaw', 'Su Su'],
       keyPoints: [
         'Initial session established with Granola AI Engine',
         'Live multi-user filter initialized',
@@ -450,7 +498,49 @@ export default function App() {
       category: 'General Discussion',
       isLive: true,
     };
-    setRooms((prev) => [...prev, newRoom]);
+    setRooms((prev) => [newRoom, ...prev]);
+    setActiveRoomToken(formattedToken);
+    api.createRoom(newRoom).catch((e) => console.warn('Backend createRoom sync error:', e));
+  };
+
+  // Start new meeting directly from Main Entry Screen
+  const handleStartNewMeeting = (title: string, token: string) => {
+    handleAddNewRoom(title, token);
+    setCurrentTab('meetings');
+  };
+
+  // Join meeting from Main Entry Screen
+  const handleJoinMeeting = (token: string) => {
+    const formattedToken = token.startsWith('#') ? token : `#${token}`;
+    const roomExists = rooms.some((r) => r.token.toUpperCase() === formattedToken.toUpperCase());
+    if (!roomExists) {
+      handleAddNewRoom(`Meeting ${formattedToken}`, formattedToken);
+    } else {
+      setActiveRoomToken(formattedToken);
+    }
+    setCurrentTab('meetings');
+  };
+
+  // Navigate to specific Profile tab (Note History / Chat History / Record History)
+  const handleNavigateToProfileTab = (tab: 'recordings' | 'favorites' | 'notes' | 'chats') => {
+    setProfileActiveTab(tab);
+    setCurrentTab('profile');
+  };
+
+  // Add new scheduled meeting
+  const handleAddScheduledMeeting = (meeting: ScheduledMeeting) => {
+    setScheduledMeetings((prev) => [meeting, ...prev]);
+    api.createSchedule(meeting).catch((e) => console.warn('Backend createSchedule error:', e));
+  };
+
+  // Add new date note
+  const handleAddDateNote = (dateNote: DateNote) => {
+    setDateNotes((prev) => [dateNote, ...prev]);
+  };
+
+  // Back to Home screen
+  const handleBackToHome = () => {
+    setCurrentTab('home');
   };
 
   // Update settings
@@ -565,6 +655,22 @@ export default function App() {
 
           {/* Active Screen Tab View */}
           <div className="flex-1 w-full h-full relative overflow-hidden">
+            {currentTab === 'home' && (
+              <MeetingHomeScreen
+                userProfile={userProfile}
+                rooms={rooms}
+                notes={notes}
+                recordings={recordings}
+                scheduledMeetings={scheduledMeetings}
+                dateNotes={dateNotes}
+                onStartNewMeeting={handleStartNewMeeting}
+                onJoinMeeting={handleJoinMeeting}
+                onNavigateToProfileTab={handleNavigateToProfileTab}
+                onAddScheduledMeeting={handleAddScheduledMeeting}
+                onAddDateNote={handleAddDateNote}
+              />
+            )}
+
             {currentTab === 'meetings' && (
               <TikTokMeetingFeed
                 rooms={rooms}
@@ -582,6 +688,7 @@ export default function App() {
                 isRecording={Boolean(activeRecordingTokens[activeRoomToken])}
                 onToggleRecording={handleToggleRecording}
                 onOpenProfile={() => setCurrentTab('profile')}
+                onBackToHome={handleBackToHome}
                 comments={comments}
                 userProfile={userProfile}
                 onAddComment={handleAddComment}
@@ -628,6 +735,8 @@ export default function App() {
                 onUpdateProfile={handleUpdateProfile}
                 onToggleFavoriteRecording={handleToggleFavoriteRecording}
                 onExportToPost={handleExportToFeed}
+                initialTab={profileActiveTab}
+                onBackToHome={handleBackToHome}
                 onJumpToMeeting={(token) => {
                   setActiveRoomToken(token);
                   setCurrentTab('meetings');
@@ -648,6 +757,7 @@ export default function App() {
             currentTab={currentTab}
             onSelectTab={(tab) => setCurrentTab(tab)}
             unreadChatsCount={chats.filter((c) => c.sender !== 'Me').length}
+            userAvatar={userProfile.avatar}
           />
         </div>
       </main>

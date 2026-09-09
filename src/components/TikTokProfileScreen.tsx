@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   UserProfile,
   MeetingRecording,
@@ -28,6 +28,7 @@ import {
   UserCheck,
   Copy,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   ArrowLeft
 } from 'lucide-react';
@@ -41,6 +42,8 @@ interface TikTokProfileScreenProps {
   onToggleFavoriteRecording: (recordingId: string) => void;
   onExportToPost: (content: string) => void;
   onJumpToMeeting?: (token: string) => void;
+  initialTab?: ProfileTabType;
+  onBackToHome?: () => void;
 }
 
 type ProfileTabType = 'recordings' | 'favorites' | 'notes' | 'chats';
@@ -54,9 +57,18 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   onToggleFavoriteRecording,
   onExportToPost,
   onJumpToMeeting,
+  initialTab,
+  onBackToHome,
 }) => {
   // 4 Tabs: Recordings, Favourites, Note History, Chat History
-  const [activeTab, setActiveTab] = useState<ProfileTabType>('recordings');
+  const [activeTab, setActiveTab] = useState<ProfileTabType>(initialTab || 'recordings');
+
+  // Synchronize when initialTab prop updates
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Edit Profile Modal
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
@@ -170,7 +182,18 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
       {/* 1. TOP BAR */}
       <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md border-b border-neutral-800/80 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 font-bold text-sm text-white truncate max-w-[200px]">
+        <div className="flex items-center gap-2 font-bold text-sm text-white truncate max-w-[200px]">
+          {onBackToHome && (
+            <button
+              id="btn-profile-back-home"
+              type="button"
+              onClick={onBackToHome}
+              className="p-1 -ml-1 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-850 transition cursor-pointer"
+              title="Back to Home"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
           <span>{userProfile.handle}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
         </div>

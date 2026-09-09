@@ -7,6 +7,19 @@ export interface MeetingRoom {
   keyPoints: string[];
   category?: string;
   isLive?: boolean;
+  isLocked?: boolean;
+  isWaitingRoomEnabled?: boolean;
+  allowShareScreen?: boolean;
+  allowChat?: boolean;
+}
+
+export interface ParticipantState {
+  name: string;
+  role: 'host' | 'co-host' | 'participant';
+  isAudioMuted: boolean;
+  isVideoMuted: boolean;
+  isHandRaised: boolean;
+  avatar?: string;
 }
 
 export interface MeetingNote {
@@ -128,4 +141,27 @@ export interface MeetingComment {
   replies?: CommentReply[];
 }
 
-export type TabType = 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
+export interface ScheduledMeeting {
+  id: string;
+  token: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  time: string; // e.g. "10:00 AM"
+  duration: string; // e.g. "30 mins"
+  host: string;
+  description?: string;
+  category?: string;
+  participants: string[];
+}
+
+export interface DateNote {
+  id: string;
+  date: string; // YYYY-MM-DD
+  title: string;
+  content: string;
+  category: string;
+  time: string;
+}
+
+export type TabType = 'home' | 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
+

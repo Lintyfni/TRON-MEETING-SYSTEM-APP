@@ -19,6 +19,7 @@ interface TikTokMeetingFeedProps {
   isRecording?: boolean;
   onToggleRecording?: (token: string, isStart: boolean, durationSec?: number) => void;
   onOpenProfile?: () => void;
+  onBackToHome?: () => void;
   comments?: Record<string, MeetingComment[]>;
   userProfile?: UserProfile;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
@@ -41,6 +42,7 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
   isRecording,
   onToggleRecording,
   onOpenProfile,
+  onBackToHome,
   comments,
   userProfile,
   onAddComment,
@@ -164,6 +166,7 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
             isRecording={isRecording}
             onToggleRecording={onToggleRecording}
             onOpenProfile={onOpenProfile}
+            onBackToHome={onBackToHome}
             comments={comments}
             userProfile={userProfile}
             onAddComment={onAddComment}

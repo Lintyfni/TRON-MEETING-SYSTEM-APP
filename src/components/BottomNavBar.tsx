@@ -1,5 +1,5 @@
 import React from 'react';
-import { Video, Layers, MessageSquare, Settings, User } from 'lucide-react';
+import { Home, Video, Layers, MessageSquare, Settings, User } from 'lucide-react';
 import { TabType } from '../types';
 
 interface BottomNavBarProps {
@@ -16,6 +16,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   userAvatar,
 }) => {
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
+    {
+      id: 'home',
+      label: 'Home',
+      icon: <Home className="w-5 h-5" />,
+    },
     {
       id: 'meetings',
       label: 'Meetings',

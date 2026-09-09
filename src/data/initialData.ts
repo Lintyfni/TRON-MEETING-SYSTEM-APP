@@ -6,7 +6,9 @@ import {
   UserSettings,
   UserProfile,
   MeetingRecording,
-  MeetingComment
+  MeetingComment,
+  ScheduledMeeting,
+  DateNote
 } from '../types';
 
 export const initialUserProfile: UserProfile = {
@@ -668,4 +670,83 @@ export const initialMeetingComments: Record<string, MeetingComment[]> = {
     },
   ],
 };
+
+export const initialScheduledMeetings: ScheduledMeeting[] = [
+  {
+    id: 'sched_1',
+    token: '#MEET-9021',
+    title: 'Tech Architecture & WebRTC Discussion',
+    date: '2026-09-09',
+    time: '10:00 AM',
+    duration: '45 mins',
+    host: 'Aung Myint',
+    category: 'Engineering',
+    description: 'Sub-45ms audio and dynamic multi-grid video tiles review.',
+    participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
+  },
+  {
+    id: 'sched_2',
+    token: '#MEET-4412',
+    title: 'Crypto Market & Web3 Meetup',
+    date: '2026-09-09',
+    time: '02:30 PM',
+    duration: '60 mins',
+    host: 'David',
+    category: 'Finance & Web3',
+    description: 'DeFi protocol review and smart contract audit status.',
+    participants: ['David', 'Alex', 'John'],
+  },
+  {
+    id: 'sched_3',
+    token: '#MEET-8833',
+    title: 'Design System & UI/UX Sprint Review',
+    date: '2026-09-10',
+    time: '11:15 AM',
+    duration: '40 mins',
+    host: 'Elena',
+    category: 'Product Design',
+    description: 'Dark OLED ergonomics and mobile swipe gesture physics.',
+    participants: ['Elena', 'Marcus', 'Chloe'],
+  },
+  {
+    id: 'sched_4',
+    token: '#MEET-5520',
+    title: 'Executive Leadership Sync & Q4 Roadmap',
+    date: '2026-09-12',
+    time: '04:00 PM',
+    duration: '50 mins',
+    host: 'Aung Myint',
+    category: 'Leadership',
+    description: 'Cross-functional alignment and milestone deliveries.',
+    participants: ['Aung Myint', 'Sarah', 'Khin Zaw'],
+  },
+];
+
+export const initialDateNotes: DateNote[] = [
+  {
+    id: 'dnote_1',
+    date: '2026-09-09',
+    title: 'WebRTC Low Latency & Codec Tests',
+    content: 'Opus 48kHz audio quality is crystal clear. Verified listener mute toggle works smoothly on mobile frames.',
+    category: 'Engineering',
+    time: '09:30 AM',
+  },
+  {
+    id: 'dnote_2',
+    date: '2026-09-09',
+    title: 'UI Feedback from Beta Testers',
+    content: 'Users love the quick action buttons on the home screen. Schedule calendar date note sync is working as expected.',
+    category: 'Product',
+    time: '01:15 PM',
+  },
+  {
+    id: 'dnote_3',
+    date: '2026-09-10',
+    title: 'Design Review Action Items',
+    content: 'Prepare high-contrast badge components and test landscape layout responsiveness.',
+    category: 'Design',
+    time: '10:00 AM',
+  },
+];
+
 
