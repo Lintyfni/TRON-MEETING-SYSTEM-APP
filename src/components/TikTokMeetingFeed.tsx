@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile } from '../types';
 import { MeetingRoomTile } from './MeetingRoomTile';
-import { Plus, Hash, Sparkles } from 'lucide-react';
+import { Plus, Hash, Sparkles, Video } from 'lucide-react';
 
 interface TikTokMeetingFeedProps {
   rooms: MeetingRoom[];
@@ -141,7 +141,36 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
     >
       {/* Vertical Feed Content */}
       <div className="flex-1 w-full h-full relative">
-        {activeRoom && (
+        {!activeRoom ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-neutral-950">
+            <div className="w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-red-500 shadow-xl">
+              <Video className="w-8 h-8" />
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2">No Active Meeting</h3>
+            <p className="text-xs text-neutral-400 max-w-xs mb-6 leading-relaxed">
+              All sample data has been cleared. Start a new live WebRTC meeting or enter a Meeting ID to join across multiple devices.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+              <button
+                type="button"
+                onClick={() => setIsCreateRoomOpen(true)}
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-red-950/40 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New Meeting</span>
+              </button>
+              {onBackToHome && (
+                <button
+                  type="button"
+                  onClick={onBackToHome}
+                  className="flex-1 py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer border border-neutral-800"
+                >
+                  <span>Back to Home</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
           <MeetingRoomTile
             key={activeRoom.id}
             room={activeRoom}

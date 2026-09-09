@@ -36,6 +36,7 @@ import { ZoomSecurityModal } from './ZoomSecurityModal';
 import { ZoomAiCompanionModal } from './ZoomAiCompanionModal';
 import { ZoomReactionsTray } from './ZoomReactionsTray';
 import { api } from '../services/api';
+import { webrtc, RemoteParticipant } from '../services/webrtc';
 import { languageOptions, initialUserProfile, virtualBackgroundPresets } from '../data/initialData';
 
 interface MeetingRoomTileProps {
@@ -205,6 +206,12 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
   // Floating feedback toast state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Live WebRTC State for real-time P2P video/audio multi-device streaming
+  const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
+  const [remotePeerInfo, setRemotePeerInfo] = useState<Record<string, RemoteParticipant>>({});
+  const [dynamicParticipants, setDynamicParticipants] = useState<string[]>([]);
+  const [webrtcStatus, setWebrtcStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
 
   // Local Recording state with live timer
   const [isLocalRecording, setIsLocalRecording] = useState(isRecording);
@@ -392,6 +399,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     setIsHandRaised(nextHand);
     setToastMessage(nextHand ? '✋ Hand Raised! (လက်ထောင်ထားသည်)' : 'Hand Lowered (လက်ပြန်ချသည်)');
     api.updateParticipantState(room.token, userProfile.name, { isHandRaised: nextHand });
+    webrtc.broadcastState({ isHandRaised: nextHand });
     setTimeout(() => setToastMessage(null), 2200);
   };
 
@@ -403,6 +411,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     };
     setFloatingReactions((prev) => [...prev, newReaction]);
     api.sendReaction(room.token, emoji, userProfile.name);
+    webrtc.broadcastReaction(emoji);
     setTimeout(() => {
       setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
     }, 2500);
@@ -487,27 +496,37 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
       let stream: MediaStream;
       try {
-        // First try high-quality user-facing constraints
+        // Request video and microphone audio for live WebRTC conferencing
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user',
             width: { ideal: 1280, min: 320 },
             height: { ideal: 720, min: 240 },
           },
-          audio: false,
+          audio: true,
         });
       } catch (firstErr) {
-        console.warn('High quality constraints rejected, trying fallback { video: true }:', firstErr);
-        // Fallback to basic video constraint
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+        console.warn('High quality video+audio constraints rejected, trying fallback { video: true, audio: true }:', firstErr);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+        } catch {
+          // If mic unavailable or denied, fallback to video-only
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
       }
 
-      // Ensure all video tracks are active and unmuted
+      // Synchronize initial track states with current UI toggles
       stream.getVideoTracks().forEach((track) => {
-        track.enabled = true;
+        track.enabled = isCameraOn;
+      });
+      stream.getAudioTracks().forEach((track) => {
+        track.enabled = isMicOn;
       });
 
       streamRef.current = stream;
@@ -561,6 +580,156 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
       stopCamera();
     };
   }, [isCameraOn]);
+
+  // Sync mic track enabled status and broadcast over WebRTC
+  useEffect(() => {
+    if (localStream) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = isMicOn;
+      });
+      webrtc.broadcastState({ isAudioMuted: !isMicOn });
+    }
+  }, [isMicOn, localStream]);
+
+  // Sync camera track enabled status and broadcast over WebRTC
+  useEffect(() => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach((track) => {
+        track.enabled = isCameraOn;
+      });
+      webrtc.broadcastState({ isVideoMuted: !isCameraOn });
+    }
+  }, [isCameraOn, localStream]);
+
+  // Push updated local stream into WebRTC peer calls
+  useEffect(() => {
+    if (localStream) {
+      webrtc.updateLocalStream(localStream);
+    }
+  }, [localStream]);
+
+  // WebRTC Peer Lifecycle & Event Handlers
+  useEffect(() => {
+    let isMounted = true;
+
+    webrtc
+      .joinMeetingRoom(room.token, userProfile.name, localStream, userProfile.avatar)
+      .then((_id) => {
+        if (isMounted) setWebrtcStatus('connected');
+      })
+      .catch((_err) => {
+        if (isMounted) setWebrtcStatus('error');
+      });
+
+    const unsubStreamAdded = webrtc.on('stream:added', ({ peerId, userName, stream }) => {
+      if (!isMounted) return;
+      setRemoteStreams((prev) => ({
+        ...prev,
+        [userName]: stream,
+        [peerId]: stream,
+      }));
+      setDynamicParticipants((prev) => {
+        if (!prev.includes(userName)) return [...prev, userName];
+        return prev;
+      });
+    });
+
+    const unsubStreamRemoved = webrtc.on('stream:removed', ({ peerId }) => {
+      if (!isMounted) return;
+      setRemoteStreams((prev) => {
+        const next = { ...prev };
+        delete next[peerId];
+        return next;
+      });
+    });
+
+    const unsubPeerJoined = webrtc.on('peer:joined', (participant: RemoteParticipant) => {
+      if (!isMounted) return;
+      setRemotePeerInfo((prev) => ({
+        ...prev,
+        [participant.peerId]: participant,
+        [participant.userName]: participant,
+      }));
+      setDynamicParticipants((prev) => {
+        if (!prev.includes(participant.userName)) return [...prev, participant.userName];
+        return prev;
+      });
+      setToastMessage(`👋 ${participant.userName} joined`);
+      setTimeout(() => setToastMessage(null), 2500);
+    });
+
+    const unsubPeerLeft = webrtc.on('peer:left', ({ peerId }) => {
+      if (!isMounted) return;
+      setRemoteStreams((prev) => {
+        const next = { ...prev };
+        delete next[peerId];
+        return next;
+      });
+      setRemotePeerInfo((prev) => {
+        const next = { ...prev };
+        delete next[peerId];
+        return next;
+      });
+    });
+
+    const unsubStatus = webrtc.on('status:changed', ({ status }) => {
+      if (!isMounted) return;
+      setWebrtcStatus(status);
+    });
+
+    const unsubReaction = webrtc.on('reaction:received', ({ emoji, sender }) => {
+      if (!isMounted) return;
+      const newReaction = {
+        id: Date.now() + Math.random(),
+        emoji,
+        x: (Math.random() - 0.5) * 60,
+      };
+      setFloatingReactions((prev) => [...prev, newReaction]);
+      setToastMessage(`${sender || 'Participant'} reacted ${emoji}`);
+      setTimeout(() => {
+        setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
+      }, 2500);
+      setTimeout(() => setToastMessage(null), 2000);
+    });
+
+    const unsubChat = webrtc.on('chat:received', ({ message }) => {
+      if (!isMounted) return;
+      if (message?.text && onSendMessage) {
+        onSendMessage(room.token, message.text, message.recipient);
+      }
+    });
+
+    const unsubState = webrtc.on('state:changed', ({ peerId, isAudioMuted, isVideoMuted }) => {
+      if (!isMounted) return;
+      setRemotePeerInfo((prev) => {
+        const p = prev[peerId];
+        if (p) {
+          return {
+            ...prev,
+            [peerId]: {
+              ...p,
+              isAudioMuted: isAudioMuted !== undefined ? isAudioMuted : p.isAudioMuted,
+              isVideoMuted: isVideoMuted !== undefined ? isVideoMuted : p.isVideoMuted,
+            },
+          };
+        }
+        return prev;
+      });
+    });
+
+    return () => {
+      isMounted = false;
+      unsubStreamAdded();
+      unsubStreamRemoved();
+      unsubPeerJoined();
+      unsubPeerLeft();
+      unsubStatus();
+      unsubReaction();
+      unsubChat();
+      unsubState();
+      webrtc.leaveMeetingRoom();
+    };
+  }, [room.token, userProfile.name]);
 
   // Ensure stream is always attached to videoRef whenever localStream or ref updates
   useEffect(() => {
@@ -681,10 +850,20 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     setIsChatOpen(true);
   };
 
+  // Combine room participants with real-time WebRTC joined participants
+  const allParticipantNames = Array.from(
+    new Set([
+      userProfile.name,
+      ...room.participants,
+      ...dynamicParticipants,
+      ...Object.values(remotePeerInfo).map((p: RemoteParticipant) => p.userName),
+    ])
+  );
+
   // Filtered participants
   const visibleUsers = selectedFilterUsers.includes('All')
-    ? room.participants
-    : room.participants.filter((u) => selectedFilterUsers.includes(u));
+    ? allParticipantNames
+    : allParticipantNames.filter((u) => selectedFilterUsers.includes(u));
 
   const roomChats = chats.filter((c) => c.meetingToken === room.token);
 
@@ -792,21 +971,21 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                 ? 'grid-cols-1 grid-rows-1'
                 : visibleUsers.length === 2
                 ? 'grid-cols-1 grid-rows-2 sm:grid-cols-2 sm:grid-rows-1'
-                : 'grid-cols-2 grid-rows-2'
+                : visibleUsers.length <= 4
+                ? 'grid-cols-2 grid-rows-2'
+                : 'grid-cols-2 grid-rows-3 sm:grid-cols-3 sm:grid-rows-2'
             }`}
           >
             {visibleUsers.map((user, idx) => {
               const isSpeaker = speakingUser === user;
               const isMe =
                 user === userProfile.name ||
-                user === 'Aung Myint' ||
-                user === 'Aung Aung' ||
-                user.toLowerCase().includes('aung') ||
+                user.toLowerCase() === userProfile.name.toLowerCase() ||
                 user.includes('(Me)');
               const displayName = isMe ? userProfile.name : user;
               const isHost =
                 user === room.host ||
-                (isMe && (room.host === userProfile.name || room.host === 'Aung Myint' || room.host === 'Aung Aung' || isHostMe));
+                (isMe && (room.host === userProfile.name || isHostMe));
               const isLocalWebcam = isMe && isCameraOn && localStream;
               const isUserListening = isMe ? isMicOn : !mutedListeningUsers[user];
               // Subtitles only active for self when enabled
@@ -990,8 +1169,46 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
                       </div>
                     </div>
+                  ) : (remoteStreams[user] || (remotePeerInfo[user] && remoteStreams[remotePeerInfo[user].peerId])) ? (
+                    /* 3. Other Participants: Live WebRTC Video & Audio Stream */
+                    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+                      <video
+                        ref={(el) => {
+                          if (el) {
+                            const st = remoteStreams[user] || (remotePeerInfo[user] && remoteStreams[remotePeerInfo[user].peerId]);
+                            if (st && el.srcObject !== st) {
+                              el.srcObject = st;
+                              el.play().catch(() => {});
+                            }
+                          }
+                        }}
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Live WebRTC Badge */}
+                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-emerald-500/40 text-[9px] text-emerald-400 font-semibold shadow-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>LIVE P2P</span>
+                      </div>
+
+                      {/* Remote Mic Indicator */}
+                      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1.5 rounded-full border border-neutral-800 text-neutral-300 shadow-md">
+                        {remotePeerInfo[user]?.isAudioMuted ? (
+                          <MicOff className="w-3 h-3 text-red-500" />
+                        ) : (
+                          <Mic className="w-3 h-3 text-emerald-400" />
+                        )}
+                      </div>
+
+                      {/* Participant name pill: lowercase and small font */}
+                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-neutral-700/80 text-[10px] font-normal text-neutral-200 backdrop-blur-md shadow-md">
+                        <span>{displayName.toLowerCase()}</span>
+                        {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
+                      </div>
+                    </div>
                   ) : (
-                    /* 3. Other Participants: Avatar & Audio Waveform */
+                    /* 4. Other Participants: Avatar & Audio Waveform */
                     <div className="relative z-10 flex flex-col items-center justify-center p-3">
                       {/* Pulse rings when speaking */}
                       <div className="relative">
@@ -1656,7 +1873,17 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         rooms={rooms}
         chats={chats}
         initialDirectUser={directChatUser}
-        onSendMessage={onSendMessage}
+        onSendMessage={(token, text, recipient) => {
+          onSendMessage(token, text, recipient);
+          webrtc.broadcastChat({
+            id: `msg_${Date.now()}`,
+            meetingToken: token,
+            sender: userProfile.name,
+            text,
+            time: 'Just now',
+            recipient,
+          });
+        }}
         onSelectMeetingRoom={onSelectRoomToken}
       />
 

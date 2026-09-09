@@ -92,215 +92,34 @@ interface RecordingItem {
   notes?: string[];
 }
 
-// Initial Data Seed
-let rooms: MeetingRoom[] = [
-  {
-    id: 'room_1',
-    token: '#MEET-9021',
-    title: 'Tech Architecture & WebRTC Discussion',
-    host: 'Aung Myint',
-    participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
-    keyPoints: [
-      'Sub-45ms low latency audio channel verification',
-      'Granola AI auto-note extraction active',
-      'Zoom-style security controls enabled (Lock, Mute All)',
-    ],
-    category: 'Engineering Sync',
-    isLive: true,
-    isLocked: false,
-    isWaitingRoomEnabled: false,
-    allowShareScreen: true,
-    allowChat: true,
-  },
-  {
-    id: 'room_2',
-    token: '#MEET-4432',
-    title: 'Product Design & Mobile UX Review',
-    host: 'Zin Mar',
-    participants: ['Zin Mar', 'Hla Hla', 'Thiha', 'Min Khant'],
-    keyPoints: [
-      'TikTok-style vertical feed transitions',
-      'Zoom-style bottom action bar with Share Screen & Reactions',
-      'Granola notepad markdown rendering preview',
-    ],
-    category: 'Design Sprint',
-    isLive: true,
-    isLocked: false,
-    isWaitingRoomEnabled: false,
-    allowShareScreen: true,
-    allowChat: true,
-  },
-  {
-    id: 'room_3',
-    token: '#MEET-7719',
-    title: 'Client Demo & Quarterly All-Hands',
-    host: 'Ko Zaw',
-    participants: ['Ko Zaw', 'Nilar', 'Phyu Phyu', 'Aung Myint'],
-    keyPoints: [
-      'Q3 platform milestones presentation',
-      'Cloud storage and recording playback archive review',
-      'AI Live summary generation accuracy test',
-    ],
-    category: 'Executive Sync',
-    isLive: true,
-    isLocked: false,
-    isWaitingRoomEnabled: false,
-    allowShareScreen: true,
-    allowChat: true,
-  },
-];
+// Initial Data Seed (Blank as requested for live multi-device WebRTC testing)
+let rooms: MeetingRoom[] = [];
+let roomParticipants: Record<string, ParticipantInfo[]> = {};
+let chats: RoomChat[] = [];
+let notes: MeetingNoteItem[] = [];
+let scheduledMeetings: ScheduledMeetingItem[] = [];
+let dateNotes: DateNoteItem[] = [];
+let recordings: RecordingItem[] = [];
 
-let roomParticipants: Record<string, ParticipantInfo[]> = {
-  '#MEET-9021': [
-    { name: 'Aung Myint', role: 'host', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Kyaw Kyaw', role: 'participant', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Su Su', role: 'participant', isAudioMuted: true, isVideoMuted: false, isHandRaised: true },
-    { name: 'Mya Mya', role: 'participant', isAudioMuted: false, isVideoMuted: true, isHandRaised: false },
-  ],
-  '#MEET-4432': [
-    { name: 'Zin Mar', role: 'host', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Hla Hla', role: 'participant', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Thiha', role: 'participant', isAudioMuted: true, isVideoMuted: false, isHandRaised: false },
-    { name: 'Min Khant', role: 'participant', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-  ],
-  '#MEET-7719': [
-    { name: 'Ko Zaw', role: 'host', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Nilar', role: 'participant', isAudioMuted: true, isVideoMuted: true, isHandRaised: false },
-    { name: 'Phyu Phyu', role: 'participant', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-    { name: 'Aung Myint', role: 'co-host', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-  ],
-};
+// Active WebRTC Peers in Rooms
+interface PeerSession {
+  peerId: string;
+  userName: string;
+  avatar?: string;
+  lastSeen: number;
+}
+const roomPeers: Record<string, PeerSession[]> = {};
 
-let chats: RoomChat[] = [
-  {
-    id: 'chat_1',
-    meetingToken: '#MEET-9021',
-    sender: 'Kyaw Kyaw',
-    text: 'Audio clarity is crisp! Low latency verified.',
-    time: '10:45 AM',
-  },
-  {
-    id: 'chat_2',
-    meetingToken: '#MEET-9021',
-    sender: 'Su Su',
-    text: 'Screen sharing looks very sharp too.',
-    time: '10:46 AM',
-  },
-  {
-    id: 'chat_3',
-    meetingToken: '#MEET-9021',
-    sender: 'Aung Myint',
-    text: 'Starting AI Granola summarization now.',
-    time: '10:47 AM',
-    isMe: true,
-  },
-];
-
-let notes: MeetingNoteItem[] = [
-  {
-    id: 'note_1',
-    meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech Architecture & WebRTC Discussion',
-    title: 'Architecture Review & Codec Decisions',
-    time: 'Today 10:45 AM',
-    category: 'Decisions',
-    content: [
-      'Validated sub-45ms WebRTC audio stream delivery across dynamic video tiles',
-      'Host controls (Mute All, Lock Meeting) established as core standards',
-      'Granola AI auto-note extraction active for key takeaway bullet points',
-    ],
-    participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
-  },
-  {
-    id: 'note_2',
-    meetingToken: '#MEET-4432',
-    meetingTitle: 'Product Design & Mobile UX Review',
-    title: 'Mobile Meeting Action Bar Specs',
-    time: 'Yesterday 02:30 PM',
-    category: 'Summary',
-    content: [
-      'Added Zoom-style bottom navigation tray with reactions and participant counts',
-      'Integrated quick camera flip and background blur presets',
-      'Auto-synced direct chat messages to host/guest threads',
-    ],
-    participants: ['Zin Mar', 'Hla Hla', 'Thiha', 'Min Khant'],
-  },
-];
-
-let scheduledMeetings: ScheduledMeetingItem[] = [
-  {
-    id: 'sch_1',
-    title: 'Weekly Tech Engineering Sync',
-    token: '#MEET-9021',
-    date: '2026-09-09',
-    time: '10:00 AM',
-    duration: '45 mins',
-    host: 'Aung Myint',
-    attendeesCount: 5,
-    isRecurring: true,
-  },
-  {
-    id: 'sch_2',
-    title: 'Q3 Roadmap & Feature Planning',
-    token: '#MEET-4432',
-    date: '2026-09-10',
-    time: '02:00 PM',
-    duration: '60 mins',
-    host: 'Zin Mar',
-    attendeesCount: 8,
-  },
-  {
-    id: 'sch_3',
-    title: 'Client Product Showcase',
-    token: '#MEET-7719',
-    date: '2026-09-11',
-    time: '11:30 AM',
-    duration: '30 mins',
-    host: 'Ko Zaw',
-    attendeesCount: 4,
-  },
-];
-
-let dateNotes: DateNoteItem[] = [
-  {
-    id: 'dnote_1',
-    date: '2026-09-09',
-    title: 'Release Check: WebRTC & AI Companion',
-    note: 'Verify sub-45ms latency and AI companion summary quality before demo.',
-    color: 'emerald',
-    category: 'Release',
-  },
-  {
-    id: 'dnote_2',
-    date: '2026-09-10',
-    title: 'Sprint Retrospective',
-    note: 'Gather team feedback on mobile video tiles and host moderation options.',
-    color: 'sky',
-    category: 'Sprint',
-  },
-];
-
-let recordings: RecordingItem[] = [
-  {
-    id: 'rec_1',
-    meetingToken: '#MEET-9021',
-    meetingTitle: 'Tech Architecture & WebRTC Discussion',
-    title: 'Sprint Demo: Real-Time Audio & Per-Speaker Mic Toggle',
-    date: 'Today 10:45 AM',
-    duration: '04:12',
-    views: 1280,
-    likes: 342,
-    isFavorited: true,
-    isUserRecorded: true,
-    thumbnailUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=800&fit=crop',
-    participants: ['Aung Myint', 'Kyaw Kyaw', 'Su Su', 'Mya Mya'],
-    notes: [
-      'Validated sub-45ms WebRTC audio stream delivery across dynamic video tiles',
-      'Host controls (Mute All, Lock Meeting) established as core standards',
-      'Per-speaker audio mute toggle placed on individual video cells',
-    ],
-  },
-];
+// Auto-clean inactive peers every 10 seconds
+setInterval(() => {
+  const now = Date.now();
+  for (const token in roomPeers) {
+    roomPeers[token] = roomPeers[token].filter((p) => now - p.lastSeen < 25000);
+    if (roomPeers[token].length === 0) {
+      delete roomPeers[token];
+    }
+  }
+}, 10000);
 
 // Lazy Gemini AI Client initialization
 let genAiClient: GoogleGenAI | null = null;
@@ -372,11 +191,11 @@ async function startServer() {
       token: formattedToken,
       title: title || `Meeting ${formattedToken}`,
       host,
-      participants: [host, 'Kyaw Kyaw', 'Su Su'],
+      participants: [host],
       keyPoints: [
-        'Live session started',
-        'Granola AI Engine listening for notes',
-        'Standard Zoom host controls active',
+        'Live WebRTC meeting started',
+        'Direct P2P audio & video channel active',
+        'Standard host controls active',
       ],
       category,
       isLive: true,
@@ -388,14 +207,109 @@ async function startServer() {
 
     rooms = [newRoom, ...rooms];
 
-    // Seed participant list
+    // Initialize host participant
     roomParticipants[formattedToken] = [
       { name: host, role: 'host', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-      { name: 'Kyaw Kyaw', role: 'participant', isAudioMuted: false, isVideoMuted: false, isHandRaised: false },
-      { name: 'Su Su', role: 'participant', isAudioMuted: true, isVideoMuted: false, isHandRaised: false },
     ];
 
     res.status(201).json({ room: newRoom });
+  });
+
+  // WebRTC Peer Registry: Join room peer
+  app.post('/api/rooms/:token/peers/join', (req: Request, res: Response) => {
+    const token = req.params.token.toUpperCase().startsWith('#')
+      ? req.params.token.toUpperCase()
+      : `#${req.params.token.toUpperCase()}`;
+    const { peerId, userName, avatar } = req.body;
+    if (!peerId || !userName) {
+      return res.status(400).json({ error: 'peerId and userName are required' });
+    }
+
+    if (!roomPeers[token]) {
+      roomPeers[token] = [];
+    }
+
+    // Filter out previous session for same peerId or same userName
+    roomPeers[token] = roomPeers[token].filter((p) => p.peerId !== peerId && p.userName !== userName);
+    roomPeers[token].push({
+      peerId,
+      userName,
+      avatar,
+      lastSeen: Date.now(),
+    });
+
+    // Update room participants list
+    let room = rooms.find((r) => r.token.toUpperCase() === token.toUpperCase());
+    if (room && !room.participants.includes(userName)) {
+      room.participants.push(userName);
+    }
+
+    if (!roomParticipants[token]) {
+      roomParticipants[token] = [];
+    }
+    if (!roomParticipants[token].some((p) => p.name.toLowerCase() === userName.toLowerCase())) {
+      roomParticipants[token].push({
+        name: userName,
+        role: 'participant',
+        isAudioMuted: false,
+        isVideoMuted: false,
+        isHandRaised: false,
+      });
+    }
+
+    // Return other active peers
+    const otherPeers = roomPeers[token].filter((p) => p.peerId !== peerId);
+    res.json({ status: 'ok', peers: otherPeers });
+  });
+
+  // WebRTC Peer Registry: List active peers in room
+  app.get('/api/rooms/:token/peers', (req: Request, res: Response) => {
+    const token = req.params.token.toUpperCase().startsWith('#')
+      ? req.params.token.toUpperCase()
+      : `#${req.params.token.toUpperCase()}`;
+    const now = Date.now();
+    const peers = (roomPeers[token] || []).filter((p) => now - p.lastSeen < 25000);
+    res.json({ peers });
+  });
+
+  // WebRTC Peer Registry: Heartbeat
+  app.post('/api/rooms/:token/peers/heartbeat', (req: Request, res: Response) => {
+    const token = req.params.token.toUpperCase().startsWith('#')
+      ? req.params.token.toUpperCase()
+      : `#${req.params.token.toUpperCase()}`;
+    const { peerId } = req.body;
+    if (roomPeers[token] && peerId) {
+      const peer = roomPeers[token].find((p) => p.peerId === peerId);
+      if (peer) {
+        peer.lastSeen = Date.now();
+      }
+    }
+    res.json({ status: 'ok' });
+  });
+
+  // WebRTC Peer Registry: Leave room peer
+  app.post('/api/rooms/:token/peers/leave', (req: Request, res: Response) => {
+    const token = req.params.token.toUpperCase().startsWith('#')
+      ? req.params.token.toUpperCase()
+      : `#${req.params.token.toUpperCase()}`;
+    const { peerId } = req.body;
+    if (roomPeers[token] && peerId) {
+      const leftPeer = roomPeers[token].find((p) => p.peerId === peerId);
+      roomPeers[token] = roomPeers[token].filter((p) => p.peerId !== peerId);
+
+      if (leftPeer) {
+        const room = rooms.find((r) => r.token.toUpperCase() === token.toUpperCase());
+        if (room) {
+          room.participants = room.participants.filter((p) => p !== leftPeer.userName);
+        }
+        if (roomParticipants[token]) {
+          roomParticipants[token] = roomParticipants[token].filter(
+            (p) => p.name.toLowerCase() !== leftPeer.userName.toLowerCase()
+          );
+        }
+      }
+    }
+    res.json({ status: 'ok' });
   });
 
   // Update room settings (Host security controls: Lock, Waiting Room, Mute All, Screen Share, Chat permission)

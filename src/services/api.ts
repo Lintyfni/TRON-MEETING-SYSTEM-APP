@@ -435,4 +435,47 @@ export const api = {
       return false;
     }
   },
+
+  // 9. WebRTC Peer Registry
+  async joinRoomPeers(token: string, peerId: string, userName: string, avatar?: string): Promise<any[]> {
+    try {
+      const cleanToken = encodeURIComponent(token);
+      const res = await fetch(`/api/rooms/${cleanToken}/peers/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peerId, userName, avatar }),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.peers || [];
+    } catch {
+      return [];
+    }
+  },
+
+  async getRoomPeers(token: string): Promise<any[]> {
+    try {
+      const cleanToken = encodeURIComponent(token);
+      const res = await fetch(`/api/rooms/${cleanToken}/peers`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.peers || [];
+    } catch {
+      return [];
+    }
+  },
+
+  async leaveRoomPeers(token: string, peerId: string): Promise<boolean> {
+    try {
+      const cleanToken = encodeURIComponent(token);
+      const res = await fetch(`/api/rooms/${cleanToken}/peers/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peerId }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
 };

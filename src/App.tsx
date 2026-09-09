@@ -58,7 +58,7 @@ export default function App() {
   const [notes, setNotes] = useState<MeetingNote[]>(initialMeetingNotes);
   const [scheduledMeetings, setScheduledMeetings] = useState<ScheduledMeeting[]>(initialScheduledMeetings);
   const [dateNotes, setDateNotes] = useState<DateNote[]>(initialDateNotes);
-  const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '#MEET-9021');
+  const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '');
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
   const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
@@ -84,8 +84,11 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     api.fetchRooms().then((backendRooms) => {
-      if (isMounted && backendRooms && backendRooms.length > 0) {
+      if (isMounted && backendRooms) {
         setRooms(backendRooms);
+        if (backendRooms.length > 0 && !activeRoomToken) {
+          setActiveRoomToken(backendRooms[0].token);
+        }
       }
     });
     api.fetchNotes().then((backendNotes) => {
