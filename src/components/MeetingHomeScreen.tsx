@@ -414,28 +414,44 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: HISTORY & ARCHIVE (Chat History & Record History) */}
+        {/* SECTION 2: HISTORY & ARCHIVE (Chat History, Note History & Record History) */}
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-purple-600" />
             <span>History &amp; Records</span>
           </h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {/* CHAT HISTORY */}
             <button
               id="btn-home-chat-history"
               type="button"
               onClick={() => onNavigateToProfileTab('chats')}
-              className="p-3.5 rounded-xl bg-white hover:bg-purple-50/40 border border-neutral-200 hover:border-purple-300 text-left transition duration-200 group cursor-pointer shadow-xs"
+              className="p-3 rounded-xl bg-white hover:bg-purple-50/40 border border-neutral-200 hover:border-purple-300 text-left transition duration-200 group cursor-pointer shadow-xs"
             >
               <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center mb-2 group-hover:scale-110 transition text-purple-600">
                 <MessageSquareCode className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="block font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition">
+              <span className="block font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate">
                 Chat History
               </span>
-              <span className="text-[10px] text-neutral-500">{recordings.length} sessions</span>
+              <span className="text-[10px] text-neutral-500 truncate block">{recordings.length} sessions</span>
+            </button>
+
+            {/* NOTES HISTORY */}
+            <button
+              id="btn-home-notes-history"
+              type="button"
+              onClick={() => onNavigateToProfileTab('notes')}
+              className="p-3 rounded-xl bg-white hover:bg-purple-50/40 border border-neutral-200 hover:border-purple-300 text-left transition duration-200 group cursor-pointer shadow-xs"
+            >
+              <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center mb-2 group-hover:scale-110 transition text-purple-600">
+                <FileText className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="block font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate">
+                Meeting Notes
+              </span>
+              <span className="text-[10px] text-neutral-500 truncate block">{notes.length} notes</span>
             </button>
 
             {/* RECORD HISTORY */}
@@ -443,15 +459,15 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-record-history"
               type="button"
               onClick={() => onNavigateToProfileTab('recordings')}
-              className="p-3.5 rounded-xl bg-white hover:bg-purple-50/40 border border-neutral-200 hover:border-purple-300 text-left transition duration-200 group cursor-pointer shadow-xs"
+              className="p-3 rounded-xl bg-white hover:bg-purple-50/40 border border-neutral-200 hover:border-purple-300 text-left transition duration-200 group cursor-pointer shadow-xs"
             >
               <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center mb-2 group-hover:scale-110 transition text-purple-600">
                 <Film className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="block font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition">
-                Record History
+              <span className="block font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate">
+                Recordings
               </span>
-              <span className="text-[10px] text-neutral-500">
+              <span className="text-[10px] text-neutral-500 truncate block">
                 {recordings.filter((r) => r.isUserRecorded).length} saved
               </span>
             </button>
@@ -594,7 +610,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               <div>
                 <label className="block text-xs font-semibold text-neutral-700 mb-1 flex items-center gap-1.5">
                   <Edit3 className="w-3.5 h-3.5 text-purple-600" />
-                  <span>Meeting Name (ခေါင်းစဉ်)</span>
+                  <span>Meeting Title</span>
                 </label>
                 <input
                   type="text"

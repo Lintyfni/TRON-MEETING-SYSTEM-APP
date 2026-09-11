@@ -1023,13 +1023,7 @@ export default function App() {
                 onAddComment={handleAddPostComment}
                 onToggleCommentLike={handleTogglePostCommentLike}
                 currentUser={userProfile}
-                onSelectMeetingToken={(token) => {
-                  const roomExists = rooms.some((r) => r.token === token);
-                  if (roomExists) {
-                    setActiveRoomToken(token);
-                    setCurrentTab('meetings');
-                  }
-                }}
+                onSelectMeetingToken={handleJoinMeeting}
               />
             )}
 
@@ -1039,10 +1033,7 @@ export default function App() {
                 chats={chats}
                 activeRoomToken={activeRoomToken}
                 onSendMessage={handleSendMessage}
-                onJumpToMeeting={(token) => {
-                  setActiveRoomToken(token);
-                  setCurrentTab('meetings');
-                }}
+                onJumpToMeeting={handleJoinMeeting}
               />
             )}
 
@@ -1069,10 +1060,7 @@ export default function App() {
                 onExportToPost={handleExportToFeed}
                 initialTab={profileActiveTab}
                 onBackToHome={handleBackToHome}
-                onJumpToMeeting={(token) => {
-                  setActiveRoomToken(token);
-                  setCurrentTab('meetings');
-                }}
+                onJumpToMeeting={handleJoinMeeting}
               />
             )}
 
