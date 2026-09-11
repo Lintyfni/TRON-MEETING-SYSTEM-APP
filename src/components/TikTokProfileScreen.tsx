@@ -4,9 +4,13 @@ import {
   MeetingRecording,
   MeetingNote,
   MeetingRoom,
-  LanguageOption
+  LanguageOption,
+  PostItem,
+  PostComment,
+  SocialUser
 } from '../types';
 import { languageOptions } from '../data/initialData';
+import { SocialFollowModal } from './SocialFollowModal';
 import {
   Grid,
   Heart,
@@ -26,11 +30,21 @@ import {
   X,
   Check,
   UserCheck,
+  UserPlus,
+  Users,
   Copy,
   ChevronRight,
   ChevronLeft,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Globe,
+  Lock,
+  Repeat,
+  MessageSquare,
+  Send,
+  List,
+  Layers,
+  EyeOff
 } from 'lucide-react';
 
 interface TikTokProfileScreenProps {
@@ -38,30 +52,72 @@ interface TikTokProfileScreenProps {
   recordings: MeetingRecording[];
   notes: MeetingNote[];
   rooms: MeetingRoom[];
+  posts?: PostItem[];
+  socialUsers?: SocialUser[];
+  onToggleFollowUser?: (userId: string) => void;
+  onSimulateIncomingFollow?: (userId: string) => void;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
   onToggleFavoriteRecording: (recordingId: string) => void;
+  onToggleLikeRecording?: (recordingId: string) => void;
+  onToggleRepostRecording?: (recordingId: string) => void;
+  onAddRecordingComment?: (recordingId: string, content: string) => void;
+  onToggleRecordingCommentLike?: (recordingId: string, commentId: string) => void;
+  onToggleLikePost?: (postId: string) => void;
+  onToggleRepostPost?: (postId: string) => void;
+  onAddPostComment?: (postId: string, content: string) => void;
+  onTogglePostCommentLike?: (postId: string, commentId: string) => void;
   onExportToPost: (content: string) => void;
   onJumpToMeeting?: (token: string) => void;
   initialTab?: ProfileTabType;
   onBackToHome?: () => void;
 }
 
-type ProfileTabType = 'recordings' | 'favorites' | 'notes' | 'chats';
+type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats';
 
 export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   userProfile,
   recordings,
   notes,
   rooms,
+  posts = [],
+  socialUsers = [],
+  onToggleFollowUser,
+  onSimulateIncomingFollow,
   onUpdateProfile,
   onToggleFavoriteRecording,
+  onToggleLikeRecording,
+  onToggleRepostRecording,
+  onAddRecordingComment,
+  onToggleRecordingCommentLike,
+  onToggleLikePost,
+  onToggleRepostPost,
+  onAddPostComment,
+  onTogglePostCommentLike,
   onExportToPost,
   onJumpToMeeting,
   initialTab,
   onBackToHome,
 }) => {
-  // 4 Tabs: Recordings, Favourites, Note History, Chat History
+  // Tabs: Recordings, Posts, Favourites, Note History, Chat History
   const [activeTab, setActiveTab] = useState<ProfileTabType>(initialTab || 'recordings');
+
+  // Visitor View Simulator (Allows testing how profile looks when others visit)
+  const [isVisitorMode, setIsVisitorMode] = useState<boolean>(false);
+
+  // Social Follow modal state
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState<boolean>(false);
+  const [followModalInitialTab, setFollowModalInitialTab] = useState<'following' | 'followers' | 'discover'>('following');
+
+  // Recording view mode: 'posts' (feed style with like/repost/comment) vs 'grid'
+  const [recordingLayout, setRecordingLayout] = useState<'posts' | 'grid'>('posts');
+
+  // Interactive comment expansion for recordings
+  const [expandedRecComments, setExpandedRecComments] = useState<string | null>(null);
+  const [recCommentInputs, setRecCommentInputs] = useState<Record<string, string>>({});
+
+  // Interactive comment expansion for posts
+  const [expandedPostComments, setExpandedPostComments] = useState<string | null>(null);
+  const [postCommentInputs, setPostCommentInputs] = useState<Record<string, string>>({});
 
   // Synchronize when initialTab prop updates
   useEffect(() => {
@@ -104,8 +160,26 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  // Only show meetings recorded by the user!
-  const userRecordings = recordings.filter((r) => r.isUserRecorded);
+  // Recordings shown in user profile:
+  // Includes recorded by user OR reposted by user!
+  const allUserRecordings = recordings.filter(
+    (r) => r.isUserRecorded || r.isReposted || r.repostedByUser === userProfile.name
+  );
+
+  // If viewing as visitor, hide all private recordings!
+  const displayedRecordings = isVisitorMode
+    ? allUserRecordings.filter((r) => r.visibility !== 'private')
+    : allUserRecordings;
+
+  // Posts shown in user profile: created by user OR reposted by user
+  const allUserPosts = posts.filter(
+    (p) => p.author === userProfile.name || p.isReposted || p.repostedByUser === userProfile.name
+  );
+
+  // If viewing as visitor, hide all private posts!
+  const displayedPosts = isVisitorMode
+    ? allUserPosts.filter((p) => p.visibility !== 'private')
+    : allUserPosts;
 
   // Favorited recordings
   const favoriteRecordings = recordings.filter((r) => r.isFavorited);
@@ -157,6 +231,28 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
     setCopiedId(id);
     showToast('📋 Copied to clipboard!');
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Send recording comment
+  const handleSendRecComment = (recId: string) => {
+    const text = recCommentInputs[recId]?.trim();
+    if (!text) return;
+    if (onAddRecordingComment) {
+      onAddRecordingComment(recId, text);
+    }
+    setRecCommentInputs((prev) => ({ ...prev, [recId]: '' }));
+    showToast('💬 Comment posted to recording!');
+  };
+
+  // Send post comment
+  const handleSendPostComment = (postId: string) => {
+    const text = postCommentInputs[postId]?.trim();
+    if (!text) return;
+    if (onAddPostComment) {
+      onAddPostComment(postId, text);
+    }
+    setPostCommentInputs((prev) => ({ ...prev, [postId]: '' }));
+    showToast('💬 Comment posted to thread!');
   };
 
   return (
@@ -245,25 +341,55 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </h2>
           <p className="text-xs text-neutral-500 mt-0.5 font-mono">{userProfile.handle}</p>
 
-          {/* Stats Row */}
+          {/* Stats Row with Interactive Following/Followers Modal Triggers */}
           <div className="flex items-center justify-center gap-6 my-3.5 text-center">
-            <div>
-              <span className="font-bold text-sm text-neutral-900 block">{userProfile.following}</span>
-              <span className="text-[11px] text-neutral-500">Following</span>
-            </div>
+            <button
+              id="btn-profile-stats-following"
+              type="button"
+              onClick={() => {
+                setFollowModalInitialTab('following');
+                setIsFollowModalOpen(true);
+              }}
+              className="hover:opacity-75 transition cursor-pointer group text-center"
+              title="Click to view and manage following"
+            >
+              <span className="font-bold text-sm text-neutral-900 block group-hover:text-purple-600 transition">
+                {userProfile.following}
+              </span>
+              <span className="text-[11px] text-neutral-500 group-hover:text-purple-600 transition flex items-center justify-center gap-0.5">
+                Following
+              </span>
+            </button>
+
             <div className="w-px h-6 bg-neutral-200" />
-            <div>
-              <span className="font-bold text-sm text-neutral-900 block">{userProfile.followers}</span>
-              <span className="text-[11px] text-neutral-500">Followers</span>
-            </div>
+
+            <button
+              id="btn-profile-stats-followers"
+              type="button"
+              onClick={() => {
+                setFollowModalInitialTab('followers');
+                setIsFollowModalOpen(true);
+              }}
+              className="hover:opacity-75 transition cursor-pointer group text-center"
+              title="Click to view followers and simulate incoming follows"
+            >
+              <span className="font-bold text-sm text-neutral-900 block group-hover:text-purple-600 transition">
+                {userProfile.followers}
+              </span>
+              <span className="text-[11px] text-neutral-500 group-hover:text-purple-600 transition flex items-center justify-center gap-0.5">
+                Followers
+              </span>
+            </button>
+
             <div className="w-px h-6 bg-neutral-200" />
+
             <div>
               <span className="font-bold text-sm text-neutral-900 block">{userProfile.likes}</span>
               <span className="text-[11px] text-neutral-500">Likes</span>
             </div>
           </div>
 
-          {/* Action Buttons: Edit Profile & Picture Upload */}
+          {/* Action Buttons: Edit Profile, Photo Upload & Follows/Connections */}
           <div className="flex items-center gap-2 w-full max-w-xs justify-center mb-3">
             <button
               id="btn-edit-profile-open"
@@ -282,9 +408,23 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             </button>
 
             <button
+              id="btn-profile-connections"
+              type="button"
+              onClick={() => {
+                setFollowModalInitialTab('discover');
+                setIsFollowModalOpen(true);
+              }}
+              className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-700 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+              title="Follow colleagues and manage network"
+            >
+              <Users className="w-3.5 h-3.5 text-purple-600" />
+              <span>Follows</span>
+            </button>
+
+            <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+              className="py-2 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
               title="Upload Profile Picture"
             >
               <Camera className="w-3.5 h-3.5 text-purple-600" />
@@ -296,91 +436,434 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           <div className="w-full max-w-sm bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-700 text-left leading-relaxed">
             <p className="line-clamp-3">{userProfile.bio}</p>
           </div>
+
+          {/* Perspective Switcher: Private vs Public */}
+          <div className="w-full max-w-sm mt-3">
+            <div className="flex items-center gap-1 p-1 bg-neutral-100/90 rounded-2xl border border-neutral-200 text-xs">
+              <button
+                type="button"
+                id="btn-profile-private-view"
+                onClick={() => setIsVisitorMode(false)}
+                className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  !isVisitorMode
+                    ? 'bg-white text-purple-700 shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-800'
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Private</span>
+              </button>
+              <button
+                type="button"
+                id="btn-profile-public-view"
+                onClick={() => setIsVisitorMode(true)}
+                className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  isVisitorMode
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-neutral-800'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span>Public</span>
+              </button>
+            </div>
+            {isVisitorMode ? (
+              <div className="mt-2 p-2 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-700 flex items-center gap-1.5 font-medium animate-in fade-in">
+                <Globe className="w-3.5 h-3.5 shrink-0 text-purple-600" />
+                <span>Public: Showing public items only. Private recordings and private posts are hidden.</span>
+              </div>
+            ) : (
+              <div className="mt-2 p-2 rounded-xl bg-neutral-100/80 border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-1.5 font-medium animate-in fade-in">
+                <Lock className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
+                <span>Private: Showing all items including your private notes &amp; recordings.</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 3. PROFILE TABS ROW: Recordings, Favourites, Note History, Chat History */}
-        <div className="sticky top-[53px] z-10 bg-white/95 backdrop-blur-md border-b border-neutral-200 flex items-center justify-around px-2">
+        {/* 3. PROFILE TABS ROW: Recordings, Posts, Favourites, Note History, Chat History */}
+        <div className="sticky top-[53px] z-10 bg-white/95 backdrop-blur-md border-b border-neutral-200 flex items-center justify-around px-1 overflow-x-auto">
           {/* Tab 1: Recordings */}
           <button
             id="tab-profile-recordings"
             type="button"
             onClick={() => setActiveTab('recordings')}
-            className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'recordings'
                 ? 'border-purple-600 text-purple-700 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
-            title="My Recorded Meetings"
+            title="Recorded Meetings"
           >
-            <Grid className="w-5 h-5" />
-            <span className="text-[10px] mt-1">Recordings ({userRecordings.length})</span>
+            <Grid className="w-4 h-4" />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Recordings ({displayedRecordings.length})</span>
           </button>
 
-          {/* Tab 2: Favourite / Love */}
+          {/* Tab 2: Posts (X style public/reposted feed) */}
+          <button
+            id="tab-profile-posts"
+            type="button"
+            onClick={() => setActiveTab('posts')}
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
+              activeTab === 'posts'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+            }`}
+            title="Posts & Reposts"
+          >
+            <Layers className="w-4 h-4" />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Posts ({displayedPosts.length})</span>
+          </button>
+
+          {/* Tab 3: Favourite / Love */}
           <button
             id="tab-profile-favorites"
             type="button"
             onClick={() => setActiveTab('favorites')}
-            className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'favorites'
                 ? 'border-purple-600 text-purple-700 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Favourites"
           >
-            <Heart className={`w-5 h-5 ${activeTab === 'favorites' ? 'fill-purple-600 text-purple-600' : ''}`} />
-            <span className="text-[10px] mt-1">Favourites</span>
+            <Heart className={`w-4 h-4 ${activeTab === 'favorites' ? 'fill-purple-600 text-purple-600' : ''}`} />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Favourites</span>
           </button>
 
-          {/* Tab 3: Note History (Renamed from Note Filter) */}
+          {/* Tab 4: Note History */}
           <button
             id="tab-profile-notes"
             type="button"
             onClick={() => setActiveTab('notes')}
-            className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'notes'
                 ? 'border-purple-600 text-purple-700 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
-            title="Note History (All or Meeting Filter)"
+            title="Note History"
           >
-            <FileText className="w-5 h-5" />
-            <span className="text-[10px] mt-1">Note History</span>
+            <FileText className="w-4 h-4" />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Notes</span>
           </button>
 
-          {/* Tab 4: Chat History (Renamed from Chat Subtitle) */}
+          {/* Tab 5: Chat History */}
           <button
             id="tab-profile-subtitles"
             type="button"
             onClick={() => setActiveTab('chats')}
-            className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'chats'
                 ? 'border-purple-600 text-purple-700 font-bold'
                 : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
-            title="Chat History (All or Meeting Filter)"
+            title="Chat History"
           >
-            <MessageSquareCode className="w-5 h-5" />
-            <span className="text-[10px] mt-1">Chat History</span>
+            <MessageSquareCode className="w-4 h-4" />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Chats</span>
           </button>
         </div>
 
         {/* 4. TAB CONTENTS */}
 
-        {/* TAB 1: RECORDINGS */}
+        {/* TAB 1: RECORDINGS (POST STYLE WITH LIKE / REPOST / COMMENT) */}
         {activeTab === 'recordings' && (
-          <div className="p-3 bg-neutral-50 min-h-[300px]">
-            {userRecordings.length === 0 ? (
+          <div className="p-3 bg-neutral-50 min-h-[300px] flex flex-col gap-3">
+            {/* Layout switch: Post Feed style vs Grid */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-neutral-700">
+                {isVisitorMode ? 'Public Recordings' : 'Meeting Recordings'} ({displayedRecordings.length})
+              </span>
+              <div className="flex items-center gap-1 bg-white border border-neutral-200 rounded-lg p-0.5 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setRecordingLayout('posts')}
+                  className={`p-1 rounded-md text-xs transition cursor-pointer ${
+                    recordingLayout === 'posts'
+                      ? 'bg-purple-100 text-purple-700 font-bold'
+                      : 'text-neutral-500 hover:text-neutral-800'
+                  }`}
+                  title="Post Feed View (Post ပုံစံ)"
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRecordingLayout('grid')}
+                  className={`p-1 rounded-md text-xs transition cursor-pointer ${
+                    recordingLayout === 'grid'
+                      ? 'bg-purple-100 text-purple-700 font-bold'
+                      : 'text-neutral-500 hover:text-neutral-800'
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {displayedRecordings.length === 0 ? (
               <div className="py-16 text-center text-neutral-400 space-y-2">
                 <Grid className="w-10 h-10 text-neutral-300 mx-auto" />
-                <p className="text-xs text-neutral-600 font-medium">No meetings recorded yet.</p>
+                <p className="text-xs text-neutral-600 font-medium">
+                  {isVisitorMode ? 'No public recordings available.' : 'No meetings recorded yet.'}
+                </p>
                 <p className="text-[11px] text-neutral-400">
-                  Tap 'Record' on any active meeting screen to capture a session!
+                  {isVisitorMode
+                    ? 'This user has not shared any public recordings.'
+                    : "Tap 'Record' on any active meeting screen to capture a session!"}
                 </p>
               </div>
+            ) : recordingLayout === 'posts' ? (
+              /* POST FEED STYLE (like / repost / comment as requested by user) */
+              <div className="space-y-3.5">
+                {displayedRecordings.map((rec) => {
+                  const isRecCommentsOpen = expandedRecComments === rec.id;
+                  const commentsCount = rec.comments?.length || 0;
+                  const isReposted = rec.isReposted || rec.repostedByUser === userProfile.name;
+
+                  return (
+                    <article
+                      key={rec.id}
+                      id={`rec-card-${rec.id}`}
+                      className="bg-white rounded-2xl border border-neutral-200 p-3.5 shadow-xs flex flex-col gap-2.5 transition hover:border-purple-300"
+                    >
+                      {/* Repost Header if applicable */}
+                      {isReposted && (
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-semibold pl-1">
+                          <Repeat className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>
+                            {rec.repostedByUser
+                              ? rec.repostedByUser === userProfile.name
+                                ? 'You reposted'
+                                : `${rec.repostedByUser} reposted`
+                              : 'You reposted'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                            {userProfile.name[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-xs text-neutral-900 truncate">
+                                {userProfile.name}
+                              </span>
+                              <span className="text-[10px] text-neutral-400">· {rec.date}</span>
+                              {/* Visibility Badge */}
+                              {rec.visibility === 'private' ? (
+                                <span className="flex items-center gap-0.5 text-[9px] font-semibold text-neutral-600 bg-neutral-100 px-1.5 py-0.2 rounded-md border border-neutral-200">
+                                  <Lock className="w-2.5 h-2.5 text-neutral-500" />
+                                  Private
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-0.5 text-[9px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md border border-purple-200">
+                                  <Globe className="w-2.5 h-2.5 text-purple-600" />
+                                  Public
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] font-semibold text-neutral-800 truncate">
+                              {rec.title}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Meeting Token Pill */}
+                        <button
+                          type="button"
+                          onClick={() => onJumpToMeeting?.(rec.meetingToken)}
+                          className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-mono text-[11px] font-semibold hover:bg-purple-100 transition shrink-0 cursor-pointer"
+                        >
+                          {rec.meetingToken}
+                        </button>
+                      </div>
+
+                      {/* Video Player Preview Banner */}
+                      <div
+                        onClick={() => setActivePlaybackRecording(rec)}
+                        className="relative w-full aspect-video rounded-xl overflow-hidden bg-neutral-900 group cursor-pointer shadow-xs"
+                      >
+                        <img
+                          src={rec.thumbnailUrl}
+                          alt={rec.title}
+                          className="w-full h-full object-cover group-hover:scale-103 transition duration-300 opacity-90"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 flex items-center justify-center">
+                          <div className="w-11 h-11 rounded-full bg-purple-600/90 hover:bg-purple-600 text-white flex items-center justify-center shadow-lg transition transform group-hover:scale-110">
+                            <Play className="w-5 h-5 fill-white ml-0.5" />
+                          </div>
+                        </div>
+                        <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white">
+                          <span className="flex items-center gap-1 font-medium bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-xs">
+                            <Eye className="w-3.5 h-3.5 text-purple-300" />
+                            {rec.views} views
+                          </span>
+                          <span className="font-mono bg-black/60 px-2 py-0.5 rounded-md backdrop-blur-xs text-[10px]">
+                            {rec.duration}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* X-style Action Row: Like, Repost, Comment, Share */}
+                      <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-neutral-500 text-xs px-2">
+                        {/* Comments Button */}
+                        <button
+                          type="button"
+                          id={`btn-rec-comments-${rec.id}`}
+                          onClick={() =>
+                            setExpandedRecComments((prev) => (prev === rec.id ? null : rec.id))
+                          }
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            isRecCommentsOpen ? 'text-purple-600 font-bold' : 'hover:text-purple-600'
+                          }`}
+                          title="Comments"
+                        >
+                          <MessageSquare className="w-4 h-4 text-purple-500" />
+                          <span>{commentsCount}</span>
+                        </button>
+
+                        {/* Repost Button */}
+                        <button
+                          type="button"
+                          id={`btn-rec-repost-${rec.id}`}
+                          onClick={() => {
+                            if (onToggleRepostRecording) {
+                              onToggleRepostRecording(rec.id);
+                              showToast(isReposted ? 'Removed repost' : '🔁 Reposted recording to profile!');
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            isReposted ? 'text-emerald-600 font-bold' : 'hover:text-emerald-600'
+                          }`}
+                          title={isReposted ? 'Undo repost' : 'Repost recording'}
+                        >
+                          <Repeat className={`w-4 h-4 ${isReposted ? 'text-emerald-600' : ''}`} />
+                          <span>{rec.reposts || 0}</span>
+                        </button>
+
+                        {/* Like Button */}
+                        <button
+                          type="button"
+                          id={`btn-rec-like-${rec.id}`}
+                          onClick={() => {
+                            if (onToggleLikeRecording) {
+                              onToggleLikeRecording(rec.id);
+                            } else {
+                              onToggleFavoriteRecording(rec.id);
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            rec.isLiked || rec.isFavorited ? 'text-rose-600 font-bold' : 'hover:text-rose-600'
+                          }`}
+                          title="Like"
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              rec.isLiked || rec.isFavorited
+                                ? 'fill-rose-600 text-rose-600'
+                                : 'text-neutral-400'
+                            }`}
+                          />
+                          <span>{rec.likes || 0}</span>
+                        </button>
+
+                        {/* Share Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(window.location.href);
+                            showToast('🔗 Recording link copied!');
+                          }}
+                          className="flex items-center gap-1 hover:text-purple-600 transition cursor-pointer"
+                          title="Share"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Interactive Comments Drawer for Recording */}
+                      {isRecCommentsOpen && (
+                        <div className="mt-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex flex-col gap-2.5 animate-in fade-in-50 duration-150">
+                          <span className="text-[11px] font-bold text-neutral-700">
+                            Recording Comments & Feedback
+                          </span>
+
+                          {rec.comments && rec.comments.length > 0 ? (
+                            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                              {rec.comments.map((cmt: PostComment) => (
+                                <div
+                                  key={cmt.id}
+                                  className="bg-white rounded-xl p-2 border border-neutral-200 text-xs shadow-2xs flex flex-col gap-1"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[10px]">
+                                        {cmt.author[0]}
+                                      </div>
+                                      <span className="font-bold text-neutral-800 text-[11px]">{cmt.author}</span>
+                                      <span className="text-[10px] text-neutral-400">· {cmt.timestamp}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => onToggleRecordingCommentLike?.(rec.id, cmt.id)}
+                                      className={`flex items-center gap-1 text-[11px] ${
+                                        cmt.isLiked ? 'text-rose-600 font-bold' : 'text-neutral-400 hover:text-rose-600'
+                                      }`}
+                                    >
+                                      <Heart className={`w-3 h-3 ${cmt.isLiked ? 'fill-rose-600 text-rose-600' : ''}`} />
+                                      <span>{cmt.likes || 0}</span>
+                                    </button>
+                                  </div>
+                                  <p className="text-neutral-700 text-[11px] leading-relaxed pl-6">{cmt.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-neutral-400 italic">No comments yet. Write the first feedback!</p>
+                          )}
+
+                          {/* Add Comment Input */}
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <input
+                              type="text"
+                              placeholder="Write a comment on this recording..."
+                              value={recCommentInputs[rec.id] || ''}
+                              onChange={(e) =>
+                                setRecCommentInputs((prev) => ({ ...prev, [rec.id]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSendRecComment(rec.id);
+                                }
+                              }}
+                              className="flex-1 bg-white border border-neutral-300 rounded-xl px-2.5 py-1.5 text-xs text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-purple-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSendRecComment(rec.id)}
+                              disabled={!recCommentInputs[rec.id]?.trim()}
+                              className="p-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white transition cursor-pointer"
+                              title="Send"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
             ) : (
+              /* GRID STYLE */
               <div className="grid grid-cols-3 gap-2">
-                {userRecordings.map((rec) => (
+                {displayedRecordings.map((rec) => (
                   <div
                     key={rec.id}
                     onClick={() => setActivePlaybackRecording(rec)}
@@ -392,8 +875,9 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30">
-                      {rec.meetingToken}
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                      {rec.visibility === 'private' ? <Lock className="w-2.5 h-2.5 text-yellow-300" /> : <Globe className="w-2.5 h-2.5 text-purple-300" />}
+                      <span>{rec.meetingToken}</span>
                     </div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
                       <span className="flex items-center gap-1 font-medium">
@@ -404,6 +888,235 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: POSTS & REPOSTS (X style profile view as requested by user) */}
+        {activeTab === 'posts' && (
+          <div className="p-3 bg-neutral-50 min-h-[300px] flex flex-col gap-3">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-neutral-700">
+                {isVisitorMode ? 'Public Posts' : 'My Posts & Reposts'} ({displayedPosts.length})
+              </span>
+            </div>
+
+            {displayedPosts.length === 0 ? (
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <Layers className="w-10 h-10 text-neutral-300 mx-auto" />
+                <p className="text-xs text-neutral-600 font-medium">
+                  {isVisitorMode ? 'No public posts available.' : 'No posts published yet.'}
+                </p>
+                <p className="text-[11px] text-neutral-400">
+                  {isVisitorMode
+                    ? 'This user has no public posts visible to visitors.'
+                    : 'Publish notes or highlights from the Posts feed to see them here!'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayedPosts.map((post) => {
+                  const isPostCommentsOpen = expandedPostComments === post.id;
+                  const commentsCount = (post.comments ? post.comments.length : post.replies) || 0;
+                  const isReposted = post.isReposted || post.repostedByUser === userProfile.name;
+
+                  return (
+                    <article
+                      key={post.id}
+                      id={`profile-post-${post.id}`}
+                      className="bg-white rounded-2xl border border-neutral-200 p-3.5 shadow-xs flex flex-col gap-2 transition hover:border-purple-300"
+                    >
+                      {/* Repost Header if user reposted it */}
+                      {isReposted && (
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-semibold pl-1">
+                          <Repeat className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>
+                            {post.repostedByUser
+                              ? post.repostedByUser === userProfile.name
+                                ? 'You reposted'
+                                : `${post.repostedByUser} reposted`
+                              : 'You reposted'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Header */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                            {post.author[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-xs text-neutral-900 truncate">
+                                {post.author}
+                              </span>
+                              <span className="text-[10px] text-neutral-400">· {post.timestamp}</span>
+                              {/* Visibility Badge */}
+                              {post.visibility === 'private' ? (
+                                <span className="flex items-center gap-0.5 text-[9px] font-semibold text-neutral-600 bg-neutral-100 px-1.5 py-0.2 rounded-md border border-neutral-200">
+                                  <Lock className="w-2.5 h-2.5 text-neutral-500" />
+                                  Private
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-0.5 text-[9px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md border border-purple-200">
+                                  <Globe className="w-2.5 h-2.5 text-purple-600" />
+                                  Public
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-neutral-500">
+                              @{post.author.replace(/\s+/g, '').toLowerCase()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onJumpToMeeting?.(post.meetingToken)}
+                          className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-mono text-[11px] font-semibold hover:bg-purple-100 transition shrink-0 cursor-pointer"
+                        >
+                          {post.meetingToken}
+                        </button>
+                      </div>
+
+                      {/* Content */}
+                      <p className="text-xs text-neutral-800 leading-relaxed whitespace-pre-line pl-1">
+                        {post.content}
+                      </p>
+
+                      {/* X Action Buttons */}
+                      <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-neutral-500 text-xs px-2">
+                        {/* Comments Button */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedPostComments((prev) => (prev === post.id ? null : post.id))
+                          }
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            isPostCommentsOpen ? 'text-purple-600 font-bold' : 'hover:text-purple-600'
+                          }`}
+                        >
+                          <MessageSquare className="w-4 h-4 text-purple-500" />
+                          <span>{commentsCount}</span>
+                        </button>
+
+                        {/* Repost Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onToggleRepostPost) {
+                              onToggleRepostPost(post.id);
+                              showToast(isReposted ? 'Removed repost' : '🔁 Reposted to your profile!');
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            isReposted ? 'text-emerald-600 font-bold' : 'hover:text-emerald-600'
+                          }`}
+                        >
+                          <Repeat className={`w-4 h-4 ${isReposted ? 'text-emerald-600' : ''}`} />
+                          <span>{post.reposts || 0}</span>
+                        </button>
+
+                        {/* Like Button */}
+                        <button
+                          type="button"
+                          onClick={() => onToggleLikePost?.(post.id)}
+                          className={`flex items-center gap-1.5 transition cursor-pointer ${
+                            post.isLiked ? 'text-rose-600 font-bold' : 'hover:text-rose-600'
+                          }`}
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              post.isLiked ? 'fill-rose-600 text-rose-600' : 'text-neutral-400'
+                            }`}
+                          />
+                          <span>{post.likes || 0}</span>
+                        </button>
+
+                        {/* Share */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(window.location.href);
+                            showToast('🔗 Post link copied!');
+                          }}
+                          className="flex items-center gap-1 hover:text-purple-600 transition cursor-pointer"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Interactive Comments Drawer for Post */}
+                      {isPostCommentsOpen && (
+                        <div className="mt-2 p-3 bg-neutral-50 rounded-xl border border-neutral-200 flex flex-col gap-2 animate-in fade-in-50 duration-150">
+                          <span className="text-[11px] font-bold text-neutral-700">Comments</span>
+
+                          {post.comments && post.comments.length > 0 ? (
+                            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                              {post.comments.map((cmt: PostComment) => (
+                                <div
+                                  key={cmt.id}
+                                  className="bg-white rounded-xl p-2 border border-neutral-200 text-xs shadow-2xs flex flex-col gap-1"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                      <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[10px]">
+                                        {cmt.author[0]}
+                                      </div>
+                                      <span className="font-bold text-neutral-800 text-[11px]">{cmt.author}</span>
+                                      <span className="text-[10px] text-neutral-400">· {cmt.timestamp}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => onTogglePostCommentLike?.(post.id, cmt.id)}
+                                      className={`flex items-center gap-1 text-[11px] ${
+                                        cmt.isLiked ? 'text-rose-600 font-bold' : 'text-neutral-400 hover:text-rose-600'
+                                      }`}
+                                    >
+                                      <Heart className={`w-3 h-3 ${cmt.isLiked ? 'fill-rose-600 text-rose-600' : ''}`} />
+                                      <span>{cmt.likes || 0}</span>
+                                    </button>
+                                  </div>
+                                  <p className="text-neutral-700 text-[11px] leading-relaxed pl-6">{cmt.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-neutral-400 italic">No replies yet.</p>
+                          )}
+
+                          <div className="flex items-center gap-1.5 pt-1">
+                            <input
+                              type="text"
+                              placeholder="Write a reply..."
+                              value={postCommentInputs[post.id] || ''}
+                              onChange={(e) =>
+                                setPostCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleSendPostComment(post.id);
+                                }
+                              }}
+                              className="flex-1 bg-white border border-neutral-300 rounded-xl px-2.5 py-1.5 text-xs text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-purple-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSendPostComment(post.id)}
+                              disabled={!postCommentInputs[post.id]?.trim()}
+                              className="p-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white transition cursor-pointer"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1147,6 +1860,25 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
         </div>
       )}
+
+      {/* Social Follow/Followers Modal (X-style connection management) */}
+      <SocialFollowModal
+        isOpen={isFollowModalOpen}
+        onClose={() => setIsFollowModalOpen(false)}
+        initialTab={followModalInitialTab}
+        currentUser={userProfile}
+        users={socialUsers}
+        onToggleFollow={(userId) => {
+          if (onToggleFollowUser) {
+            onToggleFollowUser(userId);
+          }
+        }}
+        onSimulateIncomingFollow={(userId) => {
+          if (onSimulateIncomingFollow) {
+            onSimulateIncomingFollow(userId);
+          }
+        }}
+      />
     </div>
   );
 };

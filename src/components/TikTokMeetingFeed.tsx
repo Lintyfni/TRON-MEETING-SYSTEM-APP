@@ -17,7 +17,7 @@ interface TikTokMeetingFeedProps {
   onActiveRoomChange?: (token: string) => void;
   onUpdateRoomDetails?: (roomId: string, newTitle: string, newToken: string) => void;
   isRecording?: boolean;
-  onToggleRecording?: (token: string, isStart: boolean, durationSec?: number) => void;
+  onToggleRecording?: (token: string, isStart: boolean, durationSec?: number, visibility?: 'public' | 'private') => void;
   onOpenProfile?: () => void;
   onBackToHome?: () => void;
   comments?: Record<string, MeetingComment[]>;

@@ -36,6 +36,16 @@ export interface MeetingNote {
   author?: string;
 }
 
+export interface PostComment {
+  id: string;
+  author: string;
+  avatar?: string;
+  content: string;
+  timestamp: string;
+  likes?: number;
+  isLiked?: boolean;
+}
+
 export interface PostItem {
   id: string;
   meetingToken: string;
@@ -46,6 +56,10 @@ export interface PostItem {
   isLiked?: boolean;
   replies?: number;
   reposts?: number;
+  isReposted?: boolean;
+  visibility?: 'public' | 'private';
+  repostedByUser?: string;
+  comments?: PostComment[];
 }
 
 export interface ChatMessage {
@@ -80,14 +94,28 @@ export interface UserSettings {
   allowParticipantUnmute?: boolean;
 }
 
+export interface SocialUser {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  bio: string;
+  isFollowedByMe: boolean;
+  isFollowingMe: boolean;
+  followersCount: number;
+  followingCount: number;
+}
+
 export interface UserProfile {
   name: string;
   handle: string;
   avatar: string;
   bio: string;
   following: number;
-  followers: string;
-  likes: string;
+  followers: string | number;
+  likes: string | number;
+  followingUserIds?: string[];
+  followerUserIds?: string[];
 }
 
 export interface ChatSubtitleLine {
@@ -111,12 +139,20 @@ export interface MeetingRecording {
   duration: string;
   views: number;
   likes: number;
+  isLiked?: boolean;
   isFavorited: boolean;
   isUserRecorded?: boolean;
   thumbnailUrl: string;
   participants: string[];
   subtitles: ChatSubtitleLine[];
   notes?: string[];
+  visibility?: 'public' | 'private';
+  reposts?: number;
+  isReposted?: boolean;
+  repostedByUser?: string;
+  commentsCount?: number;
+  comments?: PostComment[];
+  author?: string;
 }
 
 export interface CommentReply {

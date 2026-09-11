@@ -11,7 +11,8 @@ import {
   MeetingComment,
   CommentReply,
   ScheduledMeeting,
-  DateNote
+  DateNote,
+  SocialUser
 } from './types';
 import { api } from './services/api';
 import {
@@ -26,6 +27,7 @@ import {
   initialScheduledMeetings,
   initialDateNotes,
 } from './data/initialData';
+import { initialSocialUsers } from './data/socialUsers';
 import { MeetingHomeScreen } from './components/MeetingHomeScreen';
 import { TikTokMeetingFeed } from './components/TikTokMeetingFeed';
 import { XFeedScreen } from './components/XFeedScreen';
@@ -73,6 +75,100 @@ export default function App() {
     } catch {}
     return initialUserProfile;
   });
+
+  // Social network users state with local persistence (X-like follow system)
+  const [socialUsers, setSocialUsers] = useState<SocialUser[]>(() => {
+    try {
+      const saved = localStorage.getItem('social_users_data');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return initialSocialUsers;
+  });
+
+  // Follow/Unfollow someone (like X)
+  const handleToggleFollowUser = (userId: string) => {
+    setSocialUsers((prevUsers) => {
+      const target = prevUsers.find((u) => u.id === userId);
+      if (!target) return prevUsers;
+      const isCurrentlyFollowed = !!target.isFollowedByMe;
+      const updatedUsers = prevUsers.map((u) => {
+        if (u.id === userId) {
+          return {
+            ...u,
+            isFollowedByMe: !isCurrentlyFollowed,
+            followersCount: isCurrentlyFollowed
+              ? Math.max(0, u.followersCount - 1)
+              : u.followersCount + 1,
+          };
+        }
+        return u;
+      });
+      try {
+        localStorage.setItem('social_users_data', JSON.stringify(updatedUsers));
+      } catch {}
+
+      // Synchronize current user profile following count and followingUserIds
+      setUserProfile((prevProfile) => {
+        const prevIds = prevProfile.followingUserIds || [];
+        const nextIds = isCurrentlyFollowed
+          ? prevIds.filter((id) => id !== userId)
+          : [...prevIds, userId];
+        const updated = {
+          ...prevProfile,
+          following: nextIds.length,
+          followingUserIds: nextIds,
+        };
+        try {
+          localStorage.setItem('user_profile_data', JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+
+      return updatedUsers;
+    });
+  };
+
+  // Simulate someone following/unfollowing me (like X incoming follower)
+  const handleSimulateIncomingFollow = (userId: string) => {
+    setSocialUsers((prevUsers) => {
+      const target = prevUsers.find((u) => u.id === userId);
+      if (!target) return prevUsers;
+      const isNowFollowingMe = !target.isFollowingMe;
+      const updatedUsers = prevUsers.map((u) => {
+        if (u.id === userId) {
+          return {
+            ...u,
+            isFollowingMe: isNowFollowingMe,
+          };
+        }
+        return u;
+      });
+      try {
+        localStorage.setItem('social_users_data', JSON.stringify(updatedUsers));
+      } catch {}
+
+      // Synchronize current user profile followers count and followerUserIds
+      setUserProfile((prevProfile) => {
+        const prevIds = prevProfile.followerUserIds || [];
+        const nextIds = isNowFollowingMe
+          ? (prevIds.includes(userId) ? prevIds : [...prevIds, userId])
+          : prevIds.filter((id) => id !== userId);
+        const updated = {
+          ...prevProfile,
+          followers: nextIds.length,
+          followerUserIds: nextIds,
+        };
+        try {
+          localStorage.setItem('user_profile_data', JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
+
+      return updatedUsers;
+    });
+  };
   // Meeting Recordings (persisted recordings for profile)
   const [recordings, setRecordings] = useState<MeetingRecording[]>(initialRecordings);
   // Active Recording state per meeting room
@@ -311,7 +407,12 @@ export default function App() {
   };
 
   // Handle Recording toggle
-  const handleToggleRecording = (token: string, isStart: boolean, durationSec: number = 0) => {
+  const handleToggleRecording = (
+    token: string,
+    isStart: boolean,
+    durationSec: number = 0,
+    visibility: 'public' | 'private' = 'public'
+  ) => {
     setActiveRecordingTokens((prev) => ({ ...prev, [token]: isStart }));
 
     // When recording stops, ensure it is archived in user recordings!
@@ -333,6 +434,7 @@ export default function App() {
                   isUserRecorded: true,
                   duration: formattedDuration,
                   title: currentRoom?.title || r.title,
+                  visibility: visibility || r.visibility || 'public',
                 }
               : r
           );
@@ -348,9 +450,13 @@ export default function App() {
               'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&auto=format&fit=crop&q=80',
             views: 1,
             likes: 0,
+            reposts: 0,
             isFavorited: false,
             isUserRecorded: true,
-            participants: currentRoom?.participants || ['Aung Aung (Me)', 'Kyaw Kyaw', 'Su Su'],
+            isReposted: false,
+            visibility: visibility || 'public',
+            comments: [],
+            participants: currentRoom?.participants || [userProfile.name, 'Kyaw Kyaw', 'Su Su'],
             notes: currentRoom?.keyPoints || [
               'Granola AI Meeting transcript archived',
               'Collaborative discussion points captured',
@@ -358,7 +464,7 @@ export default function App() {
             subtitles: [
               {
                 id: `sub_${Date.now()}`,
-                speaker: 'Aung Aung (Me)',
+                speaker: `${userProfile.name} (Host)`,
                 avatar: userProfile.avatar,
                 time: 'Just now',
                 isMe: true,
@@ -444,17 +550,24 @@ export default function App() {
   };
 
   // Add new X post
-  const handleAddPost = (token: string, content: string) => {
+  const handleAddPost = (
+    token: string,
+    content: string,
+    visibility: 'public' | 'private' = 'public'
+  ) => {
     const newPost: PostItem = {
       id: `post_${Date.now()}`,
       meetingToken: token,
-      author: 'Aung Aung',
+      author: userProfile.name,
       content,
       timestamp: 'Just now',
-      likes: 1,
-      isLiked: true,
+      likes: 0,
+      isLiked: false,
       replies: 0,
       reposts: 0,
+      isReposted: false,
+      visibility: visibility || 'public',
+      comments: [],
     };
     setPosts((prev) => [newPost, ...prev]);
     setPrefilledPostText('');
@@ -474,6 +587,189 @@ export default function App() {
           };
         }
         return post;
+      })
+    );
+  };
+
+  // Toggle post repost (Attributed to userProfile.name so it appears on their profile as reposted)
+  const handleToggleRepost = (postId: string) => {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId) {
+          const isReposted = !post.isReposted;
+          const currentReposts = post.reposts || 0;
+          return {
+            ...post,
+            isReposted,
+            reposts: isReposted ? currentReposts + 1 : Math.max(0, currentReposts - 1),
+            repostedByUser: isReposted ? userProfile.name : undefined,
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  // Add comment to post
+  const handleAddPostComment = (postId: string, content: string) => {
+    const newComment = {
+      id: `cmt_${Date.now()}`,
+      author: userProfile.name,
+      avatar: userProfile.avatar,
+      content,
+      timestamp: 'Just now',
+      likes: 0,
+      isLiked: false,
+    };
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId) {
+          const currentComments = post.comments || [];
+          const updated = [...currentComments, newComment];
+          return {
+            ...post,
+            comments: updated,
+            replies: updated.length,
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  // Toggle like on post comment
+  const handleTogglePostCommentLike = (postId: string, commentId: string) => {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id === postId && post.comments) {
+          return {
+            ...post,
+            comments: post.comments.map((c) => {
+              if (c.id === commentId) {
+                const isLiked = !c.isLiked;
+                return {
+                  ...c,
+                  isLiked,
+                  likes: isLiked ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 0) - 1),
+                };
+              }
+              return c;
+            }),
+          };
+        }
+        return post;
+      })
+    );
+  };
+
+  // Toggle like on recording
+  const handleToggleLikeRecording = (recordingId: string) => {
+    setRecordings((prev) =>
+      prev.map((r) => {
+        if (r.id === recordingId) {
+          const isLiked = !r.isLiked;
+          const currentLikes = r.likes || 0;
+          return {
+            ...r,
+            isLiked,
+            likes: isLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1),
+          };
+        }
+        return r;
+      })
+    );
+  };
+
+  // Toggle repost on recording:
+  // Shows in user profile record list with "Reposted" attribution AND in posts feed!
+  const handleToggleRepostRecording = (recordingId: string) => {
+    let affectedRec: MeetingRecording | undefined;
+    let nowReposted = false;
+
+    setRecordings((prev) =>
+      prev.map((r) => {
+        if (r.id === recordingId) {
+          nowReposted = !r.isReposted;
+          const currentReposts = r.reposts || 0;
+          affectedRec = {
+            ...r,
+            isReposted: nowReposted,
+            reposts: nowReposted ? currentReposts + 1 : Math.max(0, currentReposts - 1),
+            repostedByUser: nowReposted ? userProfile.name : undefined,
+          };
+          return affectedRec;
+        }
+        return r;
+      })
+    );
+
+    // Also synchronize to Posts feed as an X-style repost
+    if (affectedRec && nowReposted) {
+      const newPost: PostItem = {
+        id: `post_repost_rec_${Date.now()}`,
+        meetingToken: affectedRec.meetingToken,
+        author: userProfile.name,
+        content: `🔁 Reposted recording: ${affectedRec.title} (${affectedRec.meetingToken})\nSession duration: ${affectedRec.duration}`,
+        timestamp: 'Just now',
+        likes: 0,
+        isLiked: false,
+        replies: 0,
+        reposts: 1,
+        isReposted: true,
+        repostedByUser: userProfile.name,
+        visibility: 'public',
+        comments: [],
+      };
+      setPosts((prev) => [newPost, ...prev]);
+    }
+  };
+
+  // Add comment to recording
+  const handleAddRecordingComment = (recordingId: string, content: string) => {
+    const newComment = {
+      id: `rec_cmt_${Date.now()}`,
+      author: userProfile.name,
+      avatar: userProfile.avatar,
+      content,
+      timestamp: 'Just now',
+      likes: 0,
+      isLiked: false,
+    };
+    setRecordings((prev) =>
+      prev.map((r) => {
+        if (r.id === recordingId) {
+          const currentComments = r.comments || [];
+          return {
+            ...r,
+            comments: [...currentComments, newComment],
+          };
+        }
+        return r;
+      })
+    );
+  };
+
+  // Toggle like on recording comment
+  const handleToggleRecordingCommentLike = (recordingId: string, commentId: string) => {
+    setRecordings((prev) =>
+      prev.map((r) => {
+        if (r.id === recordingId && r.comments) {
+          return {
+            ...r,
+            comments: r.comments.map((c) => {
+              if (c.id === commentId) {
+                const isLiked = !c.isLiked;
+                return {
+                  ...c,
+                  isLiked,
+                  likes: isLiked ? (c.likes || 0) + 1 : Math.max(0, (c.likes || 0) - 1),
+                };
+              }
+              return c;
+            }),
+          };
+        }
+        return r;
       })
     );
   };
@@ -723,6 +1019,10 @@ export default function App() {
                 initialNewPostText={prefilledPostText}
                 onAddPost={handleAddPost}
                 onToggleLike={handleToggleLike}
+                onToggleRepost={handleToggleRepost}
+                onAddComment={handleAddPostComment}
+                onToggleCommentLike={handleTogglePostCommentLike}
+                currentUser={userProfile}
                 onSelectMeetingToken={(token) => {
                   const roomExists = rooms.some((r) => r.token === token);
                   if (roomExists) {
@@ -752,8 +1052,20 @@ export default function App() {
                 recordings={recordings}
                 notes={notes}
                 rooms={rooms}
+                posts={posts}
+                socialUsers={socialUsers}
+                onToggleFollowUser={handleToggleFollowUser}
+                onSimulateIncomingFollow={handleSimulateIncomingFollow}
                 onUpdateProfile={handleUpdateProfile}
                 onToggleFavoriteRecording={handleToggleFavoriteRecording}
+                onToggleLikeRecording={handleToggleLikeRecording}
+                onToggleRepostRecording={handleToggleRepostRecording}
+                onAddRecordingComment={handleAddRecordingComment}
+                onToggleRecordingCommentLike={handleToggleRecordingCommentLike}
+                onToggleLikePost={handleToggleLike}
+                onToggleRepostPost={handleToggleRepost}
+                onAddPostComment={handleAddPostComment}
+                onTogglePostCommentLike={handleTogglePostCommentLike}
                 onExportToPost={handleExportToFeed}
                 initialTab={profileActiveTab}
                 onBackToHome={handleBackToHome}
