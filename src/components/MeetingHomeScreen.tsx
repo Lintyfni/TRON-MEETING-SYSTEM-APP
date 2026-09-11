@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   UserProfile,
   MeetingRoom,
   MeetingNote,
   MeetingRecording,
   ScheduledMeeting,
-  DateNote
+  DateNote,
+  SocialUser
 } from '../types';
 import {
   Video,
@@ -31,7 +32,10 @@ import {
   Mic,
   Camera,
   Play,
-  Edit3
+  Edit3,
+  AtSign,
+  UserCheck,
+  User
 } from 'lucide-react';
 
 interface MeetingHomeScreenProps {
@@ -41,11 +45,13 @@ interface MeetingHomeScreenProps {
   recordings: MeetingRecording[];
   scheduledMeetings: ScheduledMeeting[];
   dateNotes: DateNote[];
+  socialUsers?: SocialUser[];
   onStartNewMeeting: (title: string, token: string) => void;
   onJoinMeeting: (token: string) => void;
   onNavigateToProfileTab: (tab: 'recordings' | 'favorites' | 'notes' | 'chats') => void;
   onAddScheduledMeeting: (meeting: ScheduledMeeting) => void;
   onAddDateNote: (dateNote: DateNote) => void;
+  onSelectUser?: (user: SocialUser | UserProfile) => void;
 }
 
 export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
@@ -55,17 +61,91 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
   recordings,
   scheduledMeetings,
   dateNotes,
+  socialUsers = [],
   onStartNewMeeting,
   onJoinMeeting,
   onNavigateToProfileTab,
   onAddScheduledMeeting,
   onAddDateNote,
+  onSelectUser,
 }) => {
   // Modal states
   const [isNewMeetingModalOpen, setIsNewMeetingModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  // User Search Bar State (@username search)
+  const [searchUserQuery, setSearchUserQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Combine current user and network social users for search
+  const allAvailableUsers = useMemo<SocialUser[]>(() => {
+    const currentAsUser: SocialUser = {
+      id: 'usr_me',
+      name: userProfile.name,
+      handle: userProfile.handle.startsWith('@') ? userProfile.handle : `@${userProfile.handle}`,
+      avatar: userProfile.avatar,
+      bio: userProfile.bio || 'WebRTC Live Audio/Video Meeting Host ⚡',
+      isFollowedByMe: false,
+      isFollowingMe: false,
+      followersCount: typeof userProfile.followers === 'number' ? userProfile.followers : 1,
+      followingCount: userProfile.following || 0,
+    };
+
+    const externalUsers = socialUsers || [];
+    return [currentAsUser, ...externalUsers];
+  }, [userProfile, socialUsers]);
+
+  // Filter users matching query (@username, name, bio)
+  const filteredUsers = useMemo(() => {
+    const rawQuery = searchUserQuery.trim().toLowerCase();
+    const query = rawQuery.startsWith('@') ? rawQuery.slice(1) : rawQuery;
+
+    if (!query) {
+      return allAvailableUsers;
+    }
+
+    return allAvailableUsers.filter((u) => {
+      const handleClean = u.handle.toLowerCase().replace('@', '');
+      const nameClean = u.name.toLowerCase();
+      const bioClean = u.bio.toLowerCase();
+      return (
+        handleClean.includes(query) ||
+        nameClean.includes(query) ||
+        bioClean.includes(query)
+      );
+    });
+  }, [allAvailableUsers, searchUserQuery]);
+
+  // Select a user and navigate directly to their profile
+  const handleSelectUser = (user: SocialUser) => {
+    setIsSearchFocused(false);
+    setSearchUserQuery('');
+    if (onSelectUser) {
+      if (user.id === 'usr_me' || user.handle === userProfile.handle) {
+        onSelectUser(userProfile);
+      } else {
+        onSelectUser(user);
+      }
+    } else {
+      onNavigateToProfileTab('recordings');
+    }
+  };
 
   // New Meeting Form
   const [newMeetingTitle, setNewMeetingTitle] = useState(`${userProfile.name}'s Meeting`);
@@ -266,6 +346,201 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
       {/* MAIN CONTAINER */}
       <div className="p-4 space-y-6 flex-1 bg-white">
+        {/* ========================================================================= */}
+        {/* HORIZONTAL ELONGATED SEARCH BAR FOR @USERNAME (Directly Above Meeting Actions) */}
+        {/* ========================================================================= */}
+        <div ref={searchContainerRef} className="relative z-30">
+          <div className="flex items-center justify-between mb-1.5 px-0.5">
+            <label
+              htmlFor="input-search-username"
+              className="text-xs font-bold uppercase tracking-wider text-neutral-500 flex items-center gap-1.5"
+            >
+              <AtSign className="w-3.5 h-3.5 text-purple-600" />
+              <span>Search Users (@username)</span>
+            </label>
+            <span className="text-[10px] text-neutral-400 font-mono">Instant Profile Lookup</span>
+          </div>
+
+          <div
+            className={`w-full relative flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-white border transition-all duration-200 shadow-xs ${
+              isSearchFocused
+                ? 'border-purple-500 ring-3 ring-purple-500/15 shadow-md'
+                : 'border-neutral-200 hover:border-neutral-300 bg-neutral-50/70 hover:bg-white'
+            }`}
+          >
+            {/* AtSign Icon Badge */}
+            <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200/80 text-purple-600 flex items-center justify-center shrink-0">
+              <AtSign className="w-4 h-4" />
+            </div>
+
+            {/* Input Field */}
+            <div className="flex-1 min-w-0">
+              <input
+                id="input-search-username"
+                type="text"
+                value={searchUserQuery}
+                onChange={(e) => setSearchUserQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                placeholder="Search @username (e.g. @kyawkyaw, @susu, @thirimay)..."
+                className="w-full bg-transparent text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-hidden font-medium"
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </div>
+
+            {/* Clear Button or Shortcut badge */}
+            {searchUserQuery ? (
+              <button
+                id="btn-clear-username-search"
+                type="button"
+                onClick={() => setSearchUserQuery('')}
+                className="w-6 h-6 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 flex items-center justify-center transition cursor-pointer"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 font-semibold border border-purple-200/60 hidden sm:inline-block">
+                  @handle
+                </span>
+                <Search className="w-4 h-4 text-neutral-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Quick Filter Suggested Handles */}
+          <div className="mt-2 flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
+            <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold shrink-0">
+              Quick:
+            </span>
+            {allAvailableUsers.slice(0, 5).map((u) => (
+              <button
+                key={`pill-${u.id}`}
+                type="button"
+                onClick={() => handleSelectUser(u)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-neutral-100/90 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300 border border-neutral-200 text-neutral-600 text-[11px] font-mono transition cursor-pointer shrink-0 shadow-2xs"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                <span>{u.handle}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* DROPDOWN RESULTS POPOVER */}
+          {isSearchFocused && (
+            <div
+              id="search-username-dropdown"
+              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-neutral-200 shadow-2xl overflow-hidden z-50 max-h-84 flex flex-col animate-in fade-in slide-in-from-top-2 duration-150"
+            >
+              {/* Header inside dropdown */}
+              <div className="px-3.5 py-2.5 bg-neutral-50/90 border-b border-neutral-200 flex items-center justify-between text-xs">
+                <span className="font-bold text-neutral-700 flex items-center gap-1.5">
+                  <Search className="w-3.5 h-3.5 text-purple-600" />
+                  {searchUserQuery.trim()
+                    ? `Found Users for "${searchUserQuery}" (${filteredUsers.length})`
+                    : `Registered Users & Profiles (${filteredUsers.length})`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSearchFocused(false)}
+                  className="text-neutral-400 hover:text-neutral-700 p-1 rounded-md hover:bg-neutral-200/50 transition cursor-pointer"
+                  title="Close dropdown"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Users list */}
+              <div className="overflow-y-auto divide-y divide-neutral-100 flex-1 p-1 max-h-64">
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => handleSelectUser(user)}
+                      className="w-full p-2.5 rounded-xl hover:bg-purple-50/70 transition flex items-center justify-between text-left group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Avatar */}
+                        <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-full h-full rounded-full object-cover bg-neutral-100"
+                          />
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                        </div>
+
+                        {/* Name, Handle, Badges & Bio */}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate">
+                              {user.name}
+                            </span>
+                            <span className="font-mono text-[11px] text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md font-semibold border border-purple-200/60">
+                              {user.handle}
+                            </span>
+                            {user.id === 'usr_me' && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                                You
+                              </span>
+                            )}
+                            {user.isFollowingMe && user.id !== 'usr_me' && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                                Follows you
+                              </span>
+                            )}
+                            {user.isFollowedByMe && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                                Following
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-neutral-500 truncate max-w-[220px] sm:max-w-xs mt-0.5">
+                            {user.bio}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right indicator button */}
+                      <div className="flex items-center gap-1 text-purple-600 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
+                        <span className="text-[11px] font-bold text-purple-700 bg-purple-100/60 px-2 py-1 rounded-lg border border-purple-200 group-hover:bg-purple-600 group-hover:text-white transition">
+                          Profile
+                        </span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="py-7 px-4 text-center">
+                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-2 border border-purple-200">
+                      <AtSign className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-semibold text-neutral-800">
+                      No @username found matching "{searchUserQuery}"
+                    </p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">
+                      Try searching for @kyawkyaw, @susu, @thirimay, @zawmin or @aungmyint
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom footer: note about future account creation */}
+              <div className="px-3.5 py-2 bg-purple-50/60 border-t border-purple-100 flex items-center justify-between text-[11px] text-purple-700">
+                <span className="flex items-center gap-1 font-medium truncate">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <span>Account Create / Sign In &amp; @username registration ready</span>
+                </span>
+                <span className="font-mono text-[9px] text-purple-500 font-bold shrink-0">
+                  User Directory
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* SECTION 1: PRIMARY ACTION BUTTONS (New, Join, Schedule, Share Room) */}
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3 flex items-center gap-1.5">
