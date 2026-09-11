@@ -436,6 +436,18 @@ export const api = {
     }
   },
 
+  async fetchRoomReactions(token: string, since: number = 0): Promise<{ id: string; emoji: string; sender: string; timestamp: number }[]> {
+    try {
+      const cleanToken = encodeURIComponent(token.startsWith('#') ? token : `#${token}`);
+      const res = await fetch(`/api/rooms/${cleanToken}/reactions?since=${since}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.reactions || [];
+    } catch {
+      return [];
+    }
+  },
+
   // 9. WebRTC Peer Registry
   async joinRoomPeers(token: string, peerId: string, userName: string, avatar?: string): Promise<any[]> {
     try {

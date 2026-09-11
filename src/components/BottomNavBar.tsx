@@ -57,7 +57,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   return (
     <nav
       id="main-bottom-navigation"
-      className="w-full bg-black border-t border-neutral-800/80 px-2 sm:px-4 py-2 flex items-center justify-around z-40 select-none backdrop-blur-md"
+      className="w-full bg-white border-t border-neutral-200 px-2 sm:px-4 py-2 flex items-center justify-around z-40 select-none shadow-xs"
     >
       {tabs.map((tab) => {
         const isActive = currentTab === tab.id;
@@ -68,13 +68,13 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
             type="button"
             onClick={() => onSelectTab(tab.id)}
             className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
-              isActive ? 'text-red-500 font-bold' : 'text-neutral-400 hover:text-neutral-200'
+              isActive ? 'text-purple-600 font-bold' : 'text-neutral-500 hover:text-neutral-800'
             }`}
           >
             <div className="relative">
               {tab.icon}
               {tab.id === 'chat' && unreadChatsCount > 0 && (
-                <span className="absolute -top-1 -right-2 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold">
+                <span className="absolute -top-1 -right-2 px-1 rounded-full bg-purple-600 text-white text-[9px] font-bold">
                   {unreadChatsCount}
                 </span>
               )}

@@ -96,23 +96,25 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
   return (
     <div
       id="meeting-chat-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
         id="meeting-chat-modal-container"
-        className="w-full max-w-md h-[540px] max-h-[90vh] bg-neutral-950/95 sm:bg-neutral-900 border-t sm:border border-neutral-800 rounded-t-3xl sm:rounded-2xl flex flex-col text-white shadow-2xl animate-in slide-in-from-bottom-6 duration-200"
+        className="w-full max-w-md h-[540px] max-h-[90vh] bg-white border-t sm:border border-neutral-200 rounded-t-3xl sm:rounded-2xl flex flex-col text-neutral-900 shadow-2xl animate-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-12 h-1 bg-neutral-700 rounded-full mx-auto mt-2 sm:hidden" />
+        <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mt-2 sm:hidden" />
 
         {/* 1. Header with Meeting # Filter Dropdown & Close */}
-        <div className="px-4 py-3 border-b border-neutral-800 flex items-center justify-between gap-2">
+        <div className="px-4 py-3 border-b border-neutral-200 flex items-center justify-between gap-2">
           {/* Left: Meeting # Filter Dropdown */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <MessageSquare className="w-5 h-5 text-red-500 shrink-0" />
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+              <MessageSquare className="w-4 h-4 text-purple-600" />
+            </div>
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider shrink-0 hidden sm:inline">
+              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider shrink-0 hidden sm:inline">
                 Meet #:
               </span>
               <div className="relative flex items-center max-w-[200px] flex-1">
@@ -120,19 +122,19 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                   id="select-chat-meeting-filter"
                   value={selectedToken}
                   onChange={(e) => handleRoomTokenChange(e.target.value)}
-                  className="appearance-none w-full bg-neutral-800 hover:bg-neutral-750 active:bg-neutral-700 border border-neutral-700 text-white font-bold text-xs pl-7 pr-6 py-1 rounded-full cursor-pointer outline-none transition focus:ring-1 focus:ring-red-400 truncate"
+                  className="appearance-none w-full bg-neutral-50 hover:bg-neutral-100 border border-neutral-300 text-neutral-900 font-bold text-xs pl-7 pr-6 py-1.5 rounded-full cursor-pointer outline-none transition focus:border-purple-600 truncate"
                   title="Filter chat by Meeting #"
                 >
                   {rooms.map((r) => (
-                    <option key={r.id} value={r.token} className="bg-neutral-900 text-white">
+                    <option key={r.id} value={r.token} className="bg-white text-neutral-900">
                       {r.token} ({r.title})
                     </option>
                   ))}
-                  <option value="ALL" className="bg-neutral-900 text-white">
+                  <option value="ALL" className="bg-white text-neutral-900">
                     All Meetings (#Global)
                   </option>
                 </select>
-                <Radio className="w-3.5 h-3.5 text-red-400 absolute left-2 pointer-events-none" />
+                <Radio className="w-3.5 h-3.5 text-purple-600 absolute left-2 pointer-events-none" />
                 <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 pointer-events-none" />
               </div>
             </div>
@@ -142,7 +144,7 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
           <button
             id="btn-close-meeting-chat"
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1.5 rounded-full hover:bg-neutral-800 transition shrink-0"
+            className="text-neutral-400 hover:text-neutral-700 p-1.5 rounded-full hover:bg-neutral-100 transition shrink-0 cursor-pointer"
             title="Close Chat"
           >
             <X className="w-4 h-4" />
@@ -150,16 +152,16 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
         </div>
 
         {/* 2. Direct Chat vs Room Chat Tab / Participant Chips */}
-        <div className="px-4 py-2 border-b border-neutral-800/80 bg-neutral-900/60 flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+        <div className="px-4 py-2 border-b border-neutral-200 bg-neutral-50 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-[11px] text-neutral-500 font-medium">
             <span>Recipient Mode:</span>
             {directUser ? (
-              <span className="text-red-400 font-semibold flex items-center gap-1">
-                <Lock className="w-3 h-3 text-red-500" /> 1-on-1 Direct Chat
+              <span className="text-purple-600 font-semibold flex items-center gap-1">
+                <Lock className="w-3 h-3 text-purple-600" /> 1-on-1 Direct Chat
               </span>
             ) : (
-              <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                <Users className="w-3 h-3 text-emerald-500" /> Public Meeting Chat
+              <span className="text-purple-600 font-semibold flex items-center gap-1">
+                <Users className="w-3 h-3 text-purple-600" /> Public Meeting Chat
               </span>
             )}
           </div>
@@ -171,10 +173,10 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
               id="btn-chat-recipient-room"
               type="button"
               onClick={() => setDirectUser(null)}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1 transition ${
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 flex items-center gap-1 transition cursor-pointer ${
                 !directUser
-                  ? 'bg-red-600 text-white shadow-sm'
-                  : 'bg-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-750'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm'
+                  : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300'
               }`}
             >
               <Users className="w-3 h-3" />
@@ -192,14 +194,14 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                     id={`btn-chat-direct-${name.replace(/\s+/g, '-').toLowerCase()}`}
                     type="button"
                     onClick={() => setDirectUser(name)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium shrink-0 flex items-center gap-1 border transition ${
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium shrink-0 flex items-center gap-1 border transition cursor-pointer ${
                       isSelected
-                        ? 'bg-red-950/80 border-red-500 text-red-200 shadow-sm font-semibold'
-                        : 'bg-neutral-800/80 border-neutral-700/60 text-neutral-300 hover:text-white hover:border-neutral-600'
+                        ? 'bg-purple-100 border-purple-400 text-purple-800 shadow-sm font-semibold'
+                        : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-100'
                     }`}
                     title={`1-on-1 Chat with ${name}`}
                   >
-                    <User className="w-3 h-3 text-red-400" />
+                    <User className="w-3 h-3 text-purple-600" />
                     <span>@{name}</span>
                   </button>
                 );
@@ -211,17 +213,17 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
         {directUser && (
           <div
             id="banner-direct-chat-active"
-            className="px-4 py-1.5 bg-red-950/30 border-b border-red-900/40 flex items-center justify-between text-xs text-red-300"
+            className="px-4 py-1.5 bg-purple-50 border-b border-purple-200 flex items-center justify-between text-xs text-purple-800"
           >
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse" />
               <span>
                 Chatting directly with <strong>@{directUser}</strong>
               </span>
             </div>
             <button
               onClick={() => setDirectUser(null)}
-              className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 underline decoration-neutral-600 hover:decoration-white transition"
+              className="text-[11px] text-purple-600 hover:text-purple-800 flex items-center gap-1 underline transition cursor-pointer"
             >
               <ArrowLeft className="w-3 h-3" />
               Switch to Room
@@ -230,15 +232,15 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
         )}
 
         {/* 4. Chat Messages List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
           {filteredChats.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-neutral-500 text-xs text-center p-6">
+            <div className="h-full flex flex-col items-center justify-center text-neutral-400 text-xs text-center p-6">
               {directUser ? (
                 <>
-                  <div className="w-12 h-12 rounded-full bg-red-950/40 border border-red-900/60 flex items-center justify-center text-red-400 mb-2">
+                  <div className="w-12 h-12 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 mb-2">
                     <User className="w-6 h-6" />
                   </div>
-                  <span className="font-semibold text-neutral-300 text-sm">
+                  <span className="font-semibold text-neutral-800 text-sm">
                     1-on-1 Direct Chat with @{directUser}
                   </span>
                   <span className="text-neutral-500 mt-1 max-w-[240px]">
@@ -247,12 +249,12 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                 </>
               ) : (
                 <>
-                  <MessageSquare className="w-10 h-10 stroke-1 text-neutral-600 mb-2" />
-                  <span className="font-semibold text-neutral-300 text-sm">
+                  <MessageSquare className="w-10 h-10 stroke-1 text-purple-300 mb-2" />
+                  <span className="font-semibold text-neutral-800 text-sm">
                     No messages in {selectedToken} yet.
                   </span>
                   <span className="text-neutral-500 mt-1 max-w-[240px]">
-                    Click on a participant's name above or type a message below to start chatting!
+                    Click on a participant above or type a message below to start chatting!
                   </span>
                 </>
               )}
@@ -274,8 +276,8 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                     }}
                     className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold transition ${
                       isCurrentUser
-                        ? 'bg-red-600 text-white cursor-default'
-                        : 'bg-neutral-800 text-neutral-300 border border-neutral-700 hover:border-red-500 hover:scale-105 cursor-pointer'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white cursor-default'
+                        : 'bg-neutral-100 text-neutral-700 border border-neutral-200 hover:border-purple-400 hover:scale-105 cursor-pointer'
                     }`}
                     title={isCurrentUser ? 'You' : `Click to direct chat with ${chat.sender}`}
                   >
@@ -286,16 +288,16 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                     <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                       {/* Sender Name - Clickable to start 1-on-1 chat if not current user */}
                       {isCurrentUser ? (
-                        <span className="text-[11px] font-semibold text-neutral-300">Me</span>
+                        <span className="text-[11px] font-semibold text-neutral-700">Me</span>
                       ) : (
                         <button
                           type="button"
                           onClick={() => setDirectUser(chat.sender)}
-                          className="text-[11px] font-semibold text-neutral-300 hover:text-red-400 hover:underline flex items-center gap-1 cursor-pointer"
+                          className="text-[11px] font-semibold text-neutral-800 hover:text-purple-600 flex items-center gap-1 cursor-pointer"
                           title={`Click to 1-on-1 direct chat with ${chat.sender}`}
                         >
                           <span>{chat.sender}</span>
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-neutral-800 text-red-400 border border-neutral-700 font-normal">
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200 font-normal">
                             Direct Chat
                           </span>
                         </button>
@@ -303,26 +305,26 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
 
                       {/* Direct indicator badge if message was private */}
                       {chat.isDirect && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-red-950 text-red-300 border border-red-800/80 font-mono">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200 font-mono">
                           1:1 Direct
                         </span>
                       )}
 
                       {/* Meeting Token tag if viewing All */}
                       {selectedToken === 'ALL' && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-400 font-mono">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-600 font-mono">
                           {chat.meetingToken}
                         </span>
                       )}
 
-                      <span className="text-[9px] text-neutral-500">{chat.time}</span>
+                      <span className="text-[9px] text-neutral-400">{chat.time}</span>
                     </div>
 
                     <div
                       className={`px-3 py-2 rounded-2xl text-xs leading-relaxed ${
                         isCurrentUser
-                          ? 'bg-red-600 text-white rounded-tr-xs shadow-sm'
-                          : 'bg-neutral-800/95 text-neutral-200 rounded-tl-xs border border-neutral-700/60 shadow-sm'
+                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs shadow-sm'
+                          : 'bg-neutral-100 text-neutral-800 rounded-tl-xs border border-neutral-200 shadow-sm'
                       }`}
                     >
                       {chat.message}
@@ -336,15 +338,15 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
         </div>
 
         {/* 5. Input Bar with Direct User / Meeting Token Badge */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-neutral-800 bg-neutral-950/90">
-          <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-700/80 rounded-xl px-3 py-1.5 focus-within:border-red-500 transition">
+        <form onSubmit={handleSubmit} className="p-3 border-t border-neutral-200 bg-neutral-50">
+          <div className="flex items-center gap-2 bg-white border border-neutral-300 rounded-xl px-3 py-1.5 focus-within:border-purple-600 transition">
             {/* Input prompt badge */}
             {directUser ? (
-              <span className="text-[10px] bg-red-950 text-red-400 border border-red-800/80 px-1.5 py-0.5 rounded font-bold shrink-0">
+              <span className="text-[10px] bg-purple-100 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded font-bold shrink-0">
                 @{directUser}
               </span>
             ) : (
-              <span className="text-[10px] bg-neutral-800 text-neutral-400 border border-neutral-700 px-1.5 py-0.5 rounded font-bold shrink-0 font-mono">
+              <span className="text-[10px] bg-neutral-100 text-neutral-600 border border-neutral-200 px-1.5 py-0.5 rounded font-bold shrink-0 font-mono">
                 {selectedToken}
               </span>
             )}
@@ -359,14 +361,14 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                   ? `Direct message to @${directUser}...`
                   : `Send to ${selectedToken}...`
               }
-              className="flex-1 bg-transparent text-white text-xs outline-none placeholder:text-neutral-500 py-1"
+              className="flex-1 bg-transparent text-neutral-900 text-xs outline-none placeholder:text-neutral-400 py-1"
             />
 
             <button
               id="btn-send-chat-msg"
               type="submit"
               disabled={!inputText.trim()}
-              className="p-1.5 rounded-lg bg-red-600 disabled:opacity-40 hover:bg-red-500 text-white transition shrink-0 cursor-pointer active:scale-95"
+              className="p-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 disabled:opacity-40 hover:from-indigo-500 hover:to-purple-500 text-white transition shrink-0 cursor-pointer active:scale-95"
               title="Send Message"
             >
               <Send className="w-3.5 h-3.5" />

@@ -167,34 +167,31 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
   return (
     <div
       id="meeting-notes-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-2 sm:p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
         id="meeting-notes-modal-container"
-        className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92dvh] text-neutral-100"
+        className="w-full max-w-lg bg-white border border-neutral-200 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92dvh] text-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-800 text-white text-xs px-4 py-2 rounded-full border border-neutral-700 shadow-xl animate-in fade-in">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-neutral-900 text-white text-xs px-4 py-2 rounded-full shadow-xl animate-in fade-in">
             {toastMessage}
           </div>
         )}
 
         {/* 1. Header Bar */}
-        <div className="p-4 border-b border-neutral-800 flex items-center justify-between bg-neutral-950/80">
+        <div className="p-4 border-b border-neutral-200 flex items-center justify-between bg-white">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center">
-              <NotebookTabs className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center">
+              <NotebookTabs className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-1.5">
-                Meeting Notes Pad
+              <h2 className="text-base font-bold text-neutral-900 flex items-center gap-1.5">
+                Meeting Notes
               </h2>
-              <p className="text-[11px] text-neutral-400">
-                ရိုးရိုးရှင်းရှင်း မှတ်စုရေးသားခြင်းနှင့် မှတ်တမ်းများ
-              </p>
             </div>
           </div>
 
@@ -202,17 +199,17 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
             id="btn-close-notes-modal"
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center transition"
+            className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-800 flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* 2. Top Controls: Meeting Filter & View Switcher */}
-        <div className="p-3 bg-neutral-950/40 border-b border-neutral-800/80 flex flex-col gap-2.5">
+        <div className="p-3 bg-neutral-50 border-b border-neutral-200 flex flex-col gap-2.5">
           {/* Meeting Filter Row */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400 font-medium whitespace-nowrap">Meeting:</span>
+            <span className="text-xs text-neutral-600 font-medium whitespace-nowrap">Meeting:</span>
             <div className="relative flex-1">
               <select
                 id="select-meeting-filter"
@@ -224,9 +221,9 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                     if (onSelectMeetingRoom) onSelectMeetingRoom(e.target.value);
                   }
                 }}
-                className="w-full bg-neutral-800/90 border border-neutral-700 rounded-xl px-3 py-1.5 text-xs text-white appearance-none cursor-pointer focus:border-amber-500 outline-none pr-8 font-medium"
+                className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-1.5 text-xs text-neutral-900 appearance-none cursor-pointer focus:border-purple-600 outline-none pr-8 font-medium"
               >
-                <option value="ALL">🌐 All Meetings ({notes.length} notes)</option>
+                <option value="ALL">All Meetings ({notes.length} notes)</option>
                 {rooms.map((r) => {
                   const count = notes.filter((n) => n.meetingToken === r.token).length;
                   return (
@@ -241,28 +238,28 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
           </div>
 
           {/* View Tab Switcher: Text Pad vs Saved Notes List */}
-          <div className="flex items-center gap-1.5 p-1 bg-neutral-950 rounded-xl border border-neutral-800/80">
+          <div className="flex items-center gap-1.5 p-1 bg-neutral-100 rounded-xl border border-neutral-200">
             <button
               id="tab-view-pad"
               type="button"
               onClick={() => setActiveView('pad')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeView === 'pad'
-                  ? 'bg-amber-500 text-neutral-950 shadow-md'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>Text Pad (ရိုက်ထည့်ရန်)</span>
+              <span>Notes Pad</span>
             </button>
             <button
               id="tab-view-history"
               type="button"
               onClick={() => setActiveView('history')}
-              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeView === 'history'
-                  ? 'bg-amber-500 text-neutral-950 shadow-md'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -272,17 +269,17 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
         </div>
 
         {/* 3. Main Body */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
           {/* VIEW A: TEXT PAD (Manual Note Pad) */}
           {activeView === 'pad' && (
             <form onSubmit={handleSaveNote} className="space-y-3.5">
               {/* Target Meeting Selector if writing a note */}
               <div className="flex items-center justify-between gap-2 text-xs">
-                <span className="text-neutral-400">Save To Meeting:</span>
+                <span className="text-neutral-600">Save To Meeting:</span>
                 <select
                   value={targetRoomToken}
                   onChange={(e) => setTargetRoomToken(e.target.value)}
-                  className="bg-neutral-800 border border-neutral-700 rounded-lg px-2.5 py-1 text-xs text-amber-300 font-mono focus:border-amber-500 outline-none"
+                  className="bg-white border border-neutral-300 rounded-lg px-2.5 py-1 text-xs text-purple-700 font-mono focus:border-purple-600 outline-none"
                 >
                   {rooms.map((r) => (
                     <option key={r.token} value={r.token}>
@@ -296,15 +293,15 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Note Title (e.g. Architecture decisions)"
+                  placeholder="Note Title..."
                   value={padTitle}
                   onChange={(e) => setPadTitle(e.target.value)}
-                  className="flex-1 bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white outline-none placeholder:text-neutral-500"
+                  className="flex-1 bg-white border border-neutral-300 focus:border-purple-600 rounded-xl px-3 py-2 text-xs text-neutral-900 outline-none placeholder:text-neutral-400"
                 />
                 <select
                   value={padCategory}
                   onChange={(e) => setPadCategory(e.target.value as any)}
-                  className="bg-neutral-950 border border-neutral-800 rounded-xl px-2.5 py-2 text-xs text-neutral-300 outline-none"
+                  className="bg-white border border-neutral-300 rounded-xl px-2.5 py-2 text-xs text-neutral-700 outline-none"
                 >
                   <option value="General">General</option>
                   <option value="Decisions">Decisions</option>
@@ -319,26 +316,26 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleInsertSnippet('• ')}
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                  className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-[11px] flex items-center gap-1 transition cursor-pointer"
                 >
-                  <ListPlus className="w-3 h-3 text-amber-400" />
-                  <span>Bullet (•)</span>
+                  <ListPlus className="w-3 h-3 text-purple-600" />
+                  <span>Bullet</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleInsertSnippet('[ ] ')}
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                  className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-[11px] flex items-center gap-1 transition cursor-pointer"
                 >
-                  <ListChecks className="w-3 h-3 text-amber-400" />
-                  <span>Task ([ ])</span>
+                  <ListChecks className="w-3 h-3 text-purple-600" />
+                  <span>Task</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleInsertTimestamp}
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-[11px] flex items-center gap-1 transition"
+                  className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-lg text-[11px] flex items-center gap-1 transition cursor-pointer"
                 >
-                  <Clock className="w-3 h-3 text-amber-400" />
-                  <span>Timestamp</span>
+                  <Clock className="w-3 h-3 text-purple-600" />
+                  <span>Time</span>
                 </button>
               </div>
 
@@ -349,10 +346,10 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                   rows={9}
                   value={padContent}
                   onChange={(e) => setPadContent(e.target.value)}
-                  placeholder="ဒီ meeting အတွက် note ရေးပါ... (Type your meeting notes here)...&#10;• အဓိက ဆွေးနွေးချက်များ&#10;• လုပ်ဆောင်ရမည့် လုပ်ငန်းစဉ်များ"
-                  className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-2xl p-3.5 text-xs text-neutral-100 font-sans leading-relaxed outline-none resize-none placeholder:text-neutral-600 focus:ring-1 focus:ring-amber-500/50"
+                  placeholder="Type your notes here..."
+                  className="w-full bg-white border border-neutral-300 focus:border-purple-600 rounded-2xl p-3.5 text-xs text-neutral-900 font-sans leading-relaxed outline-none resize-none placeholder:text-neutral-400 focus:ring-1 focus:ring-purple-500"
                 />
-                <span className="absolute right-3 bottom-3 text-[10px] text-neutral-500">
+                <span className="absolute right-3 bottom-3 text-[10px] text-neutral-400">
                   {padContent.length} chars
                 </span>
               </div>
@@ -365,7 +362,7 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                     setPadTitle('');
                     setPadContent('');
                   }}
-                  className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white text-xs font-medium transition"
+                  className="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-xs font-medium transition cursor-pointer"
                   title="Clear pad"
                 >
                   Clear
@@ -376,21 +373,21 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCopyNote(padContent, 'current-pad')}
-                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+                      className="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3.5 h-3.5 text-purple-600" />
                       <span>Copy</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => {
-                        onExportToFeed(`📝 Meeting Note (${targetRoomToken}):\n\n${padContent}`);
-                        showToast('📤 Exported to Post!');
+                        onExportToFeed(`Meeting Note (${targetRoomToken}):\n\n${padContent}`);
+                        showToast('Exported to Post');
                         onClose();
                       }}
-                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+                      className="px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
                     >
-                      <Share2 className="w-3.5 h-3.5" />
+                      <Share2 className="w-3.5 h-3.5 text-purple-600" />
                       <span>To Post</span>
                     </button>
                   </>
@@ -398,10 +395,10 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
 
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold transition shadow-lg shadow-amber-950/40 flex items-center justify-center gap-1.5 cursor-pointer ml-auto"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer ml-auto"
                 >
                   <Check className="w-4 h-4 stroke-[2.5]" />
-                  <span>Save Note (သိမ်းဆည်းမည်)</span>
+                  <span>Save Note</span>
                 </button>
               </div>
             </form>
@@ -412,58 +409,58 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
             <div className="space-y-3">
               {/* Search Bar */}
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-2.5" />
+                <Search className="w-3.5 h-3.5 text-purple-600 absolute left-3 top-2.5" />
                 <input
                   type="text"
                   placeholder="Search saved notes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder:text-neutral-500 outline-none focus:border-amber-500"
+                  className="w-full bg-white border border-neutral-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-purple-600"
                 />
               </div>
 
               {filteredNotes.length === 0 ? (
-                <div className="py-10 text-center text-neutral-500 space-y-2">
-                  <FileText className="w-8 h-8 mx-auto text-neutral-600" />
-                  <p className="text-xs">မှတ်စု မရှိသေးပါ။</p>
+                <div className="py-10 text-center text-neutral-400 space-y-2">
+                  <FileText className="w-8 h-8 mx-auto text-neutral-300" />
+                  <p className="text-xs">No notes found.</p>
                   <button
                     type="button"
                     onClick={() => setActiveView('pad')}
-                    className="text-xs text-amber-400 hover:underline"
+                    className="text-xs text-purple-600 hover:underline font-semibold cursor-pointer"
                   >
-                    + Write first note
+                    + Write note
                   </button>
                 </div>
               ) : (
                 filteredNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="p-3.5 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 rounded-2xl transition space-y-2 group"
+                    className="p-3.5 bg-neutral-50 border border-neutral-200 hover:border-neutral-300 rounded-2xl transition space-y-2 group"
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200">
                             {note.meetingToken}
                           </span>
-                          <span className="text-[11px] text-neutral-400 truncate max-w-[200px]">
+                          <span className="text-[11px] text-neutral-500 truncate max-w-[200px]">
                             {note.meetingTitle}
                           </span>
                         </div>
-                        <h4 className="text-xs font-bold text-white mt-1">{note.title}</h4>
+                        <h4 className="text-xs font-bold text-neutral-900 mt-1">{note.title}</h4>
                       </div>
-                      <span className="text-[10px] text-neutral-500 whitespace-nowrap">
+                      <span className="text-[10px] text-neutral-400 whitespace-nowrap">
                         {note.timestamp}
                       </span>
                     </div>
 
                     {/* Key points / Content */}
-                    <div className="space-y-1 bg-neutral-900/60 p-2.5 rounded-xl text-[11px] text-neutral-300 leading-relaxed font-sans">
+                    <div className="space-y-1 bg-white p-2.5 rounded-xl text-[11px] text-neutral-700 leading-relaxed font-sans border border-neutral-200">
                       {note.keyPoints && note.keyPoints.length > 0 ? (
                         note.keyPoints.map((pt, idx) => (
                           <div key={idx} className="flex items-start gap-1.5">
-                            <span className="text-amber-500 mt-0.5">•</span>
+                            <span className="text-purple-600 mt-0.5">•</span>
                             <span>{pt}</span>
                           </div>
                         ))
@@ -477,7 +474,7 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                       <button
                         type="button"
                         onClick={() => handleLoadNoteToPad(note)}
-                        className="text-amber-400 hover:text-amber-300 flex items-center gap-1 text-[11px] font-medium"
+                        className="text-purple-600 hover:text-purple-800 flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                       >
                         <Edit3 className="w-3 h-3" />
                         <span>Edit / Open in Pad</span>
@@ -492,13 +489,13 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                               note.id
                             )
                           }
-                          className="px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[10px] flex items-center gap-1 cursor-pointer"
                           title="Copy Note"
                         >
                           {copiedId === note.id ? (
-                            <Check className="w-3 h-3 text-emerald-400" />
+                            <Check className="w-3 h-3 text-emerald-600" />
                           ) : (
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-3 h-3 text-purple-600" />
                           )}
                           <span>Copy</span>
                         </button>
@@ -506,15 +503,15 @@ export const GranolaNotesModal: React.FC<MeetingNotesModalProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            const shareText = `📝 ${note.title} (${note.meetingToken}):\n\n${(note.keyPoints || []).map((p) => `• ${p}`).join('\n')}`;
+                            const shareText = `${note.title} (${note.meetingToken}):\n\n${(note.keyPoints || []).map((p) => `• ${p}`).join('\n')}`;
                             onExportToFeed(shareText);
-                            showToast('📤 Exported to Post!');
+                            showToast('Exported to Post');
                             onClose();
                           }}
-                          className="px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] flex items-center gap-1"
+                          className="px-2 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[10px] flex items-center gap-1 cursor-pointer"
                           title="Export to Post"
                         >
-                          <Share2 className="w-3 h-3" />
+                          <Share2 className="w-3.5 h-3.5 text-purple-600" />
                           <span>Post</span>
                         </button>
                       </div>

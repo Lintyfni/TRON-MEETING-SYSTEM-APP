@@ -33,6 +33,12 @@ export const initialSettings: UserSettings = {
   chatFilter: 'all',
   subtitleLanguage: 'Myanmar (MM)',
   whisperLanguage: 'Myanmar (MM)',
+  lockMeetingByDefault: false,
+  waitingRoomByDefault: true,
+  allowParticipantScreenShare: false,
+  allowParticipantChat: true,
+  allowParticipantRename: true,
+  allowParticipantUnmute: true,
 };
 
 export const languageOptions = [

@@ -135,35 +135,35 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
   return (
     <div
       id="tiktok-meeting-feed"
-      className="relative w-full h-full bg-black flex flex-col overflow-hidden"
+      className="relative w-full h-full bg-white flex flex-col overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Vertical Feed Content */}
       <div className="flex-1 w-full h-full relative">
         {!activeRoom ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-neutral-950">
-            <div className="w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-red-500 shadow-xl">
-              <Video className="w-8 h-8" />
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-white">
+            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mb-4 text-purple-600 shadow-xs">
+              <Video className="w-8 h-8 text-purple-600" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-white mb-2">No Active Meeting</h3>
-            <p className="text-xs text-neutral-400 max-w-xs mb-6 leading-relaxed">
-              All sample data has been cleared. Start a new live WebRTC meeting or enter a Meeting ID to join across multiple devices.
+            <h3 className="text-base sm:text-lg font-bold text-neutral-900 mb-1">No Active Meeting</h3>
+            <p className="text-xs text-neutral-500 max-w-xs mb-6 leading-relaxed">
+              Start a new live meeting or join a room using a Meeting Token.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
               <button
                 type="button"
                 onClick={() => setIsCreateRoomOpen(true)}
-                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-red-950/40 cursor-pointer"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 shadow-md shadow-indigo-500/20 cursor-pointer"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 text-white" />
                 <span>New Meeting</span>
               </button>
               {onBackToHome && (
                 <button
                   type="button"
                   onClick={onBackToHome}
-                  className="flex-1 py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer border border-neutral-800"
+                  className="flex-1 py-3 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer border border-neutral-200"
                 >
                   <span>Back to Home</span>
                 </button>
@@ -208,42 +208,57 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
       {isCreateRoomOpen && (
         <div
           id="create-room-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setIsCreateRoomOpen(false)}
         >
           <div
             id="create-room-modal-container"
-            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-2xl p-5 text-neutral-900 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 pb-3 border-b border-neutral-800">
-              <Sparkles className="w-5 h-5 text-red-500" />
-              <h3 className="font-bold text-base">Start New Live Meeting</h3>
+            <div className="flex items-center gap-2 pb-3 border-b border-neutral-200">
+              <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center">
+                <Video className="w-4 h-4 text-purple-600" />
+              </div>
+              <h3 className="font-bold text-sm text-neutral-900">Start New Meeting</h3>
             </div>
 
             <form onSubmit={handleCreateRoom} className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Meeting Title</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">Meeting Name (ခေါင်းစဉ်)</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. AI Workflow & System Architecture"
+                  placeholder="e.g. Weekly Strategy Sync"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-red-500 outline-none"
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:bg-white focus:border-purple-600 outline-none"
                 />
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1.5">
+                  <span className="text-[10px] text-neutral-400 shrink-0">Presets:</span>
+                  {['Weekly Sync', 'Project Review', 'Team Catchup', 'Brainstorming'].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => setNewTitle(suggestion)}
+                      className="text-[10px] bg-neutral-100 hover:bg-purple-50 hover:text-purple-700 text-neutral-600 px-2 py-0.5 rounded-full transition shrink-0 cursor-pointer"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Meeting Token (Optional)</label>
+                <label className="block text-xs text-neutral-600 mb-1">Meeting Token (Optional)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-neutral-500 text-sm">#</span>
+                  <span className="absolute left-3 top-2.5 text-neutral-400 text-sm">#</span>
                   <input
                     type="text"
                     placeholder="MEET-7721"
                     value={newToken.replace(/^#/, '')}
                     onChange={(e) => setNewToken('#' + e.target.value)}
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-7 pr-3 py-2 text-sm text-white focus:border-red-500 outline-none uppercase font-mono"
+                    className="w-full bg-neutral-50 border border-neutral-300 rounded-xl pl-7 pr-3 py-2 text-sm text-neutral-900 focus:bg-white focus:border-purple-600 outline-none uppercase font-mono"
                   />
                 </div>
               </div>
@@ -252,13 +267,13 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCreateRoomOpen(false)}
-                  className="flex-1 py-2 rounded-xl text-neutral-400 hover:text-white bg-neutral-800 text-xs font-medium transition"
+                  className="flex-1 py-2 rounded-xl text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 text-xs font-semibold transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition shadow-lg shadow-red-950/50"
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold transition shadow-md shadow-indigo-500/20 cursor-pointer"
                 >
                   Create Meeting
                 </button>

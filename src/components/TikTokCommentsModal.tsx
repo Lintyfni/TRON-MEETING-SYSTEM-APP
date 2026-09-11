@@ -106,23 +106,23 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
   return (
     <div
       id="tiktok-comments-backdrop"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs animate-in fade-in"
       onClick={onClose}
     >
       <div
         id="tiktok-comments-container"
-        className="w-full max-w-lg max-h-[85vh] h-[75vh] bg-neutral-950 border border-neutral-800 rounded-t-3xl sm:rounded-3xl flex flex-col text-white shadow-2xl animate-in slide-in-from-bottom-6 overflow-hidden"
+        className="w-full max-w-lg max-h-[85vh] h-[75vh] bg-white border border-neutral-200 rounded-t-3xl sm:rounded-3xl flex flex-col text-neutral-900 shadow-2xl animate-in slide-from-bottom-6 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Drag Pill & Header */}
-        <div className="pt-2.5 pb-2 px-4 border-b border-neutral-800/80 bg-neutral-900/60 shrink-0 relative">
-          <div className="w-10 h-1 rounded-full bg-neutral-700 mx-auto mb-2" />
+        <div className="pt-2.5 pb-2 px-4 border-b border-neutral-200 bg-neutral-50 shrink-0 relative">
+          <div className="w-10 h-1 rounded-full bg-neutral-300 mx-auto mb-2" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold tracking-wide">
+              <span className="text-sm font-bold tracking-tight text-neutral-900">
                 {totalCommentsCount} comments
               </span>
-              <span className="text-[10px] text-neutral-400 font-mono bg-neutral-800 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] text-purple-700 font-mono bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full font-semibold">
                 {meetingToken}
               </span>
             </div>
@@ -130,12 +130,12 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
               id="btn-close-comments-modal"
               type="button"
               onClick={onClose}
-              className="p-1 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800 transition cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-neutral-900 rounded-full hover:bg-neutral-200 transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="text-[11px] text-neutral-400 truncate mt-0.5">
+          <div className="text-[11px] text-neutral-500 truncate mt-0.5 font-medium">
             {meetingTitle}
           </div>
         </div>
@@ -143,14 +143,14 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
         {/* Comments Scrollable List */}
         <div
           ref={commentsListRef}
-          className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-thin scrollbar-thumb-neutral-800"
+          className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-thin scrollbar-thumb-neutral-200"
         >
           {comments.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center py-12 text-neutral-500 space-y-2">
-              <div className="w-14 h-14 rounded-full bg-neutral-900 flex items-center justify-center text-neutral-600">
+            <div className="h-full flex flex-col items-center justify-center text-center py-12 text-neutral-400 space-y-2">
+              <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <p className="text-sm font-medium text-neutral-400">No comments yet</p>
+              <p className="text-sm font-semibold text-neutral-700">No comments yet</p>
               <p className="text-xs text-neutral-500 max-w-xs">
                 Be the first to comment on this meeting session!
               </p>
@@ -169,28 +169,28 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                     <img
                       src={comment.avatar}
                       alt={comment.author}
-                      className="w-9 h-9 rounded-full object-cover border border-neutral-800 shrink-0 mt-0.5"
+                      className="w-9 h-9 rounded-full object-cover border border-neutral-200 shrink-0 mt-0.5"
                     />
 
                     {/* Comment Content */}
                     <div className="flex-1 min-w-0 pr-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-semibold text-neutral-300 hover:text-white">
+                        <span className="text-xs font-semibold text-neutral-900">
                           {comment.author}
                         </span>
                         {isCommentHost && (
-                          <span className="text-[9px] font-bold text-red-400 bg-red-950/70 border border-red-800/60 px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                          <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
                             <ShieldCheck className="w-2.5 h-2.5" /> Host
                           </span>
                         )}
                         {comment.handle && (
-                          <span className="text-[10px] text-neutral-500">
+                          <span className="text-[10px] text-neutral-400 font-mono">
                             {comment.handle}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-white mt-1 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-xs text-neutral-800 mt-1 whitespace-pre-wrap leading-relaxed">
                         {comment.text}
                       </p>
 
@@ -199,45 +199,45 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleStartReply(comment.id, comment.author)}
-                          className="font-semibold text-neutral-400 hover:text-white transition cursor-pointer"
+                          className="font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer"
                         >
                           Reply
                         </button>
                       </div>
                     </div>
 
-                    {/* TikTok Heart Like Button on Right */}
+                    {/* Heart Like Button on Right */}
                     <div className="flex flex-col items-center shrink-0 pt-0.5 pl-1">
                       <button
                         type="button"
                         onClick={() => onToggleLikeComment(meetingToken, comment.id)}
-                        className="p-1 text-neutral-400 hover:text-red-500 active:scale-125 transition cursor-pointer"
+                        className="p-1 text-neutral-400 hover:text-purple-600 active:scale-125 transition cursor-pointer"
                         title={comment.isLiked ? 'Unlike comment' : 'Love comment'}
                       >
                         <Heart
                           className={`w-4 h-4 transition ${
                             comment.isLiked
-                              ? 'fill-red-500 text-red-500 scale-110'
-                              : 'text-neutral-400 hover:text-red-400'
+                              ? 'fill-purple-600 text-purple-600 scale-110'
+                              : 'text-neutral-400 hover:text-purple-600'
                           }`}
                         />
                       </button>
-                      <span className="text-[10px] font-medium text-neutral-400">
+                      <span className={`text-[10px] font-medium ${comment.isLiked ? 'text-purple-600 font-bold' : 'text-neutral-500'}`}>
                         {comment.likes}
                       </span>
                     </div>
                   </div>
 
-                  {/* Replies Section (TikTok Collapsible style) */}
+                  {/* Replies Section */}
                   {hasReplies && (
-                    <div className="ml-12 pl-3 border-l-2 border-neutral-800/80 space-y-3 pt-1">
+                    <div className="ml-12 pl-3 border-l-2 border-neutral-200 space-y-3 pt-1">
                       {/* Toggle View Replies button */}
                       <button
                         type="button"
                         onClick={() => toggleRepliesExpand(comment.id)}
-                        className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-400 hover:text-white transition cursor-pointer py-0.5"
+                        className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer py-0.5"
                       >
-                        <div className="w-4 h-px bg-neutral-700" />
+                        <div className="w-4 h-px bg-neutral-300" />
                         <span>
                           {isRepliesExpanded
                             ? 'Hide replies'
@@ -258,24 +258,24 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                               <img
                                 src={reply.avatar}
                                 alt={reply.author}
-                                className="w-7 h-7 rounded-full object-cover border border-neutral-800 shrink-0 mt-0.5"
+                                className="w-7 h-7 rounded-full object-cover border border-neutral-200 shrink-0 mt-0.5"
                               />
 
                               <div className="flex-1 min-w-0 pr-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-[11px] font-semibold text-neutral-300">
+                                  <span className="text-[11px] font-semibold text-neutral-900">
                                     {reply.author}
                                   </span>
                                   {reply.handle && (
-                                    <span className="text-[9px] text-neutral-500">
+                                    <span className="text-[9px] text-neutral-400 font-mono">
                                       {reply.handle}
                                     </span>
                                   )}
                                 </div>
 
-                                <p className="text-xs text-white mt-0.5 leading-relaxed">
+                                <p className="text-xs text-neutral-800 mt-0.5 leading-relaxed">
                                   {reply.replyToUser && (
-                                    <span className="text-red-400 font-medium mr-1.5">
+                                    <span className="text-purple-600 font-semibold mr-1.5">
                                       @{reply.replyToUser}
                                     </span>
                                   )}
@@ -287,7 +287,7 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleStartReply(comment.id, reply.author)}
-                                    className="font-semibold text-neutral-400 hover:text-white transition cursor-pointer"
+                                    className="font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer"
                                   >
                                     Reply
                                   </button>
@@ -301,17 +301,17 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                                   onClick={() =>
                                     onToggleLikeComment(meetingToken, comment.id, reply.id)
                                   }
-                                  className="p-1 text-neutral-400 hover:text-red-500 active:scale-125 transition cursor-pointer"
+                                  className="p-1 text-neutral-400 hover:text-purple-600 active:scale-125 transition cursor-pointer"
                                 >
                                   <Heart
                                     className={`w-3.5 h-3.5 transition ${
                                       reply.isLiked
-                                        ? 'fill-red-500 text-red-500 scale-110'
-                                        : 'text-neutral-400 hover:text-red-400'
+                                        ? 'fill-purple-600 text-purple-600 scale-110'
+                                        : 'text-neutral-400 hover:text-purple-600'
                                     }`}
                                   />
                                 </button>
-                                <span className="text-[9px] font-medium text-neutral-400">
+                                <span className={`text-[9px] font-medium ${reply.isLiked ? 'text-purple-600 font-bold' : 'text-neutral-500'}`}>
                                   {reply.likes}
                                 </span>
                               </div>
@@ -328,18 +328,18 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
         </div>
 
         {/* Bottom Input Area */}
-        <div className="p-3 border-t border-neutral-800 bg-neutral-900/90 shrink-0 space-y-2">
+        <div className="p-3 border-t border-neutral-200 bg-neutral-50 shrink-0 space-y-2">
           {/* Replying banner if active */}
           {replyingTo && (
-            <div className="flex items-center justify-between bg-neutral-800/80 px-3 py-1 rounded-full text-xs text-neutral-300">
-              <span className="flex items-center gap-1">
-                <CornerDownRight className="w-3 h-3 text-red-400" />
-                Replying to <span className="font-bold text-red-400">@{replyingTo.author}</span>
+            <div className="flex items-center justify-between bg-purple-50 border border-purple-200 px-3 py-1 rounded-full text-xs text-purple-800">
+              <span className="flex items-center gap-1 font-medium">
+                <CornerDownRight className="w-3 h-3 text-purple-600" />
+                Replying to <span className="font-bold text-purple-700">@{replyingTo.author}</span>
               </span>
               <button
                 type="button"
                 onClick={handleCancelReply}
-                className="text-neutral-400 hover:text-white p-0.5"
+                className="text-purple-600 hover:text-purple-900 p-0.5 transition"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -353,7 +353,7 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                 key={emoji}
                 type="button"
                 onClick={() => handleAddEmoji(emoji)}
-                className="px-2 py-0.5 text-xs bg-neutral-800/60 hover:bg-neutral-800 rounded-full transition active:scale-95 shrink-0"
+                className="px-2 py-0.5 text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-full transition active:scale-95 shrink-0 font-medium"
               >
                 {emoji}
               </button>
@@ -365,7 +365,7 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover border border-neutral-700 shrink-0"
+              className="w-8 h-8 rounded-full object-cover border border-neutral-200 shrink-0"
             />
             <div className="flex-1 relative flex items-center">
               <input
@@ -378,12 +378,12 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
                     ? `Reply to @${replyingTo.author}...`
                     : 'Add comment...'
                 }
-                className="w-full bg-neutral-950 border border-neutral-700/80 rounded-full pl-4 pr-10 py-2 text-xs text-white placeholder-neutral-500 focus:border-red-500 outline-none transition"
+                className="w-full bg-white border border-neutral-200 rounded-full pl-4 pr-10 py-2 text-xs text-neutral-900 placeholder-neutral-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition"
               />
               <button
                 type="button"
                 onClick={() => handleAddEmoji('😊')}
-                className="absolute right-3 text-neutral-400 hover:text-white"
+                className="absolute right-3 text-neutral-400 hover:text-purple-600"
               >
                 <Smile className="w-4 h-4" />
               </button>
@@ -395,8 +395,8 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
               disabled={!inputText.trim()}
               className={`w-9 h-9 rounded-full flex items-center justify-center transition shrink-0 cursor-pointer ${
                 inputText.trim()
-                  ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-950/50 active:scale-95'
-                  : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xs active:scale-95'
+                  : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
               }`}
               title="Post comment"
             >

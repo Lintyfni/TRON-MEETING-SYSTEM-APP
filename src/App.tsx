@@ -552,61 +552,78 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-neutral-950 text-white flex flex-col items-center justify-center font-sans antialiased selection:bg-red-500 selection:text-white">
-      {/* Top Utility Bar for Switching Frame & Quick Info */}
-      <header className="w-full max-w-4xl px-4 py-3 flex items-center justify-between border-b border-neutral-900 z-50 text-xs">
+    <div className="w-full min-h-screen bg-slate-100/70 text-neutral-900 flex flex-col items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white">
+      {/* Top Bar */}
+      <header className="w-full max-w-4xl px-4 py-3 flex items-center justify-between border-b border-neutral-200 bg-white z-50 text-xs shadow-xs">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
-          <span className="font-bold tracking-tight text-white sm:inline hidden">
-            TikTok Style Meeting &amp; Posts System
-          </span>
-          <span className="text-neutral-500 font-mono text-[11px] sm:inline hidden">
-            · Flutter-to-Web Architecture
+          <div className="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse" />
+          <span className="font-bold tracking-tight text-neutral-900 sm:inline hidden">
+            Meeting System
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Quick tab switcher pill in header */}
-          <div className="hidden sm:flex items-center bg-neutral-900 border border-neutral-800 rounded-lg p-0.5 text-[11px]">
+          {/* Quick tab switcher in header */}
+          <div className="hidden sm:flex items-center bg-neutral-100 border border-neutral-200 rounded-lg p-0.5 text-[11px]">
+            <button
+              onClick={() => setCurrentTab('home')}
+              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
+                currentTab === 'home'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <Home className="w-3 h-3 text-purple-600" /> Home
+            </button>
             <button
               onClick={() => setCurrentTab('meetings')}
               className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'meetings' ? 'bg-red-600 text-white font-semibold' : 'text-neutral-400 hover:text-white'
+                currentTab === 'meetings'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Video className="w-3 h-3" /> Meetings
+              <Video className="w-3 h-3 text-purple-600" /> Meetings
             </button>
             <button
               onClick={() => setCurrentTab('posts')}
               className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'posts' ? 'bg-red-600 text-white font-semibold' : 'text-neutral-400 hover:text-white'
+                currentTab === 'posts'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Layers className="w-3 h-3" /> Posts
+              <Layers className="w-3 h-3 text-purple-600" /> Posts
             </button>
             <button
               onClick={() => setCurrentTab('chat')}
               className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'chat' ? 'bg-red-600 text-white font-semibold' : 'text-neutral-400 hover:text-white'
+                currentTab === 'chat'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <MessageSquare className="w-3 h-3" /> Chat
+              <MessageSquare className="w-3 h-3 text-purple-600" /> Chat
             </button>
             <button
               onClick={() => setCurrentTab('profile')}
               className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'profile' ? 'bg-red-600 text-white font-semibold' : 'text-neutral-400 hover:text-white'
+                currentTab === 'profile'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <User className="w-3 h-3" /> Profile
+              <User className="w-3 h-3 text-purple-600" /> Profile
             </button>
             <button
               onClick={() => setCurrentTab('settings')}
               className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'settings' ? 'bg-red-600 text-white font-semibold' : 'text-neutral-400 hover:text-white'
+                currentTab === 'settings'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Settings className="w-3 h-3" /> Settings
+              <Settings className="w-3 h-3 text-purple-600" /> Settings
             </button>
           </div>
 
@@ -615,17 +632,17 @@ export default function App() {
             id="btn-toggle-frame"
             type="button"
             onClick={() => setIsMobileFrame(!isMobileFrame)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 hover:text-white transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-700 hover:text-neutral-900 transition font-medium"
             title={isMobileFrame ? 'Expand to Fluid Layout' : 'Constrain to Phone Frame'}
           >
             {isMobileFrame ? (
               <>
-                <Maximize2 className="w-3.5 h-3.5 text-neutral-400" />
+                <Maximize2 className="w-3.5 h-3.5 text-purple-600" />
                 <span>Expand View</span>
               </>
             ) : (
               <>
-                <Smartphone className="w-3.5 h-3.5 text-red-500" />
+                <Smartphone className="w-3.5 h-3.5 text-purple-600" />
                 <span>Mobile Frame</span>
               </>
             )}
@@ -633,25 +650,25 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Container - Supports authentic Mobile Device Frame or Responsive Fluid */}
+      {/* Main Container */}
       <main className="flex-1 w-full flex items-center justify-center p-0 sm:p-4 overflow-hidden">
         <div
           id="app-viewport-container"
-          className={`relative bg-black transition-all duration-300 flex flex-col overflow-hidden ${
+          className={`relative bg-white transition-all duration-300 flex flex-col overflow-hidden ${
             isMobileFrame
-              ? 'w-full max-w-[395px] h-[100dvh] sm:h-[844px] sm:rounded-[44px] sm:border-[8px] sm:border-neutral-800 sm:shadow-2xl sm:shadow-black ring-1 ring-white/10'
-              : 'w-full max-w-4xl h-[100dvh] sm:h-[820px] sm:rounded-2xl sm:border sm:border-neutral-800'
+              ? 'w-full max-w-[395px] h-[100dvh] sm:h-[844px] sm:rounded-[44px] sm:border-[8px] sm:border-neutral-300 sm:shadow-2xl sm:shadow-neutral-400/25 ring-1 ring-neutral-200'
+              : 'w-full max-w-4xl h-[100dvh] sm:h-[820px] sm:rounded-2xl sm:border sm:border-neutral-200 sm:shadow-xl'
           }`}
         >
           {/* Simulated Mobile Status Bar */}
           {isMobileFrame && (
-            <div className="relative z-50 w-full px-7 pt-3 pb-1 flex items-center justify-between text-[11px] font-semibold text-white/90 select-none pointer-events-none shrink-0">
+            <div className="relative z-50 w-full px-7 pt-3 pb-1 flex items-center justify-between text-[11px] font-semibold text-neutral-800 select-none pointer-events-none shrink-0 bg-white">
               <span>9:41</span>
-              <div className="w-20 h-4 bg-neutral-900 rounded-full mx-auto -mt-1" />
-              <div className="flex items-center gap-1.5 text-neutral-300">
-                <Wifi className="w-3 h-3" />
+              <div className="w-20 h-4 bg-neutral-200 rounded-full mx-auto -mt-1" />
+              <div className="flex items-center gap-1.5 text-neutral-600">
+                <Wifi className="w-3 h-3 text-purple-600" />
                 <span className="text-[10px] font-mono">5G</span>
-                <Battery className="w-3.5 h-3.5 text-white" />
+                <Battery className="w-3.5 h-3.5 text-neutral-700" />
               </div>
             </div>
           )}

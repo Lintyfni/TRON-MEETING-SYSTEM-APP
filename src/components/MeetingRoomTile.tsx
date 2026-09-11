@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Home,
   Mic,
   MicOff,
   Video as VideoIcon,
   VideoOff,
-  Subtitles,
   Sparkles,
   NotebookTabs,
   MessageCircle,
@@ -24,7 +23,8 @@ import {
   Shield,
   Smile,
   PhoneOff,
-  Hand
+  Hand,
+  Link2,
 } from 'lucide-react';
 import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile, ParticipantState } from '../types';
 import { MultiFilterDialog } from './MultiFilterDialog';
@@ -33,7 +33,6 @@ import { MeetingChatModal } from './MeetingChatModal';
 import { TikTokCommentsModal } from './TikTokCommentsModal';
 import { ZoomParticipantsDrawer } from './ZoomParticipantsDrawer';
 import { ZoomSecurityModal } from './ZoomSecurityModal';
-import { ZoomAiCompanionModal } from './ZoomAiCompanionModal';
 import { ZoomReactionsTray } from './ZoomReactionsTray';
 import { api } from '../services/api';
 import { webrtc, RemoteParticipant } from '../services/webrtc';
@@ -70,6 +69,14 @@ interface FloatingHeart {
   id: number;
   x: number;
   color: string;
+}
+
+interface FloatingReaction {
+  id: number;
+  emoji: string;
+  sender: string;
+  x: number;
+  size?: number;
 }
 
 export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
@@ -140,27 +147,39 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   // Zoom Standard Features State
   const [isParticipantsDrawerOpen, setIsParticipantsDrawerOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
-  const [isAiCompanionModalOpen, setIsAiCompanionModalOpen] = useState(false);
   const [isReactionsTrayOpen, setIsReactionsTrayOpen] = useState(false);
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [showEndMeetingDialog, setShowEndMeetingDialog] = useState(false);
-  const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
+  const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
+  const [isSideShareMenuOpen, setIsSideShareMenuOpen] = useState(false);
 
   // Screen Sharing State
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
 
-  // Synchronized Room Participants State with Backend
+  // Synchronized Room Participants State with Backend & real-time peers
   const [participantsList, setParticipantsList] = useState<ParticipantState[]>(() => {
-    return room.participants.map((name) => ({
+    const combined = Array.from(new Set([userProfile.name, ...room.participants]));
+    return combined.map((name) => ({
       name,
       role: name === room.host ? 'host' : 'participant',
-      isAudioMuted: name !== room.host,
+      isAudioMuted: name !== room.host && name !== userProfile.name,
       isVideoMuted: false,
       isHandRaised: false,
     }));
   });
+
+  // Active target participant for camera tile inline reactions popover
+  const [reactingTargetUser, setReactingTargetUser] = useState<string | null>(null);
+
+  // Close camera reactions popover on outside click
+  useEffect(() => {
+    if (!reactingTargetUser) return;
+    const handleClickOutside = () => setReactingTargetUser(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [reactingTargetUser]);
 
   // Fetch live participants from backend API
   useEffect(() => {
@@ -403,18 +422,72 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     setTimeout(() => setToastMessage(null), 2200);
   };
 
+  // Floating reactions helper: triggers emojis rising specifically inside a participant's camera tile
+  const triggerParticipantReaction = useCallback((senderName: string, emoji: string) => {
+    const count = 5;
+    for (let i = 0; i < count; i++) {
+      const newReaction: FloatingReaction = {
+        id: Date.now() + Math.random() + i,
+        emoji,
+        sender: senderName,
+        x: (Math.random() - 0.5) * 60,
+        size: 24 + Math.random() * 10,
+      };
+      setTimeout(() => {
+        setFloatingReactions((prev) => [...prev, newReaction]);
+      }, i * 90);
+
+      setTimeout(() => {
+        setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
+      }, 2200 + i * 90);
+    }
+  }, []);
+
+  const isReactionForParticipant = useCallback((
+    reactionSender: string,
+    tileUser: string,
+    isMe: boolean,
+    displayName: string
+  ): boolean => {
+    if (!reactionSender) return false;
+    const s = reactionSender.trim().toLowerCase();
+    const t = tileUser.trim().toLowerCase();
+    const d = displayName.trim().toLowerCase();
+    const myName = (userProfile?.name || '').trim().toLowerCase();
+
+    // If this tile belongs to ME:
+    if (isMe) {
+      if (s === 'me' || s === myName || s === d || s === t) return true;
+      const cleanS = s.replace(/\(me\)/g, '').trim();
+      const cleanT = t.replace(/\(me\)/g, '').trim();
+      if (cleanS === cleanT || cleanS === myName || cleanS === d) return true;
+    }
+
+    // If this tile is someone else:
+    if (s === t || s === d) return true;
+    const cleanS = s.replace(/\(me\)/g, '').trim();
+    const cleanT = t.replace(/\(me\)/g, '').trim();
+    return cleanS.length > 0 && cleanS === cleanT;
+  }, [userProfile?.name]);
+
   const handleSelectReaction = (emoji: string) => {
-    const newReaction = {
-      id: Date.now() + Math.random(),
-      emoji,
-      x: (Math.random() - 0.5) * 60,
-    };
-    setFloatingReactions((prev) => [...prev, newReaction]);
-    api.sendReaction(room.token, emoji, userProfile.name);
+    // 1. Float reaction inside MY camera box
+    triggerParticipantReaction(userProfile.name, emoji);
+    // 2. Broadcast via WebRTC to peers so they see it in my camera box
     webrtc.broadcastReaction(emoji);
-    setTimeout(() => {
-      setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-    }, 2500);
+    // 3. Post to backend so all clients across meeting room receive it
+    api.sendReaction(room.token, emoji, userProfile.name);
+
+    setToastMessage(`Reacted ${emoji} (Sent to meeting)`);
+    setTimeout(() => setToastMessage(null), 1800);
+  };
+
+  const handleReactToUser = (targetUser: string, emoji: string) => {
+    triggerParticipantReaction(targetUser, emoji);
+    webrtc.broadcastReaction(emoji);
+    api.sendReaction(room.token, emoji, targetUser);
+    setToastMessage(`Reacted ${emoji} to ${targetUser}`);
+    setTimeout(() => setToastMessage(null), 1800);
   };
 
   // ZOOM HOST MODERATION & SECURITY
@@ -679,16 +752,9 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
     const unsubReaction = webrtc.on('reaction:received', ({ emoji, sender }) => {
       if (!isMounted) return;
-      const newReaction = {
-        id: Date.now() + Math.random(),
-        emoji,
-        x: (Math.random() - 0.5) * 60,
-      };
-      setFloatingReactions((prev) => [...prev, newReaction]);
-      setToastMessage(`${sender || 'Participant'} reacted ${emoji}`);
-      setTimeout(() => {
-        setFloatingReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-      }, 2500);
+      const reactionSender = sender || 'Participant';
+      triggerParticipantReaction(reactionSender, emoji);
+      setToastMessage(`${reactionSender} reacted ${emoji}`);
       setTimeout(() => setToastMessage(null), 2000);
     });
 
@@ -827,17 +893,71 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     }
   };
 
+  // Periodic poll for meeting reactions via API (ensures sync across all participants)
+  const lastReactionTimestampRef = useRef<number>(Date.now() - 2000);
+
+  useEffect(() => {
+    let isMounted = true;
+    const interval = setInterval(async () => {
+      if (!isMounted) return;
+      try {
+        const recent = await api.fetchRoomReactions(room.token, lastReactionTimestampRef.current);
+        if (!isMounted || !recent || recent.length === 0) return;
+        recent.forEach((r) => {
+          if (r.timestamp > lastReactionTimestampRef.current) {
+            lastReactionTimestampRef.current = r.timestamp;
+          }
+          const myName = (userProfile.name || '').toLowerCase();
+          if (r.sender?.toLowerCase() !== myName && r.sender?.toLowerCase() !== 'me') {
+            triggerParticipantReaction(r.sender, r.emoji);
+            setToastMessage(`${r.sender} reacted ${r.emoji}`);
+            setTimeout(() => setToastMessage(null), 2000);
+          }
+        });
+      } catch {}
+    }, 1500);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [room.token, userProfile.name, triggerParticipantReaction]);
+
+  // Occasional peer reactions to keep the room lively and interactive
+  useEffect(() => {
+    const peerReactTimer = setInterval(() => {
+      const otherParticipants = room.participants.filter(
+        (p) => p.toLowerCase() !== userProfile.name.toLowerCase() && !p.includes('(Me)')
+      );
+      if (otherParticipants.length > 0) {
+        const randomPeer = otherParticipants[Math.floor(Math.random() * otherParticipants.length)];
+        const peerEmojis = ['👏', '👍', '❤️', '🎉', '😂'];
+        const randomEmoji = peerEmojis[Math.floor(Math.random() * peerEmojis.length)];
+        triggerParticipantReaction(randomPeer, randomEmoji);
+      }
+    }, 22000);
+    return () => clearInterval(peerReactTimer);
+  }, [room.participants, userProfile.name, triggerParticipantReaction]);
+
   const handleTriggerHeart = (e?: React.MouseEvent) => {
     setLikeCount((prev) => prev + 1);
     const id = Date.now() + Math.random();
-    const colors = ['#ef4444', '#ec4899', '#f43f5e', '#fb7185', '#f59e0b'];
+    const colors = ['#ef4444', '#ec4899', '#f43f5e', '#fb7185', '#a855f7'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const randomX = Math.random() * 60 - 30; // slight spread
-    setFloatingHearts((prev) => [...prev.slice(-12), { id, x: randomX, color: randomColor }]);
+    const randomX = Math.random() * 50 - 25; // slight spread
+    setFloatingHearts((prev) => [...prev.slice(-15), { id, x: randomX, color: randomColor }]);
+
+    // Float heart reaction inside user's camera tile and broadcast to all participants
+    triggerParticipantReaction(userProfile.name, '❤️');
+    webrtc.broadcastReaction('❤️');
+    api.sendReaction(room.token, '❤️', userProfile.name);
+
+    setToastMessage(`❤️ Liked Meeting (${room.title})`);
+    setTimeout(() => setToastMessage(null), 1600);
 
     setTimeout(() => {
       setFloatingHearts((prev) => prev.filter((h) => h.id !== id));
-    }, 1500);
+    }, 1600);
   };
 
   const handleOpenDirectChat = (userName: string) => {
@@ -860,6 +980,32 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     ])
   );
 
+  // Accurate real-time count of active participants in the meeting room
+  const liveParticipantCount = allParticipantNames.length;
+
+  // Keep participantsList in sync with all live participants
+  useEffect(() => {
+    setParticipantsList((prev) => {
+      const existingNames = new Set(prev.map((p) => p.name));
+      let changed = false;
+      const updated = [...prev];
+      allParticipantNames.forEach((name) => {
+        if (!existingNames.has(name)) {
+          changed = true;
+          updated.push({
+            name,
+            role: name === room.host ? 'host' : 'participant',
+            isAudioMuted: name !== room.host && name !== userProfile.name,
+            isVideoMuted: false,
+            isHandRaised: false,
+          });
+        }
+      });
+      return changed ? updated : prev;
+    });
+  }, [allParticipantNames.join(','), room.host, userProfile.name]);
+
+
   // Filtered participants
   const visibleUsers = selectedFilterUsers.includes('All')
     ? allParticipantNames
@@ -877,42 +1023,42 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   return (
     <div
       id={`meeting-tile-${room.id}`}
-      className="relative w-full h-full bg-black overflow-hidden select-none flex flex-col justify-between"
+      className="relative w-full h-full bg-neutral-100 overflow-hidden select-none flex flex-col justify-between"
       onDoubleClick={handleTriggerHeart}
     >
       {/* 1. Multi-User Video Grid */}
-      <div className="absolute inset-0 z-0 bg-neutral-950 flex items-center justify-center p-2 pt-16 pb-28">
+      <div className="absolute inset-0 z-0 bg-neutral-100 flex items-center justify-center p-2 pt-16 pb-28">
         {visibleUsers.length === 0 ? (
-          <div className="text-center text-neutral-400 p-6 bg-neutral-900/60 rounded-2xl border border-neutral-800">
+          <div className="text-center text-neutral-500 p-6 bg-white rounded-2xl border border-neutral-200 shadow-sm">
             <UsersPlaceholder />
             <p className="text-sm font-medium">No participant selected in filter</p>
             <button
               onClick={() => setSelectedFilterUsers(['All'])}
-              className="mt-3 px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold"
+              className="mt-3 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
             >
               Reset to All
             </button>
           </div>
         ) : isScreenSharing ? (
-          <div className="w-full h-full relative rounded-2xl overflow-hidden bg-neutral-950 flex flex-col border border-emerald-500/40 shadow-2xl">
-            {/* Top Green Zoom Banner */}
-            <div className="bg-emerald-950/90 border-b border-emerald-500/50 px-4 py-2 flex items-center justify-between text-xs text-white z-30 backdrop-blur-md">
+          <div className="w-full h-full relative rounded-2xl overflow-hidden bg-white flex flex-col border border-neutral-200 shadow-xl">
+            {/* Top Zoom Banner */}
+            <div className="bg-white/95 border-b border-neutral-200 px-4 py-2 flex items-center justify-between text-xs text-neutral-900 z-30 backdrop-blur-md">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="font-bold text-emerald-300">You are sharing your screen (Zoom Stage)</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="font-bold text-emerald-700">You are sharing your screen (Zoom Stage)</span>
                 <span className="text-neutral-400 hidden sm:inline">| {room.token}</span>
               </div>
               <button
                 type="button"
                 onClick={handleStopScreenShare}
-                className="px-3 py-1 bg-red-600 hover:bg-red-500 active:scale-95 rounded-full text-xs font-bold text-white shadow-lg transition cursor-pointer border border-red-400/50"
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 active:scale-95 rounded-full text-xs font-bold text-white shadow-md transition cursor-pointer"
               >
                 Stop Share
               </button>
             </div>
 
             {/* Screen Content */}
-            <div className="flex-1 relative flex items-center justify-center bg-neutral-900 overflow-hidden">
+            <div className="flex-1 relative flex items-center justify-center bg-neutral-50 overflow-hidden">
               {screenStream ? (
                 <video
                   ref={(el) => {
@@ -928,22 +1074,22 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                 />
               ) : (
                 <div className="p-8 text-center space-y-3">
-                  <div className="w-16 h-16 rounded-2xl bg-neutral-800 border border-neutral-700 flex items-center justify-center mx-auto text-emerald-400 shadow-xl">
-                    <Share2 className="w-8 h-8 animate-pulse" />
+                  <div className="w-16 h-16 rounded-2xl bg-white border border-neutral-200 flex items-center justify-center mx-auto text-purple-600 shadow-md">
+                    <Share2 className="w-8 h-8 animate-pulse text-purple-600" />
                   </div>
-                  <h4 className="font-bold text-base text-white">Live Presentation Mode Active</h4>
-                  <p className="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                  <h4 className="font-bold text-base text-neutral-900">Live Presentation Mode Active</h4>
+                  <p className="text-xs text-neutral-500 max-w-sm mx-auto leading-relaxed">
                     Broadcasting interactive screen &amp; slides to {participantsList.length} participants in {room.token}.
                   </p>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-800/80 border border-neutral-700 text-[11px] text-neutral-300">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-neutral-200 text-[11px] text-neutral-700 shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                     <span>HD 1080p Stream Active</span>
                   </div>
                 </div>
               )}
 
               {/* Floating Participant Video PIP */}
-              <div className="absolute top-4 right-4 z-20 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden bg-neutral-900/90 border border-neutral-700 shadow-2xl backdrop-blur-md">
+              <div className="absolute top-4 right-4 z-20 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden bg-white border border-neutral-200 shadow-xl backdrop-blur-md">
                 {isCameraOn && localStream ? (
                   <video
                     ref={handleVideoRef}
@@ -953,13 +1099,31 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
-                    <img src={userProfile.avatar} alt="Me" className="w-8 h-8 rounded-full mb-1 object-cover" />
-                    <span className="text-[10px] text-neutral-300 font-medium truncate">{userProfile.name}</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-neutral-50">
+                    <img src={userProfile.avatar} alt="Me" className="w-8 h-8 rounded-full mb-1 object-cover border border-neutral-200" />
+                    <span className="text-[10px] text-neutral-700 font-medium truncate">{userProfile.name}</span>
                   </div>
                 )}
-                <div className="absolute bottom-1 right-1 bg-black/80 px-1.5 py-0.5 rounded text-[8px] text-white">
+                <div className="absolute bottom-1 right-1 bg-purple-600 px-1.5 py-0.5 rounded text-[8px] text-white font-bold">
                   You
+                </div>
+
+                {/* Live Floating Reactions on PIP Cam */}
+                <div className="absolute inset-x-0 bottom-2 top-0 pointer-events-none z-30 overflow-hidden flex justify-center items-end">
+                  {floatingReactions
+                    .filter((r) => isReactionForParticipant(r.sender, userProfile.name, true, userProfile.name))
+                    .map((r) => (
+                      <div
+                        key={r.id}
+                        className="absolute bottom-1 animate-float-emoji drop-shadow-md select-none pointer-events-none"
+                        style={{
+                          left: `calc(50% + ${r.x * 0.4}px)`,
+                          fontSize: `${(r.size || 24) * 0.75}px`,
+                        }}
+                      >
+                        {r.emoji}
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
@@ -999,30 +1163,30 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                 <div
                   key={user}
                   id={`video-tile-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                  className={`relative rounded-2xl overflow-hidden bg-neutral-900 border transition-all duration-300 flex items-center justify-center ${
+                  className={`relative rounded-2xl overflow-hidden bg-white border transition-all duration-300 flex items-center justify-center shadow-xs ${
                     isSpeaker
-                      ? 'border-red-500 ring-2 ring-red-500/40 shadow-lg shadow-red-950/20'
-                      : 'border-neutral-800/80'
+                      ? 'border-purple-600 ring-2 ring-purple-600/30 shadow-md'
+                      : 'border-neutral-200'
                   }`}
                 >
                   {/* Background gradient / simulated room canvas */}
                   <div
                     className={`absolute inset-0 bg-gradient-to-b ${
                       idx % 3 === 0
-                        ? 'from-neutral-900 via-neutral-950 to-neutral-900'
+                        ? 'from-neutral-50 via-white to-neutral-50'
                         : idx % 3 === 1
-                        ? 'from-zinc-900 via-neutral-950 to-zinc-900'
-                        : 'from-stone-900 via-neutral-950 to-stone-900'
+                        ? 'from-purple-50/40 via-white to-neutral-50'
+                        : 'from-neutral-100/40 via-white to-purple-50/20'
                     }`}
                   />
 
                   {/* 1. If Me and Camera is OFF: မိမိ screen မပေါ်ဘူး (Screen Hidden) */}
                   {isMe && !isCameraOn ? (
                     <div className="relative z-10 flex flex-col items-center justify-center p-4 text-center select-none">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-neutral-950 border border-neutral-800 flex items-center justify-center mb-2 shadow-2xl">
-                        <VideoOff className="w-6 h-6 sm:w-7 sm:h-7 text-red-500" />
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-purple-50 border border-purple-200 flex items-center justify-center mb-2 shadow-xs">
+                        <VideoOff className="w-6 h-6 sm:w-7 sm:h-7 text-neutral-400" />
                       </div>
-                      <span className="text-[11px] font-normal text-neutral-300 tracking-normal">
+                      <span className="text-[11px] font-semibold text-neutral-900 tracking-normal">
                         {displayName.toLowerCase()}
                       </span>
                       <span className="text-[9px] text-neutral-500 mt-0.5">
@@ -1031,7 +1195,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       <button
                         type="button"
                         onClick={handleToggleCamera}
-                        className="mt-2.5 px-3 py-1 bg-red-950/80 hover:bg-red-900 active:scale-95 text-red-300 hover:text-white rounded-full text-[10px] font-semibold transition cursor-pointer border border-red-800/80 shadow-md flex items-center gap-1.5"
+                        className="mt-2.5 px-3 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-95 text-white rounded-full text-[10px] font-semibold transition cursor-pointer shadow-xs flex items-center gap-1.5"
                       >
                         <VideoIcon className="w-3 h-3" />
                         <span>Turn on Cam</span>
@@ -1125,8 +1289,8 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
                           {/* Live Cam Active Pill */}
                           {!cameraError && !isCameraLoading && (
-                            <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-400 backdrop-blur-md shadow-md">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1 bg-white/95 border border-emerald-300 px-2 py-0.5 rounded-full text-[9px] font-bold text-emerald-700 backdrop-blur-md shadow-xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                               CAM LIVE
                             </div>
                           )}
@@ -1135,27 +1299,27 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
                       {/* Loading State while Camera is initializing */}
                       {isCameraLoading && (
-                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xs text-center p-3">
-                          <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mb-2" />
-                          <span className="text-xs font-bold text-emerald-400">Camera စတင်ဖွင့်နေပါသည်...</span>
-                          <span className="text-[10px] text-neutral-300 mt-0.5">Connecting live webcam video</span>
+                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90 backdrop-blur-xs text-center p-3">
+                          <div className="w-8 h-8 rounded-full border-2 border-purple-600 border-t-transparent animate-spin mb-2" />
+                          <span className="text-xs font-bold text-purple-700">Camera စတင်ဖွင့်နေပါသည်...</span>
+                          <span className="text-[10px] text-neutral-500 mt-0.5">Connecting live webcam video</span>
                         </div>
                       )}
 
                       {/* Error Banner with Retry Button */}
                       {cameraError && (
-                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-black/85 text-center">
-                          <div className="w-11 h-11 rounded-full bg-red-950/90 border border-red-700 flex items-center justify-center mb-2 shadow-lg">
-                            <VideoOff className="w-5 h-5 text-red-400" />
+                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-white/95 text-center">
+                          <div className="w-11 h-11 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mb-2 shadow-xs">
+                            <VideoOff className="w-5 h-5 text-red-500" />
                           </div>
-                          <span className="text-xs font-bold text-red-400 mb-1">Camera မဖွင့်နိုင်ပါ</span>
-                          <p className="text-[10px] text-neutral-300 max-w-[220px] mb-3 leading-snug">
+                          <span className="text-xs font-bold text-red-600 mb-1">Camera မဖွင့်နိုင်ပါ</span>
+                          <p className="text-[10px] text-neutral-600 max-w-[220px] mb-3 leading-snug">
                             {cameraError}
                           </p>
                           <button
                             type="button"
                             onClick={startCamera}
-                            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg border border-emerald-400/50"
+                            className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                           >
                             <VideoIcon className="w-3.5 h-3.5" />
                             <span>Retry Camera (ပြန်လည်ဖွင့်မည်)</span>
@@ -1164,14 +1328,14 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       )}
 
                       {/* Name Pill overlay: small text in lowercase */}
-                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-neutral-700/80 text-[10px] font-normal text-neutral-200 backdrop-blur-md">
+                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-200 text-[10px] font-semibold text-neutral-800 backdrop-blur-md shadow-xs">
                         <span>{displayName.toLowerCase()}</span>
-                        {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
+                        {isHost && <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
                       </div>
                     </div>
                   ) : (remoteStreams[user] || (remotePeerInfo[user] && remoteStreams[remotePeerInfo[user].peerId])) ? (
                     /* 3. Other Participants: Live WebRTC Video & Audio Stream */
-                    <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
+                    <div className="relative w-full h-full bg-neutral-900 overflow-hidden flex items-center justify-center">
                       <video
                         ref={(el) => {
                           if (el) {
@@ -1187,24 +1351,24 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         className="w-full h-full object-cover"
                       />
                       {/* Live WebRTC Badge */}
-                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-emerald-500/40 text-[9px] text-emerald-400 font-semibold shadow-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full border border-emerald-300 text-[9px] text-emerald-700 font-semibold shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         <span>LIVE P2P</span>
                       </div>
 
                       {/* Remote Mic Indicator */}
-                      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/70 backdrop-blur-md p-1.5 rounded-full border border-neutral-800 text-neutral-300 shadow-md">
+                      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-neutral-200 text-neutral-700 shadow-xs">
                         {remotePeerInfo[user]?.isAudioMuted ? (
                           <MicOff className="w-3 h-3 text-red-500" />
                         ) : (
-                          <Mic className="w-3 h-3 text-emerald-400" />
+                          <Mic className="w-3 h-3 text-purple-600" />
                         )}
                       </div>
 
                       {/* Participant name pill: lowercase and small font */}
-                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-neutral-700/80 text-[10px] font-normal text-neutral-200 backdrop-blur-md shadow-md">
+                      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-200 text-[10px] font-semibold text-neutral-800 backdrop-blur-md shadow-xs">
                         <span>{displayName.toLowerCase()}</span>
-                        {isHost && <span className="bg-red-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
+                        {isHost && <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[8px] px-1 rounded font-bold uppercase">HOST</span>}
                       </div>
                     </div>
                   ) : (
@@ -1213,7 +1377,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       {/* Pulse rings when speaking */}
                       <div className="relative">
                         {isSpeaker && (
-                          <div className="absolute -inset-2 rounded-full border-2 border-red-500/60 animate-ping opacity-75" />
+                          <div className="absolute -inset-2 rounded-full border-2 border-purple-400/60 animate-ping opacity-75" />
                         )}
                         <button
                           type="button"
@@ -1221,8 +1385,8 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                             e.stopPropagation();
                             handleOpenDirectChat(user);
                           }}
-                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl shadow-xl transition-all hover:scale-105 active:scale-95 cursor-pointer ${
-                            isSpeaker ? 'scale-105 bg-red-600 text-white ring-2 ring-red-400' : 'bg-neutral-800 text-neutral-200 border border-neutral-700 hover:border-red-500'
+                          className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                            isSpeaker ? 'scale-105 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white ring-2 ring-purple-400' : 'bg-purple-100 text-purple-700 border border-purple-200 hover:border-purple-400'
                           }`}
                           title={`Click to direct chat with ${displayName}`}
                         >
@@ -1230,16 +1394,16 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         </button>
                       </div>
 
-                      {/* Participant name pill: lowercase and small font, NO message icon */}
+                      {/* Participant name pill: lowercase and small font */}
                       <div
                         id={`user-name-pill-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                        className="mt-2.5 flex items-center gap-1.5 bg-black/60 px-2.5 py-0.5 rounded-full border border-neutral-800/80 shadow-md"
+                        className="mt-2.5 flex items-center gap-1.5 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-200 shadow-xs"
                       >
-                        <span className="text-[11px] font-normal text-neutral-200 tracking-normal">
+                        <span className="text-[11px] font-semibold text-neutral-800 tracking-normal">
                           {displayName.toLowerCase()}
                         </span>
                         {isHost && (
-                          <span className="text-[9px] bg-red-600/90 text-white px-1 py-0.2 rounded font-semibold uppercase">
+                          <span className="text-[9px] bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-1 py-0.2 rounded font-semibold uppercase">
                             HOST
                           </span>
                         )}
@@ -1247,10 +1411,10 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
                       {/* Waveform Equalizer when speaking */}
                       <div className="mt-2 flex items-center gap-1 h-3">
-                        <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-3 animate-pulse' : 'h-1 opacity-40'}`} />
-                        <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-4 animate-bounce' : 'h-1 opacity-40'}`} />
-                        <span className={`w-0.5 bg-emerald-400 rounded-full transition-all ${isSpeaker ? 'h-2 animate-pulse' : 'h-1 opacity-40'}`} />
-                        <span className={`w-0.5 bg-emerald-300 rounded-full transition-all ${isSpeaker ? 'h-3.5 animate-bounce' : 'h-1 opacity-40'}`} />
+                        <span className={`w-0.5 bg-purple-600 rounded-full transition-all ${isSpeaker ? 'h-3 animate-pulse' : 'h-1 opacity-30 bg-neutral-300'}`} />
+                        <span className={`w-0.5 bg-purple-500 rounded-full transition-all ${isSpeaker ? 'h-4 animate-bounce' : 'h-1 opacity-30 bg-neutral-300'}`} />
+                        <span className={`w-0.5 bg-purple-600 rounded-full transition-all ${isSpeaker ? 'h-2 animate-pulse' : 'h-1 opacity-30 bg-neutral-300'}`} />
+                        <span className={`w-0.5 bg-purple-500 rounded-full transition-all ${isSpeaker ? 'h-3.5 animate-bounce' : 'h-1 opacity-30 bg-neutral-300'}`} />
                       </div>
                     </div>
                   )}
@@ -1268,18 +1432,18 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                   {isMe && isUserSubtitlesOn && isTranscribeOn && (
                     <div
                       id={`bubble-subtitles-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                      className="absolute bottom-11 left-2 right-2 z-20 p-2 rounded-xl bg-black/85 backdrop-blur-md border border-cyan-500/50 text-white shadow-xl animate-in fade-in slide-in-from-bottom-1 pointer-events-none"
+                      className="absolute bottom-11 left-2 right-2 z-20 p-2.5 rounded-xl bg-white/95 backdrop-blur-md border border-purple-200 text-neutral-900 shadow-lg animate-in fade-in slide-in-from-bottom-1 pointer-events-none"
                     >
-                      <div className="flex items-center justify-between text-[9px] text-cyan-400 font-semibold mb-0.5">
+                      <div className="flex items-center justify-between text-[9px] text-purple-700 font-semibold mb-0.5">
                         <span className="flex items-center gap-1">
-                          <Volume2 className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
+                          <Volume2 className="w-2.5 h-2.5 text-purple-600 animate-pulse" />
                           {user} ({settings.subtitleLanguage || 'Myanmar (MM)'})
                         </span>
-                        <span className="text-[8px] bg-cyan-950/90 text-cyan-300 border border-cyan-800 px-1 py-0.2 rounded font-mono">
+                        <span className="text-[8px] bg-purple-50 text-purple-700 border border-purple-200 px-1 py-0.2 rounded font-mono font-semibold">
                           SUBTITLE LIVE
                         </span>
                       </div>
-                      <p className="text-[11px] text-neutral-100 font-medium leading-tight italic line-clamp-2">
+                      <p className="text-[11px] text-neutral-800 font-medium leading-tight italic line-clamp-2">
                         "{userSubtitleText}"
                       </p>
                     </div>
@@ -1289,8 +1453,8 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                   {isMe ? (
                     /* For Me: LIVE + My Mic Toggle + My Subtitle Toggle + My Cam Toggle (Directly toggleable from screen tile) */
                     <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5">
-                      <div className="hidden sm:flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 text-[9px] text-emerald-400 font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <div className="hidden sm:flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full border border-neutral-200 text-[9px] text-purple-700 font-bold shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
                         ME
                       </div>
 
@@ -1307,41 +1471,79 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                             return next;
                           });
                         }}
-                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
+                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center shadow-xs ${
                           isMicOn
-                            ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500 shadow-sm hover:bg-emerald-900 ring-1 ring-emerald-500/30'
-                            : 'bg-red-950/90 text-red-400 border-red-800 hover:bg-red-900 ring-1 ring-red-500/30'
+                            ? 'bg-purple-50 text-purple-600 border-purple-300'
+                            : 'bg-red-50 text-red-600 border-red-200'
                         }`}
                         title={isMicOn ? 'My Mic ON - Click to Mute (မိမိအသံပိတ်ရန်)' : 'My Mic MUTED - Click to Unmute (မိမိအသံဖွင့်ရန်)'}
                       >
                         {isMicOn ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
                       </button>
 
-                      {/* 2. Subtitle Toggle for Myself */}
-                      <button
-                        id="btn-my-tile-subtitles"
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setUserSubtitlesActive((prev) => {
-                            const current = Boolean(prev[user] ?? prev[userProfile.name] ?? prev['Aung Myint']);
-                            const next = !current;
-                            setToastMessage(next ? '💬 My Subtitles ON (စာတန်းဖွင့်ပါပြီ)' : '💬 My Subtitles OFF (စာတန်းပိတ်ပါပြီ)');
-                            setTimeout(() => setToastMessage(null), 2000);
-                            return { ...prev, [user]: next, [userProfile.name]: next, 'Aung Myint': next };
-                          });
-                        }}
-                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
-                          isUserSubtitlesOn
-                            ? 'bg-cyan-950/90 text-cyan-300 border-cyan-500/70 shadow-sm hover:bg-cyan-900 ring-1 ring-cyan-500/30'
-                            : 'bg-black/70 text-neutral-400 border-neutral-700/60 hover:text-white'
-                        }`}
-                        title={isUserSubtitlesOn ? 'My Subtitles ON - Click to Turn Off (စာတန်းပိတ်မည်)' : 'My Subtitles OFF - Click to Turn On (စာတန်းဖွင့်မည်)'}
-                      >
-                        <Subtitles className="w-3.5 h-3.5" />
-                      </button>
+                      {/* 2. React Button for Myself (Replaces Subtitle) */}
+                      <div className="relative">
+                        <button
+                          id="btn-my-tile-react"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReactingTargetUser((prev) => (prev === 'me' ? null : 'me'));
+                          }}
+                          className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center shadow-xs ${
+                            reactingTargetUser === 'me'
+                              ? 'bg-purple-600 text-white border-purple-600'
+                              : isHandRaised
+                              ? 'bg-purple-50 text-purple-600 border-purple-300 ring-2 ring-purple-400/40'
+                              : 'bg-white/95 text-purple-600 border-neutral-200 hover:bg-purple-50'
+                          }`}
+                          title="React & Raise Hand (Reactions ပေးရန်)"
+                        >
+                          {isHandRaised ? <Hand className="w-3.5 h-3.5" /> : <Smile className="w-3.5 h-3.5" />}
+                        </button>
 
-                      {/* 3. Cam Toggle right next to Subtitle - Toggles live camera directly from user tile! */}
+                        {/* Mini Reactions Popover for Myself */}
+                        {reactingTargetUser === 'me' && (
+                          <div
+                            className="absolute bottom-9 left-0 z-50 bg-white/95 backdrop-blur-md border border-neutral-200 rounded-2xl p-2 shadow-xl flex flex-col gap-1.5 animate-in zoom-in-90 duration-150 min-w-[210px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center gap-1 justify-between">
+                              {['👏', '👍', '❤️', '🎉', '😮', '😂'].map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => {
+                                    handleSelectReaction(emoji);
+                                    setReactingTargetUser(null);
+                                  }}
+                                  className="w-7 h-7 rounded-lg hover:bg-purple-50 flex items-center justify-center text-base transition hover:scale-125 active:scale-95 cursor-pointer"
+                                  title={emoji}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleToggleRaiseHand();
+                                setReactingTargetUser(null);
+                              }}
+                              className={`w-full py-1 px-2 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer border ${
+                                isHandRaised
+                                  ? 'bg-neutral-100 text-neutral-800 border-neutral-300 hover:bg-neutral-200'
+                                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent shadow-xs'
+                              }`}
+                            >
+                              <Hand className="w-3 h-3" />
+                              <span>{isHandRaised ? 'Lower Hand' : 'Raise Hand ✋'}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3. Cam Toggle right next to React - Toggles live camera directly from user tile! */}
                       <button
                         id="btn-my-tile-cam"
                         type="button"
@@ -1349,10 +1551,10 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                           e.stopPropagation();
                           handleToggleCamera();
                         }}
-                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center ${
+                        className={`p-1.5 rounded-full backdrop-blur-md border transition cursor-pointer active:scale-90 flex items-center justify-center shadow-xs ${
                           isCameraOn
-                            ? 'bg-emerald-950/90 text-emerald-400 border-emerald-500 shadow-sm hover:bg-emerald-900 ring-1 ring-emerald-500/30'
-                            : 'bg-red-950/90 text-red-400 border-red-800 hover:bg-red-900 ring-1 ring-red-500/30'
+                            ? 'bg-purple-50 text-purple-600 border-purple-300'
+                            : 'bg-red-50 text-red-600 border-red-200'
                         }`}
                         title={isCameraOn ? 'My Camera ON - Click to Turn Off (Camera ပိတ်မည်)' : 'My Camera OFF - Click to Turn On (Camera ဖွင့်မည်)'}
                       >
@@ -1360,7 +1562,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       </button>
                     </div>
                   ) : (
-                    /* For Other Participants: ONLY Chat icon and Poke icon! NO text labels */
+                    /* For Other Participants: ONLY Chat icon and React icon! NO text labels */
                     <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1.5">
                       {/* 1. Chat icon only */}
                       <button
@@ -1370,27 +1572,74 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                           e.stopPropagation();
                           handleOpenDirectChat(user);
                         }}
-                        className="p-1.5 rounded-full bg-black/80 hover:bg-red-600 active:scale-90 text-neutral-200 hover:text-white border border-neutral-700/80 hover:border-red-500 backdrop-blur-md transition shadow-md cursor-pointer flex items-center justify-center group"
+                        className="p-1.5 rounded-full bg-white/95 hover:bg-purple-50 active:scale-90 text-purple-600 border border-neutral-200 shadow-xs backdrop-blur-md transition cursor-pointer flex items-center justify-center group"
                         title={`Chat with ${user}`}
                       >
-                        <MessageSquare className="w-3.5 h-3.5 text-red-400 group-hover:text-white transition" />
+                        <MessageSquare className="w-3.5 h-3.5 text-purple-600 transition" />
                       </button>
 
-                      {/* 2. Poke icon only */}
-                      <button
-                        id={`btn-tile-poke-${user.replace(/\s+/g, '-').toLowerCase()}`}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePokeUser(user);
-                        }}
-                        className="p-1.5 rounded-full bg-black/80 hover:bg-amber-600 active:scale-90 text-neutral-200 hover:text-white border border-neutral-700/80 hover:border-amber-500 backdrop-blur-md transition shadow-md cursor-pointer flex items-center justify-center group"
-                        title={`Poke ${user}`}
-                      >
-                        <span className="text-sm leading-none group-hover:scale-125 transition-transform duration-150">👉</span>
-                      </button>
+                      {/* 2. React icon for this participant (Replaces Poke) */}
+                      <div className="relative">
+                        <button
+                          id={`btn-tile-react-${user.replace(/\s+/g, '-').toLowerCase()}`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReactingTargetUser((prev) => (prev === user ? null : user));
+                          }}
+                          className={`p-1.5 rounded-full border shadow-xs backdrop-blur-md transition cursor-pointer flex items-center justify-center active:scale-90 ${
+                            reactingTargetUser === user
+                              ? 'bg-purple-600 text-white border-purple-600'
+                              : 'bg-white/95 hover:bg-purple-50 text-purple-600 border-neutral-200'
+                          }`}
+                          title={`React to ${user}`}
+                        >
+                          <Smile className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Mini Reactions Popover for this participant */}
+                        {reactingTargetUser === user && (
+                          <div
+                            className="absolute bottom-9 left-0 z-50 bg-white/95 backdrop-blur-md border border-neutral-200 rounded-xl p-1.5 shadow-xl flex items-center gap-1 animate-in zoom-in-90 duration-150"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {['👏', '👍', '❤️', '🎉', '😮', '😂'].map((emoji) => (
+                              <button
+                                key={emoji}
+                                type="button"
+                                onClick={() => {
+                                  handleReactToUser(user, emoji);
+                                  setReactingTargetUser(null);
+                                }}
+                                className="w-7 h-7 rounded-lg hover:bg-purple-50 flex items-center justify-center text-base transition hover:scale-125 active:scale-95 cursor-pointer"
+                                title={emoji}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
+
+                  {/* Live Floating Reactions within this participant's camera box */}
+                  <div className="absolute inset-x-0 bottom-3 top-0 pointer-events-none z-30 overflow-hidden flex justify-center items-end">
+                    {floatingReactions
+                      .filter((r) => isReactionForParticipant(r.sender, user, isMe, displayName))
+                      .map((r) => (
+                        <div
+                          key={r.id}
+                          className="absolute bottom-2 animate-float-emoji drop-shadow-md select-none pointer-events-none"
+                          style={{
+                            left: `calc(50% + ${r.x}px)`,
+                            fontSize: `${r.size || 28}px`,
+                          }}
+                        >
+                          {r.emoji}
+                        </div>
+                      ))}
+                  </div>
                 </div>
               );
             })}
@@ -1398,50 +1647,29 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         )}
       </div>
 
-      {/* 2. TOP OVERLAY: Current Group Chat / Meeting Title & Number Button (Click to Edit) + Recording Button */}
-      {/* (Old MEET row completely removed from top feed as requested; original selectors preserved in Note/Chat modals) */}
-      <div className="relative z-30 pt-3 px-3 flex items-center justify-between gap-2 pointer-events-auto">
+      {/* 2. TOP OVERLAY: Home Button + Recording Button */}
+      <div className="relative z-30 pt-3 px-3 flex items-center justify-between pointer-events-auto">
         {onBackToHome && (
           <button
             id="btn-meeting-back-home"
             type="button"
             onClick={onBackToHome}
-            className="p-2 rounded-full bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-300 hover:text-white transition shadow-lg cursor-pointer shrink-0"
+            className="p-2 rounded-full bg-white/90 hover:bg-neutral-100 border border-neutral-200 text-purple-600 hover:text-purple-700 transition shadow-md cursor-pointer shrink-0"
             title="Back to Home Screen"
           >
-            <Home className="w-4 h-4 text-neutral-300" />
+            <Home className="w-4 h-4 text-purple-600" />
           </button>
         )}
-        {/* Current Meeting Button: Click to edit name / # */}
-        <button
-          id="btn-active-meeting-header"
-          type="button"
-          onClick={() => setIsEditMeetingModalOpen(true)}
-          className="flex-1 min-w-0 flex items-center gap-2 bg-neutral-900/90 hover:bg-neutral-800/90 active:scale-98 border border-neutral-700/80 px-3 py-1.5 rounded-full backdrop-blur-md transition cursor-pointer group shadow-lg text-left"
-          title="Click to edit Meeting Title and #"
-        >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <div className="flex-1 min-w-0 flex items-center gap-1.5 truncate">
-            <span className="text-xs font-bold text-red-400 font-mono shrink-0">
-              {room.token}
-            </span>
-            <span className="text-neutral-500 text-xs">·</span>
-            <span className="text-xs font-medium text-white truncate group-hover:text-red-300 transition">
-              {room.title}
-            </span>
-          </div>
-          <Edit3 className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white shrink-0 transition" />
-        </button>
 
         {/* Recording Button: On/Off toggle -> Only records when ON */}
         <button
           id="btn-toggle-recording"
           type="button"
           onClick={handleToggleRecording}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-lg shrink-0 cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-xs shrink-0 cursor-pointer ml-auto ${
             isLocalRecording
-              ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse border border-red-400 shadow-red-950/60'
-              : 'bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700/80'
+              ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse border border-red-400 shadow-red-200'
+              : 'bg-white/95 hover:bg-neutral-100 text-neutral-700 border border-neutral-200'
           }`}
           title={isLocalRecording ? 'Click to Stop Recording & Save to Profile' : 'Click to Start Recording'}
         >
@@ -1466,30 +1694,92 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         ))}
       </div>
 
-      {/* 3. RIGHT OVERLAY: TikTok Action Buttons */}
-      <div className="absolute right-3 bottom-24 z-30 flex flex-col items-center gap-3">
-        {/* Share Meeting Link Button */}
+      {/* 3. RIGHT OVERLAY: Action Buttons (Participants, Share, Notes, Comments, Love, Leave) */}
+      <div className="absolute right-3 bottom-24 z-30 flex flex-col items-center gap-2.5">
+        {/* Participants Button (Above Share with accurate live count) */}
         <button
-          id="btn-tile-share"
+          id="btn-tile-participants"
           type="button"
-          onClick={() => {
-            const shareUrl = `${window.location.origin}/#${room.token}`;
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText(shareUrl).catch(() => {});
-            }
-            setToastMessage(`🔗 Meeting link copied! (${room.token})`);
-            setTimeout(() => setToastMessage(null), 2500);
-          }}
+          onClick={() => setIsParticipantsDrawerOpen(true)}
           className="flex flex-col items-center group cursor-pointer"
-          title="Share Meeting Link"
+          title={`Participants (${liveParticipantCount} Live)`}
         >
-          <div className="w-11 h-11 rounded-full bg-black/65 text-white hover:bg-neutral-800 hover:text-red-400 border border-neutral-700/60 flex items-center justify-center backdrop-blur-md transition shadow-lg hover:scale-105 active:scale-95">
-            <Share2 className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-full bg-white/95 text-purple-600 border border-neutral-200 hover:bg-purple-50 flex items-center justify-center backdrop-blur-md transition hover:scale-105 active:scale-95 shadow-xs relative">
+            <Users className="w-5 h-5 text-purple-600" />
+            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold shadow-xs">
+              {liveParticipantCount}
+            </span>
           </div>
-          <span className="text-[10px] font-medium text-white/90 mt-1 drop-shadow-sm">
-            Share
+          <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">
+            {liveParticipantCount}
           </span>
         </button>
+
+        {/* Share Button (Screen Share & Meeting Link) */}
+        <div className="relative flex flex-col items-center">
+          <button
+            id="btn-tile-share"
+            type="button"
+            onClick={() => setIsSideShareMenuOpen((prev) => !prev)}
+            className="flex flex-col items-center group cursor-pointer"
+            title="Share Options (Screen Share & Link)"
+          >
+            <div className={`w-11 h-11 rounded-full border flex items-center justify-center backdrop-blur-md transition shadow-xs hover:scale-105 active:scale-95 ${
+              isScreenSharing
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-purple-400 animate-pulse'
+                : 'bg-white/95 text-purple-600 hover:bg-purple-50 border-neutral-200'
+            }`}>
+              <Share2 className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">
+              {isScreenSharing ? 'Sharing' : 'Share'}
+            </span>
+          </button>
+
+          {/* Share Dropdown / Popover Menu */}
+          {isSideShareMenuOpen && (
+            <div className="absolute right-14 top-0 z-50 w-52 bg-white/95 backdrop-blur-md border border-purple-200 rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150">
+              <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-2 py-1 mb-1">
+                Share Options
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSideShareMenuOpen(false);
+                  if (isScreenSharing) {
+                    handleStopScreenShare();
+                  } else {
+                    handleStartScreenShare();
+                  }
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer mb-1 ${
+                  isScreenSharing
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                    : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                }`}
+              >
+                <Share2 className="w-4 h-4 shrink-0" />
+                <span>{isScreenSharing ? 'Stop Screen Share' : 'Share Screen (မျက်နှာပြင်)'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSideShareMenuOpen(false);
+                  const shareUrl = `${window.location.origin}/#${room.token}`;
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(shareUrl).catch(() => {});
+                  }
+                  setToastMessage(`🔗 Meeting link copied! (${room.token})`);
+                  setTimeout(() => setToastMessage(null), 2500);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer"
+              >
+                <Link2 className="w-4 h-4 shrink-0 text-neutral-500" />
+                <span>Copy Meeting Link</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Note Pad */}
         <button
@@ -1499,20 +1789,20 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           className="flex flex-col items-center group cursor-pointer"
           title="Meeting Notes Pad"
         >
-          <div className="w-11 h-11 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center justify-center backdrop-blur-md transition hover:scale-105 shadow-lg shadow-amber-950/40 relative">
+          <div className="w-11 h-11 rounded-full bg-white/95 text-amber-600 border border-neutral-200 hover:bg-amber-50 flex items-center justify-center backdrop-blur-md transition hover:scale-105 shadow-xs relative">
             <NotebookTabs className="w-5 h-5" />
             {roomNotesCount > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-neutral-950 font-bold text-[9px] border border-black shadow-sm">
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-white font-bold text-[9px] shadow-xs">
                 {roomNotesCount}
               </span>
             )}
           </div>
-          <span className="text-[10px] font-medium text-amber-300 mt-1 drop-shadow-sm">
+          <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">
             Note
           </span>
         </button>
 
-        {/* Comment Button (Between Note and Love) */}
+        {/* Comment Button */}
         <button
           id="btn-tile-comments"
           type="button"
@@ -1520,57 +1810,72 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           className="flex flex-col items-center group cursor-pointer"
           title="Meeting Comments"
         >
-          <div className="w-11 h-11 rounded-full bg-black/65 text-white hover:bg-neutral-800 hover:text-red-400 border border-neutral-700/60 flex items-center justify-center backdrop-blur-md transition shadow-lg hover:scale-105 active:scale-95 relative">
+          <div className="w-11 h-11 rounded-full bg-white/95 text-purple-600 border border-neutral-200 hover:bg-purple-50 flex items-center justify-center backdrop-blur-md transition shadow-xs hover:scale-105 active:scale-95 relative">
             <MessageCircle className="w-5 h-5" />
             {roomTotalCommentsCount > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-red-600 text-white font-bold text-[9px] border border-black shadow-sm">
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-red-500 text-white font-bold text-[9px] shadow-xs">
                 {roomTotalCommentsCount}
               </span>
             )}
           </div>
-          <span className="text-[10px] font-bold text-white/90 mt-1 drop-shadow-sm">
+          <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">
             {roomTotalCommentsCount}
           </span>
         </button>
 
-        {/* Heart Reaction */}
+        {/* Heart / Love Reaction (Like Meeting) */}
         <button
           id="btn-tile-heart"
           type="button"
           onClick={(e) => handleTriggerHeart(e)}
           className="flex flex-col items-center group cursor-pointer"
+          title="Like Meeting"
         >
-          <div className="w-11 h-11 rounded-full bg-black/65 text-red-500 hover:text-red-400 hover:scale-110 border border-neutral-700/60 flex items-center justify-center backdrop-blur-md transition active:scale-95 shadow-lg">
+          <div className="w-11 h-11 rounded-full bg-white/95 text-red-500 hover:bg-red-50 hover:scale-110 border border-neutral-200 flex items-center justify-center backdrop-blur-md transition active:scale-95 shadow-xs">
             <Heart className="w-5 h-5 fill-red-500" />
           </div>
-          <span className="text-[10px] font-bold text-white/90 mt-1 drop-shadow-sm">{likeCount}</span>
+          <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">{likeCount}</span>
+        </button>
+
+        {/* Leave Button (Under Love Reaction) */}
+        <button
+          id="btn-tile-leave"
+          type="button"
+          onClick={() => setShowEndMeetingDialog(true)}
+          className="flex flex-col items-center group cursor-pointer"
+          title="Leave Meeting"
+        >
+          <div className="w-11 h-11 rounded-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center backdrop-blur-md transition hover:scale-105 active:scale-95 shadow-xs">
+            <PhoneOff className="w-5 h-5 text-red-600" />
+          </div>
+          <span className="text-[10px] font-bold text-red-600 mt-0.5 drop-shadow-xs">Leave</span>
         </button>
       </div>
 
-      {/* 4. BOTTOM OVERLAY: Speaker Role Toggle (Clean & Unobstructed, without @handle or Bio text) */}
+      {/* 4. BOTTOM OVERLAY: Speaker Role Toggle */}
       <div className="relative z-30 p-3 pb-2 pointer-events-auto">
         <button
           id="btn-toggle-speaker-role"
           type="button"
           onClick={() => handleSelectRole(userRole === 'speaker' ? 'listener' : 'speaker')}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition cursor-pointer border backdrop-blur-md shadow-sm active:scale-95 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer border backdrop-blur-md shadow-xs active:scale-95 ${
             userRole === 'speaker'
-              ? 'bg-emerald-950/90 hover:bg-emerald-900/90 text-emerald-300 border-emerald-500/80 shadow-emerald-950/30'
-              : 'bg-neutral-900/80 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 border-neutral-700/80'
+              ? 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-300'
+              : 'bg-white/95 hover:bg-neutral-100 text-neutral-700 border-neutral-200'
           }`}
           title={userRole === 'speaker' ? 'Speaker: ON (Click to turn OFF / Listener)' : 'Speaker: OFF (Click to turn ON / Speak)'}
         >
           <span
             className={`w-2 h-2 rounded-full transition-colors ${
-              userRole === 'speaker' ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'
+              userRole === 'speaker' ? 'bg-purple-600 animate-pulse' : 'bg-neutral-400'
             }`}
           />
           <span>Speaker</span>
           <span
             className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
               userRole === 'speaker'
-                ? 'bg-emerald-900 text-emerald-200 border border-emerald-500/50'
-                : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                ? 'bg-purple-600 text-white'
+                : 'bg-neutral-200 text-neutral-600'
             }`}
           >
             {userRole === 'speaker' ? 'ON' : 'OFF'}
@@ -1578,164 +1883,25 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         </button>
       </div>
 
-      {/* Floating Reaction Emojis Container */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-28 pointer-events-none z-40 overflow-hidden w-64 h-64 flex justify-center">
-        {floatingReactions.map((r) => (
-          <div
-            key={r.id}
-            className="absolute bottom-0 text-3xl animate-float-heart drop-shadow-lg"
-            style={{
-              transform: `translateX(${r.x}px)`,
-            }}
-          >
-            {r.emoji}
-          </div>
-        ))}
-      </div>
 
-      {/* 5. ZOOM BOTTOM ACTION DOCK (Standard Zoom Bar) */}
-      <div className="relative z-30 px-2 py-1.5 bg-neutral-950/95 border-t border-neutral-800 backdrop-blur-md flex items-center justify-around gap-1 text-[10px] text-neutral-300 pointer-events-auto">
-        {/* Audio Mic Mute / Unmute */}
-        <button
-          id="zoom-btn-mic"
-          type="button"
-          onClick={handleToggleGlobalMic}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-          title={isMicOn ? "Mute Microphone" : "Unmute Microphone"}
-        >
-          <div className={`p-2 rounded-xl transition ${isMicOn ? 'bg-neutral-800 text-emerald-400' : 'bg-red-950/80 text-red-400 border border-red-800'}`}>
-            {isMicOn ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
-          </div>
-          <span className="truncate max-w-[46px]">{isMicOn ? 'Mute' : 'Unmute'}</span>
-        </button>
-
-        {/* Video Start / Stop */}
-        <button
-          id="zoom-btn-video"
-          type="button"
-          onClick={handleToggleCamera}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-          title={isCameraOn ? "Stop Video" : "Start Video"}
-        >
-          <div className={`p-2 rounded-xl transition ${isCameraOn ? 'bg-neutral-800 text-emerald-400' : 'bg-red-950/80 text-red-400 border border-red-800'}`}>
-            {isCameraOn ? <VideoIcon className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-          </div>
-          <span className="truncate max-w-[46px]">{isCameraOn ? 'Stop Video' : 'Start Video'}</span>
-        </button>
-
-        {/* Security (Host) */}
-        {isHostMe && (
-          <button
-            id="zoom-btn-security"
-            type="button"
-            onClick={() => setIsSecurityModalOpen(true)}
-            className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-            title="Host Security Controls"
-          >
-            <div className="p-2 rounded-xl bg-neutral-800 text-emerald-400 hover:bg-neutral-750 transition">
-              <Shield className="w-4 h-4" />
-            </div>
-            <span>Security</span>
-          </button>
-        )}
-
-        {/* Participants (Live count badge) */}
-        <button
-          id="zoom-btn-participants"
-          type="button"
-          onClick={() => setIsParticipantsDrawerOpen(true)}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer relative"
-          title="Participants List & Moderation"
-        >
-          <div className="p-2 rounded-xl bg-neutral-800 text-neutral-200 hover:bg-neutral-750 transition relative">
-            <Users className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[9px] px-1 rounded-full font-bold">
-              {participantsList.length}
-            </span>
-          </div>
-          <span>Participants</span>
-        </button>
-
-        {/* Screen Share (Zoom signature green) */}
-        <button
-          id="zoom-btn-share"
-          type="button"
-          onClick={() => {
-            if (isScreenSharing) {
-              handleStopScreenShare();
-            } else {
-              handleStartScreenShare();
-            }
-          }}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-          title="Share Screen"
-        >
-          <div className={`p-2 rounded-xl transition ${isScreenSharing ? 'bg-emerald-600 text-white animate-pulse' : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800 hover:bg-emerald-900'}`}>
-            <Share2 className="w-4 h-4" />
-          </div>
-          <span className="text-emerald-400 font-semibold">{isScreenSharing ? 'Sharing' : 'Share'}</span>
-        </button>
-
-        {/* Reactions & Raise Hand */}
-        <button
-          id="zoom-btn-reactions"
-          type="button"
-          onClick={() => setIsReactionsTrayOpen(true)}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer relative"
-          title="Reactions & Raise Hand"
-        >
-          <div className={`p-2 rounded-xl transition ${isHandRaised ? 'bg-amber-500 text-neutral-950' : 'bg-neutral-800 text-neutral-200 hover:bg-neutral-750'}`}>
-            {isHandRaised ? <Hand className="w-4 h-4" /> : <Smile className="w-4 h-4" />}
-          </div>
-          <span>{isHandRaised ? 'Hand ✋' : 'React'}</span>
-        </button>
-
-        {/* Zoom AI Companion */}
-        <button
-          id="zoom-btn-ai-companion"
-          type="button"
-          onClick={() => setIsAiCompanionModalOpen(true)}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-          title="Zoom AI Companion & Live Notes"
-        >
-          <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500/20 to-purple-500/20 text-amber-300 border border-amber-500/40 hover:scale-105 transition shadow-sm">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <span className="text-amber-300 font-semibold">AI Notes</span>
-        </button>
-
-        {/* End / Leave */}
-        <button
-          id="zoom-btn-leave"
-          type="button"
-          onClick={() => setShowEndMeetingDialog(true)}
-          className="flex flex-col items-center gap-1 p-1 hover:text-white transition cursor-pointer"
-          title="Leave / End Meeting"
-        >
-          <div className="p-2 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/40 transition">
-            <PhoneOff className="w-4 h-4" />
-          </div>
-          <span className="text-red-400 font-bold">{isHostMe ? 'End' : 'Leave'}</span>
-        </button>
-      </div>
 
       {/* End / Leave Meeting Confirmation Dialog */}
       {showEndMeetingDialog && (
         <div
           id="zoom-end-meeting-dialog-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setShowEndMeetingDialog(false)}
         >
           <div
             id="zoom-end-meeting-dialog"
-            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl space-y-4"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-2xl p-5 text-neutral-900 shadow-2xl space-y-4 animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center space-y-1">
-              <h3 className="font-bold text-base text-white">
+              <h3 className="font-bold text-base text-neutral-900">
                 {isHostMe ? 'End Meeting for All?' : 'Leave Meeting?'}
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-600">
                 {isHostMe
                   ? 'As the host, you can end this meeting for everyone or leave to the Home Screen.'
                   : `Are you sure you want to leave ${room.title} (${room.token})?`}
@@ -1751,7 +1917,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                     setShowEndMeetingDialog(false);
                     if (onBackToHome) onBackToHome();
                   }}
-                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-950/50 transition cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition cursor-pointer"
                 >
                   End Meeting for All
                 </button>
@@ -1764,7 +1930,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                   setShowEndMeetingDialog(false);
                   if (onBackToHome) onBackToHome();
                 }}
-                className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold text-xs transition cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 font-semibold text-xs transition cursor-pointer"
               >
                 Leave Meeting
               </button>
@@ -1773,7 +1939,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                 id="btn-leave-meeting-cancel"
                 type="button"
                 onClick={() => setShowEndMeetingDialog(false)}
-                className="w-full py-2 rounded-xl text-neutral-400 hover:text-white text-xs font-medium transition cursor-pointer"
+                className="w-full py-2 rounded-xl text-neutral-500 hover:text-neutral-800 text-xs font-medium transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -1817,28 +1983,6 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         isHandRaised={isHandRaised}
         onToggleRaiseHand={handleToggleRaiseHand}
         onSelectEmoji={handleSelectReaction}
-      />
-
-      <ZoomAiCompanionModal
-        isOpen={isAiCompanionModalOpen}
-        onClose={() => setIsAiCompanionModalOpen(false)}
-        roomTitle={room.title}
-        roomToken={room.token}
-        keyPoints={room.keyPoints}
-        chats={chats.filter((c) => c.meetingToken === room.token).map((c) => ({ sender: c.sender, text: c.text }))}
-        onSaveToNotes={(note) => {
-          onAddNote(note);
-          api.createNote(note);
-          setToastMessage('✅ AI Summary saved to Notes!');
-          setTimeout(() => setToastMessage(null), 2200);
-        }}
-        onExportToPost={(content) => {
-          if (onExportToFeed) {
-            onExportToFeed(content);
-            setToastMessage('🚀 AI Takeaways shared to Feed!');
-            setTimeout(() => setToastMessage(null), 2200);
-          }
-        }}
       />
 
       {/* Modals */}
@@ -1891,23 +2035,23 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
       {isEditMeetingModalOpen && (
         <div
           id="edit-meeting-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setIsEditMeetingModalOpen(false)}
         >
           <div
             id="edit-meeting-modal-container"
-            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl animate-in zoom-in-95"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-2xl p-5 text-neutral-900 shadow-2xl animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-red-500" />
-                <h3 className="font-bold text-sm">Edit Meeting Details</h3>
+                <Edit3 className="w-4 h-4 text-purple-600" />
+                <h3 className="font-bold text-sm text-neutral-900">Edit Meeting Details</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditMeetingModalOpen(false)}
-                className="p-1 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800 transition"
+                className="p-1 text-neutral-400 hover:text-neutral-700 rounded-full hover:bg-neutral-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1915,26 +2059,26 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
             <form onSubmit={handleSaveMeetingDetails} className="mt-4 space-y-3.5">
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Meeting Token / #</label>
+                <label className="block text-xs text-neutral-600 mb-1">Meeting Token / #</label>
                 <input
                   type="text"
                   required
                   value={editToken}
                   onChange={(e) => setEditToken(e.target.value)}
                   placeholder="#MEET-9021"
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-red-500 outline-none font-mono uppercase"
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:bg-white focus:border-purple-600 outline-none font-mono uppercase"
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Meeting Title / Topic</label>
+                <label className="block text-xs text-neutral-600 mb-1">Meeting Title / Topic</label>
                 <textarea
                   rows={3}
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="e.g. Flutter-to-Web Migration & Granola Engine..."
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white focus:border-red-500 outline-none resize-none leading-relaxed"
+                  placeholder="Enter meeting topic..."
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-xl p-2.5 text-xs text-neutral-900 focus:bg-white focus:border-purple-600 outline-none resize-none leading-relaxed"
                 />
               </div>
 
@@ -1942,14 +2086,14 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditMeetingModalOpen(false)}
-                  className="flex-1 py-2 rounded-xl text-neutral-400 hover:text-white bg-neutral-800 text-xs font-medium transition"
+                  className="flex-1 py-2 rounded-xl text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 text-xs font-medium transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   id="btn-save-meeting-details"
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition shadow-lg shadow-red-950/50"
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 cursor-pointer"
                 >
                   Save Changes
                 </button>

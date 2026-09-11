@@ -162,11 +162,11 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   return (
     <div
       id="tiktok-profile-screen"
-      className="relative w-full h-full bg-black text-white flex flex-col overflow-hidden"
+      className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden"
     >
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-neutral-900/95 border border-red-500/60 text-white text-xs font-medium shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-white/95 border border-purple-200 text-neutral-900 text-xs font-medium shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
           {toastMessage}
         </div>
       )}
@@ -181,21 +181,21 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       />
 
       {/* 1. TOP BAR */}
-      <div className="sticky top-0 z-20 bg-black/90 backdrop-blur-md border-b border-neutral-800/80 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-sm text-white truncate max-w-[200px]">
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[200px]">
           {onBackToHome && (
             <button
               id="btn-profile-back-home"
               type="button"
               onClick={onBackToHome}
-              className="p-1 -ml-1 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-850 transition cursor-pointer"
+              className="p-1 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
               title="Back to Home"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
           <span>{userProfile.handle}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
         </div>
 
         <div className="flex items-center gap-2">
@@ -205,7 +205,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
               navigator.clipboard?.writeText(window.location.href);
               showToast('🔗 Profile link copied to clipboard!');
             }}
-            className="p-1.5 rounded-full hover:bg-neutral-800 text-neutral-400 hover:text-white transition cursor-pointer"
+            className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
             title="Share Profile"
           >
             <Share2 className="w-4 h-4" />
@@ -214,24 +214,24 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       </div>
 
       {/* SCROLLABLE PROFILE CONTAINER */}
-      <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-800/60">
+      <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-200 bg-white">
         {/* 2. PROFILE HEADER & EDIT BIO */}
-        <div className="p-4 flex flex-col items-center text-center">
+        <div className="p-4 flex flex-col items-center text-center bg-white">
           {/* Avatar with Camera Overlay */}
           <div
             className="relative mb-3 group cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="w-22 h-22 rounded-full p-0.5 bg-gradient-to-tr from-red-600 via-amber-500 to-cyan-500 shadow-xl">
+            <div className="w-22 h-22 rounded-full p-0.5 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-md">
               <img
                 src={userProfile.avatar}
                 alt={userProfile.name}
-                className="w-full h-full rounded-full object-cover bg-neutral-900"
+                className="w-full h-full rounded-full object-cover bg-neutral-100"
               />
             </div>
             <button
               type="button"
-              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white border-2 border-black flex items-center justify-center shadow-lg transition active:scale-95 cursor-pointer"
+              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-2 border-white flex items-center justify-center shadow-md transition active:scale-95 cursor-pointer"
               title="Upload new profile picture"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -239,27 +239,27 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
           </div>
 
           {/* Name & Handle */}
-          <h2 className="font-bold text-base text-white flex items-center gap-1.5">
+          <h2 className="font-bold text-base text-neutral-900 flex items-center gap-1.5">
             {userProfile.name}
-            <UserCheck className="w-4 h-4 text-red-500" />
+            <UserCheck className="w-4 h-4 text-purple-600" />
           </h2>
-          <p className="text-xs text-neutral-400 mt-0.5 font-mono">{userProfile.handle}</p>
+          <p className="text-xs text-neutral-500 mt-0.5 font-mono">{userProfile.handle}</p>
 
           {/* Stats Row */}
           <div className="flex items-center justify-center gap-6 my-3.5 text-center">
             <div>
-              <span className="font-bold text-sm text-white block">{userProfile.following}</span>
-              <span className="text-[11px] text-neutral-400">Following</span>
+              <span className="font-bold text-sm text-neutral-900 block">{userProfile.following}</span>
+              <span className="text-[11px] text-neutral-500">Following</span>
             </div>
-            <div className="w-px h-6 bg-neutral-800" />
+            <div className="w-px h-6 bg-neutral-200" />
             <div>
-              <span className="font-bold text-sm text-white block">{userProfile.followers}</span>
-              <span className="text-[11px] text-neutral-400">Followers</span>
+              <span className="font-bold text-sm text-neutral-900 block">{userProfile.followers}</span>
+              <span className="text-[11px] text-neutral-500">Followers</span>
             </div>
-            <div className="w-px h-6 bg-neutral-800" />
+            <div className="w-px h-6 bg-neutral-200" />
             <div>
-              <span className="font-bold text-sm text-white block">{userProfile.likes}</span>
-              <span className="text-[11px] text-neutral-400">Likes</span>
+              <span className="font-bold text-sm text-neutral-900 block">{userProfile.likes}</span>
+              <span className="text-[11px] text-neutral-500">Likes</span>
             </div>
           </div>
 
@@ -275,31 +275,31 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 setEditAvatar(userProfile.avatar);
                 setIsEditProfileOpen(true);
               }}
-              className="flex-1 py-2 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+              className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
             >
-              <Edit3 className="w-3.5 h-3.5 text-red-400" />
+              <Edit3 className="w-3.5 h-3.5 text-white" />
               <span>Edit Profile</span>
             </button>
 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="py-2 px-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 text-xs font-semibold text-neutral-300 hover:text-white flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+              className="py-2 px-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
               title="Upload Profile Picture"
             >
-              <Camera className="w-3.5 h-3.5 text-cyan-400" />
+              <Camera className="w-3.5 h-3.5 text-purple-600" />
               <span>Photo</span>
             </button>
           </div>
 
           {/* Bio Display */}
-          <div className="w-full max-w-sm bg-neutral-950/80 border border-neutral-900 rounded-xl p-2.5 text-xs text-neutral-300 text-left leading-relaxed">
+          <div className="w-full max-w-sm bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-700 text-left leading-relaxed">
             <p className="line-clamp-3">{userProfile.bio}</p>
           </div>
         </div>
 
         {/* 3. PROFILE TABS ROW: Recordings, Favourites, Note History, Chat History */}
-        <div className="sticky top-[53px] z-10 bg-black/95 backdrop-blur-md border-b border-neutral-800 flex items-center justify-around px-2">
+        <div className="sticky top-[53px] z-10 bg-white/95 backdrop-blur-md border-b border-neutral-200 flex items-center justify-around px-2">
           {/* Tab 1: Recordings */}
           <button
             id="tab-profile-recordings"
@@ -307,8 +307,8 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             onClick={() => setActiveTab('recordings')}
             className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
               activeTab === 'recordings'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="My Recorded Meetings"
           >
@@ -323,12 +323,12 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             onClick={() => setActiveTab('favorites')}
             className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
               activeTab === 'favorites'
-                ? 'border-red-500 text-red-500 font-bold'
-                : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Favourites"
           >
-            <Heart className={`w-5 h-5 ${activeTab === 'favorites' ? 'fill-red-500' : ''}`} />
+            <Heart className={`w-5 h-5 ${activeTab === 'favorites' ? 'fill-purple-600 text-purple-600' : ''}`} />
             <span className="text-[10px] mt-1">Favourites</span>
           </button>
 
@@ -339,8 +339,8 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             onClick={() => setActiveTab('notes')}
             className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
               activeTab === 'notes'
-                ? 'border-amber-400 text-amber-400 font-bold'
-                : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Note History (All or Meeting Filter)"
           >
@@ -355,8 +355,8 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             onClick={() => setActiveTab('chats')}
             className={`flex-1 py-3 flex flex-col items-center justify-center border-b-2 transition cursor-pointer relative ${
               activeTab === 'chats'
-                ? 'border-cyan-400 text-cyan-400 font-bold'
-                : 'border-transparent text-neutral-500 hover:text-neutral-300'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Chat History (All or Meeting Filter)"
           >
@@ -369,38 +369,38 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
         {/* TAB 1: RECORDINGS */}
         {activeTab === 'recordings' && (
-          <div className="p-2">
+          <div className="p-3 bg-neutral-50 min-h-[300px]">
             {userRecordings.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 space-y-2">
-                <Grid className="w-10 h-10 text-neutral-700 mx-auto" />
-                <p className="text-xs">No meetings recorded yet.</p>
-                <p className="text-[11px] text-neutral-600">
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <Grid className="w-10 h-10 text-neutral-300 mx-auto" />
+                <p className="text-xs text-neutral-600 font-medium">No meetings recorded yet.</p>
+                <p className="text-[11px] text-neutral-400">
                   Tap 'Record' on any active meeting screen to capture a session!
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {userRecordings.map((rec) => (
                   <div
                     key={rec.id}
                     onClick={() => setActivePlaybackRecording(rec)}
-                    className="relative aspect-[3/4] bg-neutral-900 rounded-xl overflow-hidden group cursor-pointer border border-neutral-800 hover:border-red-500/60 transition shadow-md"
+                    className="relative aspect-[3/4] bg-neutral-100 rounded-xl overflow-hidden group cursor-pointer border border-neutral-200 hover:border-purple-400 transition shadow-xs"
                   >
                     <img
                       src={rec.thumbnailUrl}
                       alt={rec.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-mono text-red-400 border border-red-950">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30">
                       {rec.meetingToken}
                     </div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
-                      <span className="flex items-center gap-1">
-                        <Play className="w-3 h-3 fill-current text-red-400" />
+                      <span className="flex items-center gap-1 font-medium">
+                        <Play className="w-3 h-3 fill-purple-400 text-purple-400" />
                         {rec.views}
                       </span>
-                      <span className="font-mono text-neutral-400 text-[9px]">{rec.duration}</span>
+                      <span className="font-mono text-neutral-300 text-[9px]">{rec.duration}</span>
                     </div>
                   </div>
                 ))}
@@ -411,38 +411,38 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
         {/* TAB 2: FAVOURITES */}
         {activeTab === 'favorites' && (
-          <div className="p-2">
+          <div className="p-3 bg-neutral-50 min-h-[300px]">
             {favoriteRecordings.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 space-y-2">
-                <Heart className="w-10 h-10 text-neutral-700 mx-auto" />
-                <p className="text-xs">No favourite meetings saved.</p>
-                <p className="text-[11px] text-neutral-600">
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <Heart className="w-10 h-10 text-neutral-300 mx-auto" />
+                <p className="text-xs text-neutral-600 font-medium">No favourite meetings saved.</p>
+                <p className="text-[11px] text-neutral-400">
                   Tap the heart icon on any recording to save it to your favourites.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {favoriteRecordings.map((rec) => (
                   <div
                     key={rec.id}
                     onClick={() => setActivePlaybackRecording(rec)}
-                    className="relative aspect-[3/4] bg-neutral-900 rounded-xl overflow-hidden group cursor-pointer border border-neutral-800 hover:border-red-500/60 transition shadow-md"
+                    className="relative aspect-[3/4] bg-neutral-100 rounded-xl overflow-hidden group cursor-pointer border border-neutral-200 hover:border-purple-400 transition shadow-xs"
                   >
                     <img
                       src={rec.thumbnailUrl}
                       alt={rec.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-mono text-red-400 border border-red-950">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30">
                       {rec.meetingToken}
                     </div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
-                      <span className="flex items-center gap-1">
-                        <Heart className="w-3 h-3 fill-red-500 text-red-500" />
+                      <span className="flex items-center gap-1 font-medium">
+                        <Heart className="w-3 h-3 fill-purple-400 text-purple-400" />
                         {rec.likes}
                       </span>
-                      <span className="font-mono text-neutral-400 text-[9px]">{rec.duration}</span>
+                      <span className="font-mono text-neutral-300 text-[9px]">{rec.duration}</span>
                     </div>
                   </div>
                 ))}
@@ -453,11 +453,11 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
         {/* TAB 3: NOTE HISTORY (All or Meeting Filter with click-to-view detail) */}
         {activeTab === 'notes' && (
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-3 bg-neutral-50 min-h-[300px]">
             {/* Meeting Filter Dropdown */}
-            <div className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 flex items-center justify-between gap-2">
-              <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
-                <Filter className="w-3.5 h-3.5 text-amber-400" />
+            <div className="bg-white p-2.5 rounded-xl border border-neutral-200 shadow-xs flex items-center justify-between gap-2">
+              <label className="text-xs text-neutral-600 font-medium flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-purple-600" />
                 <span>Filter:</span>
               </label>
               <div className="relative flex-1 max-w-[220px]">
@@ -465,9 +465,9 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                   id="select-profile-notes-filter"
                   value={selectedNoteMeetingFilter}
                   onChange={(e) => setSelectedNoteMeetingFilter(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700/80 rounded-lg px-2.5 py-1 text-xs text-amber-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer truncate"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-800 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500 appearance-none pr-6 cursor-pointer truncate"
                 >
-                  <option value="All">🌐 All Meetings ({notes.length} notes)</option>
+                  <option value="All">All Meetings ({notes.length} notes)</option>
                   {rooms.map((r) => {
                     const count = notes.filter((n) => n.meetingToken === r.token).length;
                     return (
@@ -477,17 +477,17 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     );
                   })}
                 </select>
-                <ChevronDown className="w-3 h-3 text-amber-400 absolute right-2 top-2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-2 pointer-events-none" />
               </div>
             </div>
 
             {/* Note List */}
             {filteredNotes.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 space-y-2">
-                <FileText className="w-10 h-10 text-neutral-700 mx-auto" />
-                <p className="text-xs">မှတ်စု မရှိသေးပါ။</p>
-                <p className="text-[11px] text-neutral-600">
-                  Meeting ခန်းအတွင်းရှိ Note ခလုတ်ကို နှိပ်၍ မှတ်စုရေးသားနိုင်ပါသည်။
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <FileText className="w-10 h-10 text-neutral-300 mx-auto" />
+                <p className="text-xs text-neutral-600 font-medium">No notes available.</p>
+                <p className="text-[11px] text-neutral-400">
+                  Write notes directly inside meeting rooms.
                 </p>
               </div>
             ) : (
@@ -496,39 +496,39 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                   <div
                     key={note.id}
                     onClick={() => setSelectedNoteDetail(note)}
-                    className="bg-neutral-950 border border-neutral-800 hover:border-amber-500/60 rounded-xl p-3 space-y-2 shadow-sm transition cursor-pointer group"
+                    className="bg-white border border-neutral-200 hover:border-purple-300 rounded-xl p-3 space-y-2 shadow-xs transition cursor-pointer group"
                   >
                     {/* Meeting Title & Category */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded">
                           {note.meetingToken}
                         </span>
-                        <span className="text-[11px] text-neutral-400 font-medium truncate max-w-[180px]">
+                        <span className="text-[11px] text-neutral-500 font-medium truncate max-w-[180px]">
                           {note.meetingTitle}
                         </span>
                       </div>
-                      <span className="text-[10px] text-neutral-500 shrink-0">{note.timestamp}</span>
+                      <span className="text-[10px] text-neutral-400 shrink-0">{note.timestamp}</span>
                     </div>
 
                     {/* Note Title */}
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-white group-hover:text-amber-300 transition">
+                      <h4 className="text-xs font-bold text-neutral-900 group-hover:text-purple-700 transition">
                         {note.title}
                       </h4>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200 font-medium">
                         {note.category}
                       </span>
                     </div>
 
                     {/* Preview snippet */}
-                    <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-neutral-600 line-clamp-2 leading-relaxed">
                       {note.content || (note.keyPoints || []).join(' • ')}
                     </p>
 
                     {/* Footer click hint */}
-                    <div className="flex items-center justify-between pt-1 border-t border-neutral-900 text-[10px] text-neutral-500 group-hover:text-amber-400 transition">
-                      <span>Click to view Note History detail</span>
+                    <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-[10px] text-neutral-400 group-hover:text-purple-600 transition">
+                      <span>Click to view details</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
@@ -540,12 +540,12 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
         {/* TAB 4: CHAT HISTORY (All or Meeting Filter with click-to-view detail) */}
         {activeTab === 'chats' && (
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-3 bg-neutral-50 min-h-[300px]">
             {/* Top Controls: Meeting Filter & Language Selector */}
-            <div className="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800 space-y-2">
+            <div className="bg-white p-2.5 rounded-xl border border-neutral-200 shadow-xs space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-cyan-400" />
+                <label className="text-xs text-neutral-600 font-medium flex items-center gap-1.5">
+                  <Filter className="w-3.5 h-3.5 text-purple-600" />
                   <span>Filter:</span>
                 </label>
                 <div className="relative flex-1 max-w-[220px]">
@@ -553,24 +553,24 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     id="select-profile-chat-filter"
                     value={selectedChatMeetingFilter}
                     onChange={(e) => setSelectedChatMeetingFilter(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-700/80 rounded-lg px-2.5 py-1 text-xs text-cyan-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer truncate"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-800 font-medium focus:outline-none focus:ring-1 focus:ring-purple-500 appearance-none pr-6 cursor-pointer truncate"
                   >
-                    <option value="All">🌐 All Meetings ({recordings.length} sessions)</option>
+                    <option value="All">All Meetings ({recordings.length} sessions)</option>
                     {recordings.map((r) => (
                       <option key={r.id} value={r.meetingToken}>
                         {r.meetingToken} · {r.title.slice(0, 16)}...
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3 h-3 text-cyan-400 absolute right-2 top-2 pointer-events-none" />
+                  <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-2 pointer-events-none" />
                 </div>
               </div>
 
               {/* Language Selector */}
-              <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-900">
-                <label className="text-xs text-neutral-400 font-medium flex items-center gap-1.5">
-                  <MessageSquareCode className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Subtitle Language:</span>
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-neutral-100">
+                <label className="text-xs text-neutral-600 font-medium flex items-center gap-1.5">
+                  <MessageSquareCode className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Language:</span>
                 </label>
                 <div className="relative">
                   <select
@@ -580,7 +580,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       setSelectedLanguage(e.target.value);
                       showToast(`Language: ${e.target.value}`);
                     }}
-                    className="bg-neutral-900 border border-cyan-500/50 rounded-lg px-2.5 py-1 text-xs text-cyan-300 font-medium focus:outline-none appearance-none pr-6 cursor-pointer"
+                    className="bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 text-xs text-neutral-800 font-medium focus:outline-none appearance-none pr-6 cursor-pointer"
                   >
                     {languageOptions.map((lang) => (
                       <option key={lang.code} value={lang.name}>
@@ -588,38 +588,38 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-3 h-3 text-cyan-400 absolute right-2 top-2 pointer-events-none" />
+                  <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-2 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {/* Chat Sessions List (Meeting-by-meeting or All) */}
             {filteredChatRecordings.length === 0 ? (
-              <div className="py-16 text-center text-neutral-500 space-y-2">
-                <MessageSquareCode className="w-10 h-10 text-neutral-700 mx-auto" />
-                <p className="text-xs">Chat History မရှိသေးပါ။</p>
+              <div className="py-16 text-center text-neutral-400 space-y-2">
+                <MessageSquareCode className="w-10 h-10 text-neutral-300 mx-auto" />
+                <p className="text-xs text-neutral-600 font-medium">No chat history recorded.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {filteredChatRecordings.map((rec) => (
                   <div
                     key={rec.id}
-                    className="bg-neutral-950 border border-neutral-800 rounded-xl overflow-hidden shadow-sm"
+                    className="bg-white border border-neutral-200 rounded-xl overflow-hidden shadow-xs"
                   >
                     {/* Meeting Session Header */}
                     <div
                       onClick={() => setSelectedChatDetailRecording(rec)}
-                      className="p-3 bg-neutral-900/80 border-b border-neutral-800/80 flex items-center justify-between cursor-pointer hover:bg-neutral-900 transition"
+                      className="p-3 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between cursor-pointer hover:bg-neutral-100 transition"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-1.5 py-0.5 rounded">
+                        <span className="font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.5 rounded">
                           {rec.meetingToken}
                         </span>
-                        <span className="text-xs font-semibold text-white truncate max-w-[180px]">
+                        <span className="text-xs font-semibold text-neutral-900 truncate max-w-[180px]">
                           {rec.title}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-medium">
+                      <div className="flex items-center gap-1.5 text-[10px] text-purple-600 font-semibold">
                         <span>View ({rec.subtitles?.length || 0})</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </div>
@@ -643,20 +643,20 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                               <img
                                 src={sub.avatar}
                                 alt={sub.speaker}
-                                className="w-7 h-7 rounded-full object-cover shrink-0 border border-neutral-700 mt-0.5"
+                                className="w-7 h-7 rounded-full object-cover shrink-0 border border-neutral-200 mt-0.5"
                               />
                               <div
-                                className={`max-w-[80%] rounded-2xl p-2.5 shadow-sm text-xs ${
+                                className={`max-w-[80%] rounded-2xl p-2.5 shadow-xs text-xs ${
                                   sub.isMe
-                                    ? 'bg-red-950/70 border border-red-800/80 text-white rounded-tr-xs'
-                                    : 'bg-neutral-900 border border-neutral-800 text-white rounded-tl-xs'
+                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs'
+                                    : 'bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-tl-xs'
                                 }`}
                               >
                                 <div className="flex items-center justify-between gap-2 mb-1">
-                                  <span className={`font-bold text-[11px] ${sub.isMe ? 'text-red-300' : 'text-neutral-300'}`}>
+                                  <span className={`font-bold text-[11px] ${sub.isMe ? 'text-white' : 'text-neutral-700'}`}>
                                     {sub.speaker}
                                   </span>
-                                  <span className="text-[9px] text-neutral-400 font-mono">{sub.time}</span>
+                                  <span className={`text-[9px] font-mono ${sub.isMe ? 'text-purple-100' : 'text-neutral-400'}`}>{sub.time}</span>
                                 </div>
                                 <p className="leading-relaxed">{translatedText}</p>
                               </div>
@@ -664,14 +664,14 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                           );
                         })
                       ) : (
-                        <p className="text-xs text-neutral-500 text-center py-2">No messages recorded</p>
+                        <p className="text-xs text-neutral-400 text-center py-2">No messages recorded</p>
                       )}
 
                       {rec.subtitles && rec.subtitles.length > 3 && (
                         <button
                           type="button"
                           onClick={() => setSelectedChatDetailRecording(rec)}
-                          className="w-full py-1.5 text-center text-[11px] text-cyan-400 hover:underline cursor-pointer"
+                          className="w-full py-1.5 text-center text-[11px] text-purple-600 font-medium hover:underline cursor-pointer"
                         >
                           View all {rec.subtitles.length} messages...
                         </button>
@@ -689,28 +689,28 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       {selectedNoteDetail && (
         <div
           id="note-detail-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 animate-in fade-in"
           onClick={() => setSelectedNoteDetail(null)}
         >
           <div
             id="note-detail-modal-container"
-            className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden text-white shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
+            className="w-full max-w-md bg-white border border-neutral-200 rounded-2xl overflow-hidden text-neutral-900 shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="p-3.5 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between">
+            <div className="p-3.5 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">
                   {selectedNoteDetail.meetingToken}
                 </span>
-                <span className="text-xs text-neutral-300 truncate max-w-[180px]">
+                <span className="text-xs text-neutral-700 truncate max-w-[180px] font-medium">
                   {selectedNoteDetail.meetingTitle}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedNoteDetail(null)}
-                className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center"
+                className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -720,32 +720,32 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             <div className="p-4 space-y-3 overflow-y-auto flex-1">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
                     {selectedNoteDetail.category}
                   </span>
-                  <span className="text-[10px] text-neutral-500">{selectedNoteDetail.timestamp}</span>
+                  <span className="text-[10px] text-neutral-400">{selectedNoteDetail.timestamp}</span>
                 </div>
-                <h3 className="text-base font-bold text-white mt-1.5">{selectedNoteDetail.title}</h3>
+                <h3 className="text-base font-bold text-neutral-900 mt-1.5">{selectedNoteDetail.title}</h3>
               </div>
 
               {/* Note Content / Key Points */}
-              <div className="bg-neutral-900/70 border border-neutral-800 rounded-xl p-3 space-y-2">
-                <h5 className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5" />
+              <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-3 space-y-2">
+                <h5 className="text-xs font-bold text-purple-700 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-purple-600" />
                   <span>Note Content &amp; Points:</span>
                 </h5>
 
                 {selectedNoteDetail.keyPoints && selectedNoteDetail.keyPoints.length > 0 ? (
-                  <ul className="space-y-1.5 text-xs text-neutral-200 leading-relaxed pl-1">
+                  <ul className="space-y-1.5 text-xs text-neutral-800 leading-relaxed pl-1">
                     {selectedNoteDetail.keyPoints.map((pt, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-amber-400 mt-0.5">•</span>
+                        <span className="text-purple-600 mt-0.5">•</span>
                         <span>{pt}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-xs text-neutral-200 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-xs text-neutral-800 whitespace-pre-wrap leading-relaxed">
                     {selectedNoteDetail.content}
                   </p>
                 )}
@@ -753,7 +753,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             </div>
 
             {/* Footer Actions */}
-            <div className="p-3 bg-neutral-900/80 border-t border-neutral-800 flex items-center justify-between gap-2">
+            <div className="p-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() =>
@@ -762,10 +762,10 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     selectedNoteDetail.id
                   )
                 }
-                className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition"
+                className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 text-xs font-semibold flex items-center gap-1.5 transition"
               >
                 {copiedId === selectedNoteDetail.id ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
@@ -780,7 +780,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                   setSelectedNoteDetail(null);
                   showToast('📤 Exported to Post!');
                 }}
-                className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 text-xs font-bold flex items-center gap-1.5 transition"
+                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs"
               >
                 <Share2 className="w-3.5 h-3.5" />
                 <span>Export to Post</span>
@@ -794,28 +794,28 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       {selectedChatDetailRecording && (
         <div
           id="chat-detail-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 animate-in fade-in"
           onClick={() => setSelectedChatDetailRecording(null)}
         >
           <div
             id="chat-detail-modal-container"
-            className="w-full max-w-md bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden text-white shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
+            className="w-full max-w-md bg-white border border-neutral-200 rounded-2xl overflow-hidden text-neutral-900 shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="p-3.5 bg-neutral-900/90 border-b border-neutral-800 flex items-center justify-between">
+            <div className="p-3.5 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">
                   {selectedChatDetailRecording.meetingToken}
                 </span>
-                <span className="text-xs text-neutral-300 truncate max-w-[180px]">
+                <span className="text-xs text-neutral-700 truncate max-w-[180px] font-medium">
                   {selectedChatDetailRecording.title}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedChatDetailRecording(null)}
-                className="w-7 h-7 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white flex items-center justify-center"
+                className="w-7 h-7 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -841,27 +841,27 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       <img
                         src={sub.avatar}
                         alt={sub.speaker}
-                        className="w-8 h-8 rounded-full object-cover shrink-0 border border-neutral-700 mt-0.5"
+                        className="w-8 h-8 rounded-full object-cover shrink-0 border border-neutral-200 mt-0.5"
                       />
                       <div
-                        className={`max-w-[80%] rounded-2xl p-3 shadow-md ${
+                        className={`max-w-[80%] rounded-2xl p-3 shadow-xs ${
                           sub.isMe
-                            ? 'bg-red-950/70 border border-red-800/80 text-white rounded-tr-xs'
-                            : 'bg-neutral-900 border border-neutral-800 text-white rounded-tl-xs'
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs'
+                            : 'bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-tl-xs'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className={`text-xs font-bold ${sub.isMe ? 'text-red-300' : 'text-neutral-200'}`}>
+                          <span className={`text-xs font-bold ${sub.isMe ? 'text-white' : 'text-neutral-800'}`}>
                             {sub.speaker}
                           </span>
-                          <span className="text-[10px] text-neutral-400 font-mono">{sub.time}</span>
+                          <span className={`text-[10px] font-mono ${sub.isMe ? 'text-purple-100' : 'text-neutral-400'}`}>{sub.time}</span>
                         </div>
 
-                        <p className="text-xs text-neutral-100 leading-relaxed font-sans">
+                        <p className="text-xs leading-relaxed font-sans">
                           {translatedText}
                         </p>
 
-                        <div className="flex items-center justify-end gap-2 mt-2 pt-1 border-t border-white/5">
+                        <div className="flex items-center justify-end gap-2 mt-2 pt-1 border-t border-black/5">
                           <button
                             type="button"
                             onClick={() => {
@@ -872,11 +872,13 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                                 setTimeout(() => setPlayingAudioId(null), 3000);
                               }
                             }}
-                            className="flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300 transition cursor-pointer"
+                            className={`flex items-center gap-1 text-[10px] font-medium transition cursor-pointer ${
+                              sub.isMe ? 'text-purple-100 hover:text-white' : 'text-purple-600 hover:text-purple-700'
+                            }`}
                           >
                             {isPlayingAudio ? (
                               <>
-                                <VolumeX className="w-3 h-3 text-cyan-300 animate-pulse" />
+                                <VolumeX className="w-3 h-3 animate-pulse" />
                                 <span>Stop Audio</span>
                               </>
                             ) : (
@@ -892,15 +894,15 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                   );
                 })
               ) : (
-                <p className="text-xs text-neutral-500 text-center py-10">No messages in this chat history.</p>
+                <p className="text-xs text-neutral-400 text-center py-10">No messages in this chat history.</p>
               )}
             </div>
 
-            <div className="p-3 bg-neutral-900/80 border-t border-neutral-800 flex items-center justify-end">
+            <div className="p-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedChatDetailRecording(null)}
-                className="px-4 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold transition"
+                className="px-4 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold transition"
               >
                 Close
               </button>
@@ -913,23 +915,23 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       {isEditProfileOpen && (
         <div
           id="edit-profile-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setIsEditProfileOpen(false)}
         >
           <div
             id="edit-profile-modal-container"
-            className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-2xl p-5 text-white shadow-2xl animate-in zoom-in-95"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-2xl p-5 text-neutral-900 shadow-2xl animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-red-500" />
-                <h3 className="font-bold text-sm">Edit TikTok Profile</h3>
+                <Edit3 className="w-4 h-4 text-purple-600" />
+                <h3 className="font-bold text-sm text-neutral-900">Edit TikTok Profile</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditProfileOpen(false)}
-                className="p-1 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800 transition"
+                className="p-1 text-neutral-400 hover:text-neutral-900 rounded-full hover:bg-neutral-100 transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -938,16 +940,16 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             <form onSubmit={handleSaveProfile} className="mt-4 space-y-3.5">
               {/* Profile Image Preview & Upload Button */}
               <div className="flex items-center gap-3">
-                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-red-500 shrink-0">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-purple-500 shrink-0">
                   <img src={editAvatar} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 space-y-1">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-xs font-medium text-white flex items-center gap-1.5 transition"
+                    className="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center gap-1.5 transition"
                   >
-                    <Camera className="w-3.5 h-3.5 text-cyan-400" />
+                    <Camera className="w-3.5 h-3.5 text-purple-600" />
                     <span>Upload New Photo</span>
                   </button>
                   <p className="text-[10px] text-neutral-400">Supports PNG, JPG, or WebP</p>
@@ -956,37 +958,37 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
               {/* Display Name */}
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Display Name</label>
+                <label className="block text-xs text-neutral-600 mb-1 font-medium">Display Name</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-red-500 outline-none"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:border-purple-500 outline-none"
                 />
               </div>
 
               {/* Username Handle */}
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Handle</label>
+                <label className="block text-xs text-neutral-600 mb-1 font-medium">Handle</label>
                 <input
                   type="text"
                   required
                   value={editHandle}
                   onChange={(e) => setEditHandle(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-red-500 outline-none font-mono"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-2 text-xs text-neutral-900 focus:border-purple-500 outline-none font-mono"
                 />
               </div>
 
               {/* Bio Field */}
               <div>
-                <label className="block text-xs text-neutral-400 mb-1">Bio</label>
+                <label className="block text-xs text-neutral-600 mb-1 font-medium">Bio</label>
                 <textarea
                   rows={3}
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   placeholder="Introduce yourself, meeting roles, or topics you host..."
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs text-white focus:border-red-500 outline-none resize-none leading-relaxed"
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-900 focus:border-purple-500 outline-none resize-none leading-relaxed"
                 />
               </div>
 
@@ -995,14 +997,14 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsEditProfileOpen(false)}
-                  className="flex-1 py-2 rounded-xl text-neutral-400 hover:text-white bg-neutral-800 text-xs font-medium transition"
+                  className="flex-1 py-2 rounded-xl text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 text-xs font-semibold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   id="btn-save-profile"
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition shadow-lg shadow-red-950/50 cursor-pointer"
+                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
                 >
                   Save Profile
                 </button>
@@ -1016,29 +1018,29 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       {activePlaybackRecording && (
         <div
           id="video-playback-modal-backdrop"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 animate-in fade-in"
           onClick={() => setActivePlaybackRecording(null)}
         >
           <div
             id="video-playback-modal-container"
-            className="w-full max-w-sm bg-neutral-950 border border-neutral-800 rounded-2xl overflow-hidden text-white shadow-2xl flex flex-col max-h-[90vh]"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-2xl overflow-hidden text-neutral-900 shadow-2xl flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Playback Header */}
-            <div className="p-3 bg-black/80 border-b border-neutral-800 flex items-center justify-between">
+            <div className="p-3 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between">
               <div className="flex items-center gap-1.5 truncate">
-                <span className="font-mono text-xs font-bold text-red-400">
+                <span className="font-mono text-xs font-bold text-purple-700">
                   {activePlaybackRecording.meetingToken}
                 </span>
-                <span className="text-neutral-500">·</span>
-                <span className="text-xs font-medium text-white truncate">
+                <span className="text-neutral-400">·</span>
+                <span className="text-xs font-semibold text-neutral-900 truncate">
                   {activePlaybackRecording.title}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setActivePlaybackRecording(null)}
-                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1052,7 +1054,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 className="w-full h-full object-cover opacity-80"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/10 to-transparent animate-pulse pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/10 to-transparent pointer-events-none" />
 
               <button
                 type="button"
@@ -1071,9 +1073,9 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     setPlaybackProgress(Math.max(5, Math.min(95, Math.round((clickX / rect.width) * 100))));
                   }}
                 >
-                  <div className="bg-red-500 h-full rounded-full transition-all" style={{ width: `${playbackProgress}%` }} />
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all" style={{ width: `${playbackProgress}%` }} />
                 </div>
-                <div className="flex items-center justify-between text-[9px] text-neutral-400 font-mono mt-1">
+                <div className="flex items-center justify-between text-[9px] text-neutral-300 font-mono mt-1">
                   <span>01:34</span>
                   <span>{activePlaybackRecording.duration}</span>
                 </div>
@@ -1081,7 +1083,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             </div>
 
             {/* Playback Content Details & Actions */}
-            <div className="p-3.5 space-y-3 overflow-y-auto max-h-[300px]">
+            <div className="p-3.5 space-y-3 overflow-y-auto max-h-[300px] bg-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button
@@ -1089,15 +1091,15 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     onClick={() => onToggleFavoriteRecording(activePlaybackRecording.id)}
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition cursor-pointer ${
                       activePlaybackRecording.isFavorited
-                        ? 'bg-red-950/80 text-red-400 border-red-800'
-                        : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        ? 'bg-purple-50 text-purple-700 border-purple-200 font-semibold'
+                        : 'bg-neutral-100 text-neutral-600 border-neutral-200 hover:text-neutral-900'
                     }`}
                   >
-                    <Heart className={`w-3.5 h-3.5 ${activePlaybackRecording.isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 ${activePlaybackRecording.isFavorited ? 'fill-purple-600 text-purple-600' : ''}`} />
                     <span>{activePlaybackRecording.likes}</span>
                   </button>
 
-                  <span className="text-[11px] text-neutral-400 flex items-center gap-1 font-mono">
+                  <span className="text-[11px] text-neutral-500 flex items-center gap-1 font-mono">
                     <Eye className="w-3.5 h-3.5" /> {activePlaybackRecording.views} views
                   </span>
                 </div>
@@ -1109,7 +1111,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                       onJumpToMeeting(activePlaybackRecording.meetingToken);
                       setActivePlaybackRecording(null);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition"
+                    className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold transition shadow-xs"
                   >
                     Jump to Live
                   </button>
@@ -1118,10 +1120,10 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
               {/* Participants */}
               <div className="space-y-1">
-                <p className="text-[10px] text-neutral-400 font-medium">Participants:</p>
+                <p className="text-[10px] text-neutral-500 font-semibold">Participants:</p>
                 <div className="flex flex-wrap gap-1">
                   {activePlaybackRecording.participants.map((p, i) => (
-                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-neutral-300">
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-100 border border-neutral-200 text-neutral-700 font-medium">
                       {p}
                     </span>
                   ))}
@@ -1130,11 +1132,11 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
               {/* Notes Recap */}
               {activePlaybackRecording.notes && activePlaybackRecording.notes.length > 0 && (
-                <div className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-2.5 space-y-1">
-                  <p className="text-[10px] text-amber-400 font-bold flex items-center gap-1">
+                <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 space-y-1">
+                  <p className="text-[10px] text-purple-700 font-bold flex items-center gap-1">
                     <FileText className="w-3 h-3" /> Meeting Notes Recap:
                   </p>
-                  <ul className="text-[11px] text-neutral-300 space-y-1 pl-3 list-disc">
+                  <ul className="text-[11px] text-neutral-700 space-y-1 pl-3 list-disc">
                     {activePlaybackRecording.notes.map((note, i) => (
                       <li key={i}>{note}</li>
                     ))}

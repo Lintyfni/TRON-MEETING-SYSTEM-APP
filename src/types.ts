@@ -72,6 +72,12 @@ export interface UserSettings {
   chatFilter: 'all' | 'token';
   subtitleLanguage?: string;
   whisperLanguage?: string; // Kept for backwards compatibility
+  lockMeetingByDefault?: boolean;
+  waitingRoomByDefault?: boolean;
+  allowParticipantScreenShare?: boolean;
+  allowParticipantChat?: boolean;
+  allowParticipantRename?: boolean;
+  allowParticipantUnmute?: boolean;
 }
 
 export interface UserProfile {

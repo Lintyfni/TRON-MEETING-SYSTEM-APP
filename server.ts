@@ -1,11 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // In-Memory Data Store (Synchronized between backend and frontend)
 interface MeetingRoom {
@@ -610,15 +606,44 @@ Format your response strictly as JSON with this schema:
   });
 
   // 8. LIVE REACTIONS API (Floating emoji broadcast)
+  const roomReactions: Record<string, { id: string; token: string; emoji: string; sender: string; timestamp: number }[]> = {};
+
   app.post('/api/reactions', (req: Request, res: Response) => {
     const { token, emoji, sender = 'Aung Myint' } = req.body;
+    const formattedToken = token?.toUpperCase().startsWith('#')
+      ? token.toUpperCase()
+      : `#${token?.toUpperCase() || 'MEET'}`;
+
+    if (!roomReactions[formattedToken]) {
+      roomReactions[formattedToken] = [];
+    }
+
+    const reactionItem = {
+      id: `rx_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      token: formattedToken,
+      emoji: emoji || '👍',
+      sender: sender || 'Aung Myint',
+      timestamp: Date.now(),
+    };
+
+    roomReactions[formattedToken].push(reactionItem);
+    if (roomReactions[formattedToken].length > 60) {
+      roomReactions[formattedToken] = roomReactions[formattedToken].slice(-60);
+    }
+
     res.json({
       success: true,
-      token,
-      emoji: emoji || '👍',
-      sender,
-      timestamp: Date.now(),
+      reaction: reactionItem,
     });
+  });
+
+  app.get('/api/rooms/:token/reactions', (req: Request, res: Response) => {
+    const token = req.params.token.toUpperCase().startsWith('#')
+      ? req.params.token.toUpperCase()
+      : `#${req.params.token.toUpperCase()}`;
+    const since = parseInt(req.query.since as string, 10) || 0;
+    const reactions = (roomReactions[token] || []).filter((r) => r.timestamp > since);
+    res.json({ reactions });
   });
 
   // ==========================================
