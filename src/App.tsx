@@ -87,6 +87,14 @@ export default function App() {
     return initialSocialUsers;
   });
 
+  // User currently being viewed on Profile screen (null = my own profile)
+  const [viewedUser, setViewedUser] = useState<SocialUser | UserProfile | null>(null);
+
+  const handleSelectUserFromSearch = (user: SocialUser | UserProfile) => {
+    setViewedUser(user);
+    setCurrentTab('profile');
+  };
+
   // Follow/Unfollow someone (like X)
   const handleToggleFollowUser = (userId: string) => {
     setSocialUsers((prevUsers) => {
@@ -979,11 +987,13 @@ export default function App() {
                 recordings={recordings}
                 scheduledMeetings={scheduledMeetings}
                 dateNotes={dateNotes}
+                socialUsers={socialUsers}
                 onStartNewMeeting={handleStartNewMeeting}
                 onJoinMeeting={handleJoinMeeting}
                 onNavigateToProfileTab={handleNavigateToProfileTab}
                 onAddScheduledMeeting={handleAddScheduledMeeting}
                 onAddDateNote={handleAddDateNote}
+                onSelectUser={handleSelectUserFromSearch}
               />
             )}
 
@@ -1003,10 +1013,15 @@ export default function App() {
                 onUpdateRoomDetails={handleUpdateRoomDetails}
                 isRecording={Boolean(activeRecordingTokens[activeRoomToken])}
                 onToggleRecording={handleToggleRecording}
-                onOpenProfile={() => setCurrentTab('profile')}
+                onOpenProfile={() => {
+                  setViewedUser(null);
+                  setCurrentTab('profile');
+                }}
                 onBackToHome={handleBackToHome}
                 comments={comments}
                 userProfile={userProfile}
+                socialUsers={socialUsers}
+                onSelectUser={handleSelectUserFromSearch}
                 onAddComment={handleAddComment}
                 onToggleLikeComment={handleToggleLikeComment}
               />
@@ -1024,6 +1039,10 @@ export default function App() {
                 onToggleCommentLike={handleTogglePostCommentLike}
                 currentUser={userProfile}
                 onSelectMeetingToken={handleJoinMeeting}
+                onGoToMeeting={() => {
+                  setActiveRoomToken(activeRoomToken || rooms[0]?.token || 'MEET-001');
+                  setCurrentTab('meetings');
+                }}
               />
             )}
 
@@ -1040,6 +1059,8 @@ export default function App() {
             {currentTab === 'profile' && (
               <TikTokProfileScreen
                 userProfile={userProfile}
+                viewedUser={viewedUser}
+                onClearViewedUser={() => setViewedUser(null)}
                 recordings={recordings}
                 notes={notes}
                 rooms={rooms}
@@ -1075,7 +1096,12 @@ export default function App() {
           {/* Bottom Navigation matching Flutter BottomNavigationBar */}
           <BottomNavBar
             currentTab={currentTab}
-            onSelectTab={(tab) => setCurrentTab(tab)}
+            onSelectTab={(tab) => {
+              if (tab === 'profile') {
+                setViewedUser(null);
+              }
+              setCurrentTab(tab);
+            }}
             unreadChatsCount={chats.filter((c) => c.sender !== 'Me').length}
             userAvatar={userProfile.avatar}
           />

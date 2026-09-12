@@ -1,0 +1,85 @@
+name: Build & Package App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Typecheck & Lint
+        run: npm run lint
+
+      - name: Build Application
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Package build artifacts
+        run: |
+          mkdir -p release-package
+          cp -r dist release-package/
+          cp package.json release-package/
+          cp package-lock.json release-package/
+          cat << 'EOF' > release-package/README.txt
+          =============================================
+          TikTok Meeting & Post System - Production Run
+          =============================================
+
+          Requirements:
+          - Node.js v18 or higher
+
+          Quick Start:
+          1. Run: npm ci --omit=dev
+          2. Run: npm start
+          3. Open: http://localhost:3000 in your browser.
+          EOF
+          cd release-package && zip -r ../app-package.zip . && cd ..
+
+      - name: Upload Build Artifact (Raw dist/)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-dist
+          path: dist/
+          retention-days: 14
+
+      - name: Upload Standalone Package (.zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-package
+          path: app-package.zip
+          retention-days: 14
+
+      - name: Create GitHub Release (when pushing a version tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app-package.zip
+          generate_release_notes: true

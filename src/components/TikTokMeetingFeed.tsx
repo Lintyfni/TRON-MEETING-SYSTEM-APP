@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile } from '../types';
+import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile, SocialUser } from '../types';
 import { MeetingRoomTile } from './MeetingRoomTile';
 import { Plus, Hash, Sparkles, Video } from 'lucide-react';
 
@@ -22,6 +22,8 @@ interface TikTokMeetingFeedProps {
   onBackToHome?: () => void;
   comments?: Record<string, MeetingComment[]>;
   userProfile?: UserProfile;
+  socialUsers?: SocialUser[];
+  onSelectUser?: (user: SocialUser | UserProfile) => void;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
   onToggleLikeComment?: (meetingToken: string, commentId: string, replyId?: string) => void;
 }
@@ -45,6 +47,8 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
   onBackToHome,
   comments,
   userProfile,
+  socialUsers,
+  onSelectUser,
   onAddComment,
   onToggleLikeComment,
 }) => {
@@ -198,6 +202,8 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
             onBackToHome={onBackToHome}
             comments={comments}
             userProfile={userProfile}
+            socialUsers={socialUsers}
+            onSelectUser={onSelectUser}
             onAddComment={onAddComment}
             onToggleLikeComment={onToggleLikeComment}
           />

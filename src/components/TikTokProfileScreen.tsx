@@ -44,11 +44,15 @@ import {
   Send,
   List,
   Layers,
-  EyeOff
+  EyeOff,
+  User,
+  AtSign
 } from 'lucide-react';
 
 interface TikTokProfileScreenProps {
   userProfile: UserProfile;
+  viewedUser?: SocialUser | UserProfile | null;
+  onClearViewedUser?: () => void;
   recordings: MeetingRecording[];
   notes: MeetingNote[];
   rooms: MeetingRoom[];
@@ -76,6 +80,8 @@ type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats';
 
 export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   userProfile,
+  viewedUser,
+  onClearViewedUser,
   recordings,
   notes,
   rooms,
@@ -160,26 +166,76 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
     setTimeout(() => setToastMessage(null), 2500);
   };
 
+  // Determine if we are viewing someone else's profile vs current user's own profile
+  const isViewingOtherUser = Boolean(viewedUser && viewedUser.handle !== userProfile.handle);
+
+  // Match social user record if available to check follow state
+  const activeSocialUser = React.useMemo(() => {
+    if (!viewedUser) return null;
+    return (
+      socialUsers.find(
+        (u) =>
+          u.handle.toLowerCase() === viewedUser.handle.toLowerCase() ||
+          u.id === (viewedUser as SocialUser).id
+      ) || null
+    );
+  }, [viewedUser, socialUsers]);
+
+  const activeName = isViewingOtherUser ? viewedUser!.name : userProfile.name;
+  const activeHandle = isViewingOtherUser ? viewedUser!.handle : userProfile.handle;
+  const activeAvatar = isViewingOtherUser ? viewedUser!.avatar : userProfile.avatar;
+  const activeBio = isViewingOtherUser
+    ? viewedUser!.bio || 'Active participant on TikTok Meeting & Post ⚡'
+    : userProfile.bio;
+
+  const activeFollowing = isViewingOtherUser
+    ? activeSocialUser
+      ? activeSocialUser.followingCount
+      : 'following' in viewedUser!
+      ? (viewedUser as UserProfile).following
+      : 12
+    : userProfile.following;
+
+  const activeFollowers = isViewingOtherUser
+    ? activeSocialUser
+      ? activeSocialUser.followersCount
+      : 'followers' in viewedUser!
+      ? (viewedUser as UserProfile).followers
+      : 25
+    : userProfile.followers;
+
+  const activeLikes = isViewingOtherUser ? 142 : userProfile.likes;
+
   // Recordings shown in user profile:
-  // Includes recorded by user OR reposted by user!
-  const allUserRecordings = recordings.filter(
-    (r) => r.isUserRecorded || r.isReposted || r.repostedByUser === userProfile.name
-  );
+  // If viewing someone else, show public recordings; otherwise show own recordings
+  const allUserRecordings = isViewingOtherUser
+    ? recordings.filter((r) => r.visibility !== 'private')
+    : recordings.filter(
+        (r) => r.isUserRecorded || r.isReposted || r.repostedByUser === userProfile.name
+      );
 
   // If viewing as visitor, hide all private recordings!
-  const displayedRecordings = isVisitorMode
-    ? allUserRecordings.filter((r) => r.visibility !== 'private')
-    : allUserRecordings;
+  const displayedRecordings =
+    isVisitorMode || isViewingOtherUser
+      ? allUserRecordings.filter((r) => r.visibility !== 'private')
+      : allUserRecordings;
 
   // Posts shown in user profile: created by user OR reposted by user
-  const allUserPosts = posts.filter(
-    (p) => p.author === userProfile.name || p.isReposted || p.repostedByUser === userProfile.name
-  );
+  const allUserPosts = isViewingOtherUser
+    ? posts.filter(
+        (p) =>
+          p.author.toLowerCase() === activeName.toLowerCase() ||
+          p.handle?.toLowerCase() === activeHandle.toLowerCase()
+      )
+    : posts.filter(
+        (p) => p.author === userProfile.name || p.isReposted || p.repostedByUser === userProfile.name
+      );
 
   // If viewing as visitor, hide all private posts!
-  const displayedPosts = isVisitorMode
-    ? allUserPosts.filter((p) => p.visibility !== 'private')
-    : allUserPosts;
+  const displayedPosts =
+    isVisitorMode || isViewingOtherUser
+      ? allUserPosts.filter((p) => p.visibility !== 'private')
+      : allUserPosts;
 
   // Favorited recordings
   const favoriteRecordings = recordings.filter((r) => r.isFavorited);
@@ -278,23 +334,43 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
       {/* 1. TOP BAR */}
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[200px]">
-          {onBackToHome && (
+        <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[220px]">
+          {(onBackToHome || onClearViewedUser) && (
             <button
               id="btn-profile-back-home"
               type="button"
-              onClick={onBackToHome}
-              className="p-1 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer"
-              title="Back to Home"
+              onClick={() => {
+                if (isViewingOtherUser && onClearViewedUser) {
+                  onClearViewedUser();
+                } else if (onBackToHome) {
+                  onBackToHome();
+                }
+              }}
+              className="p-1 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer flex items-center gap-1"
+              title="Back"
             >
               <ChevronLeft className="w-5 h-5" />
+              <span className="text-xs font-semibold">Back</span>
             </button>
           )}
-          <span>{userProfile.handle}</span>
+          <span>{activeHandle}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
         </div>
 
         <div className="flex items-center gap-2">
+          {isViewingOtherUser && onClearViewedUser && (
+            <button
+              id="btn-switch-to-my-profile"
+              type="button"
+              onClick={onClearViewedUser}
+              className="px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold border border-purple-200 transition cursor-pointer flex items-center gap-1"
+              title="Switch to My Profile"
+            >
+              <User className="w-3 h-3" />
+              <span>My Profile</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -313,35 +389,45 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-200 bg-white">
         {/* 2. PROFILE HEADER & EDIT BIO */}
         <div className="p-4 flex flex-col items-center text-center bg-white">
-          {/* Avatar with Camera Overlay */}
+          {/* Avatar */}
           <div
-            className="relative mb-3 group cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
+            className={`relative mb-3 ${!isViewingOtherUser ? 'group cursor-pointer' : ''}`}
+            onClick={() => {
+              if (!isViewingOtherUser) {
+                fileInputRef.current?.click();
+              }
+            }}
           >
             <div className="w-22 h-22 rounded-full p-0.5 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-md">
               <img
-                src={userProfile.avatar}
-                alt={userProfile.name}
+                src={activeAvatar}
+                alt={activeName}
                 className="w-full h-full rounded-full object-cover bg-neutral-100"
               />
             </div>
-            <button
-              type="button"
-              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-2 border-white flex items-center justify-center shadow-md transition active:scale-95 cursor-pointer"
-              title="Upload new profile picture"
-            >
-              <Camera className="w-3.5 h-3.5" />
-            </button>
+            {!isViewingOtherUser ? (
+              <button
+                type="button"
+                className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-2 border-white flex items-center justify-center shadow-md transition active:scale-95 cursor-pointer"
+                title="Upload new profile picture"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center shadow-md text-white">
+                <Check className="w-3 h-3" />
+              </span>
+            )}
           </div>
 
           {/* Name & Handle */}
           <h2 className="font-bold text-base text-neutral-900 flex items-center gap-1.5">
-            {userProfile.name}
+            {activeName}
             <UserCheck className="w-4 h-4 text-purple-600" />
           </h2>
-          <p className="text-xs text-neutral-500 mt-0.5 font-mono">{userProfile.handle}</p>
+          <p className="text-xs text-neutral-500 mt-0.5 font-mono">{activeHandle}</p>
 
-          {/* Stats Row with Interactive Following/Followers Modal Triggers */}
+          {/* Stats Row */}
           <div className="flex items-center justify-center gap-6 my-3.5 text-center">
             <button
               id="btn-profile-stats-following"
@@ -351,10 +437,10 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 setIsFollowModalOpen(true);
               }}
               className="hover:opacity-75 transition cursor-pointer group text-center"
-              title="Click to view and manage following"
+              title="Click to view following"
             >
               <span className="font-bold text-sm text-neutral-900 block group-hover:text-purple-600 transition">
-                {userProfile.following}
+                {activeFollowing}
               </span>
               <span className="text-[11px] text-neutral-500 group-hover:text-purple-600 transition flex items-center justify-center gap-0.5">
                 Following
@@ -371,10 +457,10 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                 setIsFollowModalOpen(true);
               }}
               className="hover:opacity-75 transition cursor-pointer group text-center"
-              title="Click to view followers and simulate incoming follows"
+              title="Click to view followers"
             >
               <span className="font-bold text-sm text-neutral-900 block group-hover:text-purple-600 transition">
-                {userProfile.followers}
+                {activeFollowers}
               </span>
               <span className="text-[11px] text-neutral-500 group-hover:text-purple-600 transition flex items-center justify-center gap-0.5">
                 Followers
@@ -384,101 +470,182 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             <div className="w-px h-6 bg-neutral-200" />
 
             <div>
-              <span className="font-bold text-sm text-neutral-900 block">{userProfile.likes}</span>
+              <span className="font-bold text-sm text-neutral-900 block">{activeLikes}</span>
               <span className="text-[11px] text-neutral-500">Likes</span>
             </div>
           </div>
 
-          {/* Action Buttons: Edit Profile, Photo Upload & Follows/Connections */}
-          <div className="flex items-center gap-2 w-full max-w-xs justify-center mb-3">
-            <button
-              id="btn-edit-profile-open"
-              type="button"
-              onClick={() => {
-                setEditName(userProfile.name);
-                setEditHandle(userProfile.handle);
-                setEditBio(userProfile.bio);
-                setEditAvatar(userProfile.avatar);
-                setIsEditProfileOpen(true);
-              }}
-              className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-white" />
-              <span>Edit Profile</span>
-            </button>
+          {/* Action Buttons: Depending on whether viewing another user or self */}
+          {isViewingOtherUser ? (
+            <div className="flex items-center gap-2 w-full max-w-xs justify-center mb-3">
+              <button
+                id="btn-toggle-follow-other-user"
+                type="button"
+                onClick={() => {
+                  if (activeSocialUser && onToggleFollowUser) {
+                    onToggleFollowUser(activeSocialUser.id);
+                    showToast(
+                      activeSocialUser.isFollowedByMe
+                        ? `Unfollowed ${activeHandle}`
+                        : `Now following ${activeHandle}`
+                    );
+                  } else {
+                    showToast(`Follow state updated for ${activeHandle}!`);
+                  }
+                }}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                  activeSocialUser?.isFollowedByMe
+                    ? 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300'
+                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                }`}
+              >
+                {activeSocialUser?.isFollowedByMe ? (
+                  <>
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Following</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-3.5 h-3.5 text-white" />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
 
-            <button
-              id="btn-profile-connections"
-              type="button"
-              onClick={() => {
-                setFollowModalInitialTab('discover');
-                setIsFollowModalOpen(true);
-              }}
-              className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-700 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
-              title="Follow colleagues and manage network"
-            >
-              <Users className="w-3.5 h-3.5 text-purple-600" />
-              <span>Follows</span>
-            </button>
+              <button
+                id="btn-mention-user-in-post"
+                type="button"
+                onClick={() => {
+                  onExportToPost(`Hello ${activeHandle} `);
+                  showToast(`Composing new post mentioning ${activeHandle}!`);
+                }}
+                className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-700 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                title="Mention in Post"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-purple-600" />
+                <span>Mention</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="py-2 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
-              title="Upload Profile Picture"
-            >
-              <Camera className="w-3.5 h-3.5 text-purple-600" />
-              <span>Photo</span>
-            </button>
-          </div>
+              {onClearViewedUser && (
+                <button
+                  type="button"
+                  onClick={onClearViewedUser}
+                  className="py-2 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                  title="Return to My Profile"
+                >
+                  <User className="w-3.5 h-3.5 text-neutral-600" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 w-full max-w-xs justify-center mb-3">
+              <button
+                id="btn-edit-profile-open"
+                type="button"
+                onClick={() => {
+                  setEditName(userProfile.name);
+                  setEditHandle(userProfile.handle);
+                  setEditBio(userProfile.bio);
+                  setEditAvatar(userProfile.avatar);
+                  setIsEditProfileOpen(true);
+                }}
+                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-white" />
+                <span>Edit Profile</span>
+              </button>
+
+              <button
+                id="btn-profile-connections"
+                type="button"
+                onClick={() => {
+                  setFollowModalInitialTab('discover');
+                  setIsFollowModalOpen(true);
+                }}
+                className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-purple-700 flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                title="Follow colleagues and manage network"
+              >
+                <Users className="w-3.5 h-3.5 text-purple-600" />
+                <span>Follows</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="py-2 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-xs font-semibold text-neutral-700 hover:text-neutral-900 flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer"
+                title="Upload Profile Picture"
+              >
+                <Camera className="w-3.5 h-3.5 text-purple-600" />
+                <span>Photo</span>
+              </button>
+            </div>
+          )}
 
           {/* Bio Display */}
           <div className="w-full max-w-sm bg-neutral-50 border border-neutral-200 rounded-xl p-2.5 text-xs text-neutral-700 text-left leading-relaxed">
-            <p className="line-clamp-3">{userProfile.bio}</p>
+            <p className="line-clamp-3">{activeBio}</p>
           </div>
 
-          {/* Perspective Switcher: Private vs Public */}
-          <div className="w-full max-w-sm mt-3">
-            <div className="flex items-center gap-1 p-1 bg-neutral-100/90 rounded-2xl border border-neutral-200 text-xs">
-              <button
-                type="button"
-                id="btn-profile-private-view"
-                onClick={() => setIsVisitorMode(false)}
-                className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                  !isVisitorMode
-                    ? 'bg-white text-purple-700 shadow-xs'
-                    : 'text-neutral-500 hover:text-neutral-800'
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5" />
-                <span>Private</span>
-              </button>
-              <button
-                type="button"
-                id="btn-profile-public-view"
-                onClick={() => setIsVisitorMode(true)}
-                className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                  isVisitorMode
-                    ? 'bg-purple-600 text-white shadow-xs'
-                    : 'text-neutral-500 hover:text-neutral-800'
-                }`}
-              >
-                <Globe className="w-3.5 h-3.5" />
-                <span>Public</span>
-              </button>
+          {/* Notice or Perspective Switcher */}
+          {isViewingOtherUser ? (
+            <div className="w-full max-w-sm mt-3 p-2.5 rounded-xl bg-purple-50/90 border border-purple-200 text-[11px] text-purple-800 flex items-center justify-between font-medium">
+              <span className="flex items-center gap-1.5 truncate">
+                <AtSign className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <span className="truncate">Public Profile: <strong>{activeHandle}</strong></span>
+              </span>
+              {onClearViewedUser && (
+                <button
+                  type="button"
+                  onClick={onClearViewedUser}
+                  className="text-[11px] font-bold text-purple-700 underline shrink-0 ml-2 cursor-pointer"
+                >
+                  My Profile
+                </button>
+              )}
             </div>
-            {isVisitorMode ? (
-              <div className="mt-2 p-2 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-700 flex items-center gap-1.5 font-medium animate-in fade-in">
-                <Globe className="w-3.5 h-3.5 shrink-0 text-purple-600" />
-                <span>Public: Showing public items only. Private recordings and private posts are hidden.</span>
+          ) : (
+            <div className="w-full max-w-sm mt-3">
+              <div className="flex items-center gap-1 p-1 bg-neutral-100/90 rounded-2xl border border-neutral-200 text-xs">
+                <button
+                  type="button"
+                  id="btn-profile-private-view"
+                  onClick={() => setIsVisitorMode(false)}
+                  className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    !isVisitorMode
+                      ? 'bg-white text-purple-700 shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-800'
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Private</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-profile-public-view"
+                  onClick={() => setIsVisitorMode(true)}
+                  className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    isVisitorMode
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-800'
+                  }`}
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Public</span>
+                </button>
               </div>
-            ) : (
-              <div className="mt-2 p-2 rounded-xl bg-neutral-100/80 border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-1.5 font-medium animate-in fade-in">
-                <Lock className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
-                <span>Private: Showing all items including your private notes &amp; recordings.</span>
-              </div>
-            )}
-          </div>
+              {isVisitorMode ? (
+                <div className="mt-2 p-2 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-700 flex items-center gap-1.5 font-medium animate-in fade-in">
+                  <Globe className="w-3.5 h-3.5 shrink-0 text-purple-600" />
+                  <span>Public: Showing public items only. Private recordings and private posts are hidden.</span>
+                </div>
+              ) : (
+                <div className="mt-2 p-2 rounded-xl bg-neutral-100/80 border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-1.5 font-medium animate-in fade-in">
+                  <Lock className="w-3.5 h-3.5 shrink-0 text-neutral-500" />
+                  <span>Private: Showing all items including your private notes &amp; recordings.</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 3. PROFILE TABS ROW: Recordings, Posts, Favourites, Note History, Chat History */}

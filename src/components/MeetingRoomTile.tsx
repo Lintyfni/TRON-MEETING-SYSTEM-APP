@@ -27,8 +27,10 @@ import {
   Link2,
   Globe,
   Lock,
+  Search,
+  AtSign,
 } from 'lucide-react';
-import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile, ParticipantState } from '../types';
+import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, UserProfile, ParticipantState, SocialUser } from '../types';
 import { MultiFilterDialog } from './MultiFilterDialog';
 import { GranolaNotesModal } from './GranolaNotesModal';
 import { MeetingChatModal } from './MeetingChatModal';
@@ -64,6 +66,8 @@ interface MeetingRoomTileProps {
   onBackToHome?: () => void;
   comments?: Record<string, MeetingComment[]>;
   userProfile?: UserProfile;
+  socialUsers?: SocialUser[];
+  onSelectUser?: (user: SocialUser | UserProfile) => void;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
   onToggleLikeComment?: (meetingToken: string, commentId: string, replyId?: string) => void;
 }
@@ -105,9 +109,134 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   onBackToHome,
   comments = {},
   userProfile = initialUserProfile,
+  socialUsers = [],
+  onSelectUser,
   onAddComment,
   onToggleLikeComment,
 }) => {
+  // Search bar state for searching users (in this meeting & social network)
+  const meetingSearchContainerRef = useRef<HTMLDivElement | null>(null);
+  const [meetingSearchQuery, setMeetingSearchQuery] = useState('');
+  const [isMeetingSearchFocused, setIsMeetingSearchFocused] = useState(false);
+
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        meetingSearchContainerRef.current &&
+        !meetingSearchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsMeetingSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Close search dropdown on ESC
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMeetingSearchFocused(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
+  // Build combined users list with meeting participant presence
+  const meetingAvailableUsers = React.useMemo(() => {
+    const currentAsUser: SocialUser & { isInMeeting: boolean } = {
+      id: 'usr_me',
+      name: userProfile.name,
+      handle: userProfile.handle.startsWith('@') ? userProfile.handle : `@${userProfile.handle}`,
+      avatar: userProfile.avatar,
+      bio: userProfile.bio || 'WebRTC Live Audio/Video Meeting Host ⚡',
+      isFollowedByMe: false,
+      isFollowingMe: false,
+      followersCount: typeof userProfile.followers === 'number' ? userProfile.followers : 1,
+      followingCount: userProfile.following || 0,
+      isInMeeting: true,
+    };
+
+    const roomParticipantNames = room.participants || [];
+    const hostName = room.host;
+    const allMeetingNames = Array.from(new Set([userProfile.name, hostName, ...roomParticipantNames]));
+    const externalUsers = socialUsers || [];
+
+    const meetingUsers: (SocialUser & { isInMeeting: boolean })[] = [currentAsUser];
+
+    allMeetingNames.forEach((name) => {
+      if (name === userProfile.name) return;
+      const match = externalUsers.find((u) => u.name.toLowerCase() === name.toLowerCase());
+      if (match) {
+        meetingUsers.push({ ...match, isInMeeting: true });
+      } else {
+        meetingUsers.push({
+          id: `usr_${name.toLowerCase().replace(/\s+/g, '_')}`,
+          name,
+          handle: `@${name.toLowerCase().replace(/\s+/g, '')}`,
+          avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face`,
+          bio: `Meeting participant in ${room.token}`,
+          isFollowedByMe: false,
+          isFollowingMe: false,
+          followersCount: 88,
+          followingCount: 34,
+          isInMeeting: true,
+        });
+      }
+    });
+
+    externalUsers.forEach((ext) => {
+      const alreadyIncluded = meetingUsers.some(
+        (mu) => mu.id === ext.id || mu.name.toLowerCase() === ext.name.toLowerCase()
+      );
+      if (!alreadyIncluded) {
+        meetingUsers.push({ ...ext, isInMeeting: false });
+      }
+    });
+
+    return meetingUsers;
+  }, [userProfile, room.participants, room.host, room.token, socialUsers]);
+
+  // Filter meeting users based on @query or search input
+  const filteredMeetingUsers = React.useMemo(() => {
+    const rawQuery = meetingSearchQuery.trim().toLowerCase();
+    const query = rawQuery.startsWith('@') ? rawQuery.slice(1) : rawQuery;
+
+    if (!query) {
+      return meetingAvailableUsers;
+    }
+
+    return meetingAvailableUsers.filter((u) => {
+      const handleClean = u.handle.toLowerCase().replace('@', '');
+      const nameClean = u.name.toLowerCase();
+      const bioClean = u.bio.toLowerCase();
+      return (
+        handleClean.includes(query) ||
+        nameClean.includes(query) ||
+        bioClean.includes(query)
+      );
+    });
+  }, [meetingAvailableUsers, meetingSearchQuery]);
+
+  // Navigate to selected user profile
+  const handleSelectMeetingUser = (user: SocialUser) => {
+    setIsMeetingSearchFocused(false);
+    setMeetingSearchQuery('');
+    if (onSelectUser) {
+      if (user.id === 'usr_me' || user.handle === userProfile.handle) {
+        onSelectUser(userProfile);
+      } else {
+        onSelectUser(user);
+      }
+    } else if (onOpenProfile) {
+      onOpenProfile();
+    }
+  };
+
   // State matching Flutter state
   const [selectedFilterUsers, setSelectedFilterUsers] = useState<string[]>(['All']);
   // Default Mic and Subtitles OFF on start as requested
@@ -1652,26 +1781,159 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         )}
       </div>
 
-      {/* 2. TOP OVERLAY: Home Button + Recording Button */}
-      <div className="relative z-30 pt-3 px-3 flex items-center justify-between pointer-events-auto">
+      {/* 2. TOP OVERLAY: Home Button + Search Bar + Recording Button */}
+      <div className="relative z-30 pt-3 px-3 flex items-center justify-between gap-2 pointer-events-auto">
         {onBackToHome && (
           <button
             id="btn-meeting-back-home"
             type="button"
             onClick={onBackToHome}
-            className="p-2 rounded-full bg-white/90 hover:bg-neutral-100 border border-neutral-200 text-purple-600 hover:text-purple-700 transition shadow-md cursor-pointer shrink-0"
+            className="p-2 rounded-full bg-white/95 hover:bg-neutral-100 border border-neutral-200 text-purple-600 hover:text-purple-700 transition shadow-xs cursor-pointer shrink-0"
             title="Back to Home Screen"
           >
             <Home className="w-4 h-4 text-purple-600" />
           </button>
         )}
 
+        {/* Search Bar Between Home and Record (Clean box with @ symbol, searches in-meeting & network users) */}
+        <div ref={meetingSearchContainerRef} className="relative flex-1 min-w-0 z-40">
+          <div
+            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border transition-all duration-150 shadow-xs ${
+              isMeetingSearchFocused
+                ? 'border-purple-500 ring-2 ring-purple-500/20 bg-white'
+                : 'border-neutral-200 hover:border-neutral-300'
+            }`}
+          >
+            {/* @ Symbol Badge */}
+            <div className="w-6 h-6 rounded-full bg-purple-50 border border-purple-200/80 text-purple-600 flex items-center justify-center shrink-0 font-bold text-xs font-mono select-none">
+              @
+            </div>
+
+            {/* Input without outer texts/labels */}
+            <input
+              id="input-meeting-search-users"
+              type="text"
+              value={meetingSearchQuery}
+              onChange={(e) => setMeetingSearchQuery(e.target.value)}
+              onFocus={() => setIsMeetingSearchFocused(true)}
+              placeholder="@"
+              className="w-full bg-transparent text-xs text-neutral-900 placeholder-neutral-400 focus:outline-hidden font-medium"
+              autoComplete="off"
+              spellCheck="false"
+            />
+
+            {/* Clear Button or Search Icon */}
+            {meetingSearchQuery ? (
+              <button
+                type="button"
+                onClick={() => setMeetingSearchQuery('')}
+                className="w-5 h-5 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 flex items-center justify-center transition cursor-pointer shrink-0"
+                title="Clear"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            ) : (
+              <Search className="w-3.5 h-3.5 text-neutral-400 shrink-0 mr-0.5" />
+            )}
+          </div>
+
+          {/* Search Dropdown Results Popover */}
+          {isMeetingSearchFocused && (
+            <div
+              id="meeting-search-users-dropdown"
+              className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-neutral-200 shadow-2xl overflow-hidden z-50 max-h-72 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+            >
+              {/* Header inside dropdown */}
+              <div className="px-3 py-2 bg-neutral-50/90 border-b border-neutral-200 flex items-center justify-between text-xs">
+                <span className="font-bold text-neutral-700 flex items-center gap-1.5 text-[11px]">
+                  <Search className="w-3 h-3 text-purple-600" />
+                  {meetingSearchQuery.trim()
+                    ? `Users matching "${meetingSearchQuery}"`
+                    : `Participants & Users (${filteredMeetingUsers.length})`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsMeetingSearchFocused(false)}
+                  className="text-neutral-400 hover:text-neutral-700 p-0.5 rounded-md hover:bg-neutral-200/50 transition cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+
+              {/* Users list */}
+              <div className="overflow-y-auto divide-y divide-neutral-100 flex-1 p-1 max-h-56">
+                {filteredMeetingUsers.length > 0 ? (
+                  filteredMeetingUsers.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => handleSelectMeetingUser(user)}
+                      className="w-full p-2 rounded-xl hover:bg-purple-50/70 transition flex items-center justify-between text-left group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* Avatar */}
+                        <div className="relative w-8 h-8 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-full h-full rounded-full object-cover bg-neutral-100"
+                          />
+                          {user.isInMeeting && (
+                            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+                          )}
+                        </div>
+
+                        {/* Name & details */}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className="font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate max-w-[90px] sm:max-w-[130px]">
+                              {user.name}
+                            </span>
+                            <span className="font-mono text-[10px] text-purple-700 bg-purple-50 px-1 py-0.2 rounded-md font-semibold border border-purple-200/60">
+                              {user.handle}
+                            </span>
+                            {user.isInMeeting && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold flex items-center gap-0.5">
+                                <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                In Meeting
+                              </span>
+                            )}
+                            {user.id === 'usr_me' && (
+                              <span className="text-[9px] px-1 py-0.2 rounded-full bg-purple-100 text-purple-700 font-bold">
+                                You
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-neutral-500 truncate max-w-[170px] sm:max-w-xs mt-0.5">
+                            {user.bio}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Right indicator button */}
+                      <div className="flex items-center gap-1 text-purple-600 shrink-0 ml-1 group-hover:translate-x-0.5 transition-transform">
+                        <span className="text-[10px] font-bold text-purple-700 bg-purple-100/60 px-1.5 py-0.5 rounded-md border border-purple-200 group-hover:bg-purple-600 group-hover:text-white transition">
+                          Profile
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="py-5 px-3 text-center">
+                    <p className="text-xs text-neutral-500">No matching users found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Recording Button: On/Off toggle -> Only records when ON */}
         <button
           id="btn-toggle-recording"
           type="button"
           onClick={handleToggleRecording}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-xs shrink-0 cursor-pointer ml-auto ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition shadow-xs shrink-0 cursor-pointer ${
             isLocalRecording
               ? 'bg-red-600 hover:bg-red-500 text-white animate-pulse border border-red-400 shadow-red-200'
               : 'bg-white/95 hover:bg-neutral-100 text-neutral-700 border border-neutral-200'

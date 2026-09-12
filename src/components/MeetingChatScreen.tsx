@@ -3,8 +3,7 @@ import {
   MessageSquare,
   Send,
   User,
-  Radio,
-  ChevronDown,
+  Filter,
   ArrowLeft,
   X,
   Sparkles,
@@ -82,70 +81,53 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
       className="w-full h-full bg-neutral-50 flex flex-col overflow-hidden text-neutral-900 animate-in fade-in duration-200"
     >
       {/* 1. Top Header */}
-      <header className="px-4 py-3 bg-white border-b border-neutral-200 flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
+      <header className="px-4 py-2.5 bg-white border-b border-neutral-200 flex items-center justify-between gap-2 shrink-0">
+        {/* Left: Chat Icon Only */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-full bg-purple-50 border border-purple-200/80 text-purple-600 flex items-center justify-center shrink-0 shadow-2xs">
             <MessageSquare className="w-4 h-4" />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-sm font-bold tracking-tight text-neutral-900 flex items-center gap-2 truncate">
-              Meeting Chat
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-50 border border-purple-200 text-purple-700 font-bold">
-                LIVE
-              </span>
-            </h2>
-            <p className="text-[11px] text-neutral-500 truncate">
-              {directUser ? `Direct 1:1 with @${directUser}` : 'Room conversation'}
-            </p>
-          </div>
         </div>
 
-        {/* Quick Jump to Live Video Meeting */}
-        {onJumpToMeeting && (
-          <button
-            type="button"
-            onClick={() => onJumpToMeeting(selectedRoomFilter === 'ALL' ? activeRoomToken : selectedRoomFilter)}
-            className="px-2.5 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold flex items-center gap-1.5 border border-neutral-200 transition"
-            title="View Live Video Meeting"
+        {/* Center: Token Filter Dropdown */}
+        <div className="relative flex items-center justify-center">
+          <select
+            id="select-chat-token-filter"
+            value={selectedRoomFilter}
+            onChange={(e) => {
+              setSelectedRoomFilter(e.target.value);
+              setDirectUser(null);
+            }}
+            className="bg-white border border-neutral-200 rounded-full px-3 py-1.5 text-xs text-purple-700 font-semibold focus:outline-none focus:border-purple-500 appearance-none pr-7 cursor-pointer shadow-xs"
           >
-            <Video className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Go to Video</span>
-          </button>
-        )}
-      </header>
-
-      {/* 2. Meeting # Filter Bar */}
-      <div className="px-4 py-2 bg-neutral-100/70 border-b border-neutral-200 flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-xs font-bold text-neutral-600 shrink-0">Meet #:</span>
-          <div className="relative flex items-center flex-1 max-w-[240px]">
-            <select
-              id="select-screen-meeting"
-              value={selectedRoomFilter}
-              onChange={(e) => {
-                setSelectedRoomFilter(e.target.value);
-                setDirectUser(null);
-              }}
-              className="appearance-none w-full bg-white hover:bg-neutral-50 border border-neutral-300 text-neutral-900 font-bold text-xs pl-7 pr-6 py-1.5 rounded-xl cursor-pointer outline-none transition focus:ring-1 focus:ring-purple-500 truncate shadow-xs"
-            >
-              <option value="ALL" className="bg-white text-neutral-900">
-                All Meetings (#Global)
+            <option value="ALL" className="bg-white text-neutral-900">
+              All Tokens
+            </option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.token} className="bg-white text-purple-700 font-medium">
+                {r.token}
               </option>
-              {rooms.map((r) => (
-                <option key={r.id} value={r.token} className="bg-white text-neutral-900">
-                  {r.token} · {r.title}
-                </option>
-              ))}
-            </select>
-            <Radio className="w-3.5 h-3.5 text-purple-600 absolute left-2 pointer-events-none" />
-            <ChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 pointer-events-none" />
-          </div>
+            ))}
+          </select>
+          <Filter className="w-3 h-3 text-purple-600 absolute right-2.5 pointer-events-none" />
         </div>
 
-        <span className="text-[10px] font-mono text-neutral-500 font-medium">
-          {filteredChats.length} msgs
-        </span>
-      </div>
+        {/* Right: Go to Meeting Button */}
+        <div className="flex items-center shrink-0">
+          {onJumpToMeeting && (
+            <button
+              type="button"
+              id="btn-chat-goto-meeting"
+              onClick={() => onJumpToMeeting(selectedRoomFilter === 'ALL' ? activeRoomToken : selectedRoomFilter)}
+              className="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-purple-50 text-neutral-700 hover:text-purple-700 hover:border-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-neutral-200 transition shadow-2xs cursor-pointer"
+              title="Go to Live Meeting"
+            >
+              <Video className="w-3.5 h-3.5 text-purple-600" />
+              <span>Go to Meeting</span>
+            </button>
+          )}
+        </div>
+      </header>
 
       {/* 3. Direct 1-on-1 Participant Selector Chips */}
       <div className="px-4 py-2 bg-white border-b border-neutral-200 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">

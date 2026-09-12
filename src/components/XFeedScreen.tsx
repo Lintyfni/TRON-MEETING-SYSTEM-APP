@@ -13,7 +13,9 @@ import {
   Globe,
   Lock,
   Send,
-  Check
+  Check,
+  Layers,
+  Video,
 } from 'lucide-react';
 
 interface XFeedScreenProps {
@@ -26,6 +28,7 @@ interface XFeedScreenProps {
   onAddComment?: (postId: string, content: string) => void;
   onToggleCommentLike?: (postId: string, commentId: string) => void;
   onSelectMeetingToken?: (token: string) => void;
+  onGoToMeeting?: () => void;
   currentUser?: UserProfile;
 }
 
@@ -39,10 +42,21 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   onAddComment,
   onToggleCommentLike,
   onSelectMeetingToken,
+  onGoToMeeting,
   currentUser,
 }) => {
   const [selectedTokenFilter, setSelectedTokenFilter] = useState<string>('All');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleGoToMeeting = () => {
+    if (onGoToMeeting) {
+      onGoToMeeting();
+    } else if (onSelectMeetingToken) {
+      const targetToken =
+        selectedTokenFilter === 'All' ? rooms[0]?.token || 'MEET-001' : selectedTokenFilter;
+      onSelectMeetingToken(targetToken);
+    }
+  };
   const [selectedPostToken, setSelectedPostToken] = useState<string>(
     rooms[0]?.token || '#MEET-9021'
   );
@@ -108,37 +122,46 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   return (
     <div id="xfeed-screen" className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden">
       {/* 1. APP BAR */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
-            POST
-          </div>
-          <div>
-            <h1 className="font-bold text-base text-neutral-900 leading-none">Posts & Feed</h1>
-            <p className="text-[11px] text-neutral-500 mt-0.5">X-style public feeds, reposts & discussions</p>
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-2.5 flex items-center justify-between gap-2">
+        {/* Left: Post Icon Only */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-full bg-purple-50 border border-purple-200/80 text-purple-600 flex items-center justify-center shrink-0 shadow-2xs">
+            <Layers className="w-4 h-4" />
           </div>
         </div>
 
-        {/* Token Filter Dropdown */}
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <select
-              id="select-token-filter"
-              value={selectedTokenFilter}
-              onChange={(e) => setSelectedTokenFilter(e.target.value)}
-              className="bg-white border border-neutral-200 rounded-full px-3 py-1.5 text-xs text-purple-700 font-semibold focus:outline-none focus:border-purple-500 appearance-none pr-7 cursor-pointer shadow-xs"
-            >
-              <option value="All" className="bg-white text-neutral-900">
-                All Tokens
+        {/* Center: Token Filter Dropdown */}
+        <div className="relative flex items-center justify-center">
+          <select
+            id="select-token-filter"
+            value={selectedTokenFilter}
+            onChange={(e) => setSelectedTokenFilter(e.target.value)}
+            className="bg-white border border-neutral-200 rounded-full px-3 py-1.5 text-xs text-purple-700 font-semibold focus:outline-none focus:border-purple-500 appearance-none pr-7 cursor-pointer shadow-xs"
+          >
+            <option value="All" className="bg-white text-neutral-900">
+              All Tokens
+            </option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.token} className="bg-white text-purple-700 font-medium">
+                {r.token}
               </option>
-              {rooms.map((r) => (
-                <option key={r.id} value={r.token} className="bg-white text-purple-700 font-medium">
-                  {r.token}
-                </option>
-              ))}
-            </select>
-            <Filter className="w-3 h-3 text-purple-600 absolute right-2.5 top-2.5 pointer-events-none" />
-          </div>
+            ))}
+          </select>
+          <Filter className="w-3 h-3 text-purple-600 absolute right-2.5 pointer-events-none" />
+        </div>
+
+        {/* Right: Go to Meeting Button */}
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            id="btn-post-goto-meeting"
+            onClick={handleGoToMeeting}
+            className="px-3 py-1.5 rounded-full bg-neutral-100 hover:bg-purple-50 text-neutral-700 hover:text-purple-700 hover:border-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-neutral-200 transition shadow-2xs cursor-pointer"
+            title="Go to Live Meeting"
+          >
+            <Video className="w-3.5 h-3.5 text-purple-600" />
+            <span>Go to Meeting</span>
+          </button>
         </div>
       </div>
 

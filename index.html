@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Catch and ignore third-party wallet extension collision errors (e.g. MetaMask / Coinbase)
+      window.addEventListener('error', function(event) {
+        if (event && event.message && (
+          event.message.includes('Cannot redefine property: ethereum') ||
+          event.message.includes('ethereum')
+        )) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+          return true;
+        }
+      }, true);
+    </script>
     <title>TikTok Meeting &amp; Post System</title>
     <meta name="description" content="TikTok-style vertical meeting feed with multi-user video filtering, Granola Engine automated meeting notes, token-linked Post feed, recording management, and TikTok-style profile." />
     <meta property="og:title" content="TikTok Meeting &amp; Post System" />
