@@ -1,0 +1,9 @@
+{
+  "appId": "com.tiktokmeeting.app",
+  "appName": "TikTok Meeting",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}
