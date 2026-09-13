@@ -35,19 +35,6 @@ import { MeetingChatScreen } from './components/MeetingChatScreen';
 import { ZoomSettingsScreen } from './components/ZoomSettingsScreen';
 import { TikTokProfileScreen } from './components/TikTokProfileScreen';
 import { BottomNavBar } from './components/BottomNavBar';
-import {
-  Smartphone,
-  Maximize2,
-  Wifi,
-  Battery,
-  Sparkles,
-  Layers,
-  Video,
-  MessageSquare,
-  Settings,
-  User,
-  Home
-} from 'lucide-react';
 
 export default function App() {
   // Starts with 'home' screen as requested by user ("app စစချင်း ဝင်တဲ့ Screen တခုထည့်ပါ")
@@ -63,7 +50,6 @@ export default function App() {
   const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '');
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
-  const [isMobileFrame, setIsMobileFrame] = useState<boolean>(true);
 
   // User Profile state with local persistence
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -856,130 +842,15 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-100/70 text-neutral-900 flex flex-col items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white">
-      {/* Top Bar */}
-      <header className="w-full max-w-4xl px-4 py-3 flex items-center justify-between border-b border-neutral-200 bg-white z-50 text-xs shadow-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-purple-600 animate-pulse" />
-          <span className="font-bold tracking-tight text-neutral-900 sm:inline hidden">
-            Meeting System
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Quick tab switcher in header */}
-          <div className="hidden sm:flex items-center bg-neutral-100 border border-neutral-200 rounded-lg p-0.5 text-[11px]">
-            <button
-              onClick={() => setCurrentTab('home')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'home'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <Home className="w-3 h-3 text-purple-600" /> Home
-            </button>
-            <button
-              onClick={() => setCurrentTab('meetings')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'meetings'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <Video className="w-3 h-3 text-purple-600" /> Meetings
-            </button>
-            <button
-              onClick={() => setCurrentTab('posts')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'posts'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <Layers className="w-3 h-3 text-purple-600" /> Posts
-            </button>
-            <button
-              onClick={() => setCurrentTab('chat')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'chat'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <MessageSquare className="w-3 h-3 text-purple-600" /> Chat
-            </button>
-            <button
-              onClick={() => setCurrentTab('profile')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'profile'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <User className="w-3 h-3 text-purple-600" /> Profile
-            </button>
-            <button
-              onClick={() => setCurrentTab('settings')}
-              className={`px-2.5 py-1 rounded-md transition flex items-center gap-1 ${
-                currentTab === 'settings'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <Settings className="w-3 h-3 text-purple-600" /> Settings
-            </button>
-          </div>
-
-          {/* Viewport Frame Toggle */}
-          <button
-            id="btn-toggle-frame"
-            type="button"
-            onClick={() => setIsMobileFrame(!isMobileFrame)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-700 hover:text-neutral-900 transition font-medium"
-            title={isMobileFrame ? 'Expand to Fluid Layout' : 'Constrain to Phone Frame'}
-          >
-            {isMobileFrame ? (
-              <>
-                <Maximize2 className="w-3.5 h-3.5 text-purple-600" />
-                <span>Expand View</span>
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-3.5 h-3.5 text-purple-600" />
-                <span>Mobile Frame</span>
-              </>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main className="flex-1 w-full flex items-center justify-center p-0 sm:p-4 overflow-hidden">
-        <div
-          id="app-viewport-container"
-          className={`relative bg-white transition-all duration-300 flex flex-col overflow-hidden ${
-            isMobileFrame
-              ? 'w-full max-w-[395px] h-[100dvh] sm:h-[844px] sm:rounded-[44px] sm:border-[8px] sm:border-neutral-300 sm:shadow-2xl sm:shadow-neutral-400/25 ring-1 ring-neutral-200'
-              : 'w-full max-w-4xl h-[100dvh] sm:h-[820px] sm:rounded-2xl sm:border sm:border-neutral-200 sm:shadow-xl'
-          }`}
-        >
-          {/* Simulated Mobile Status Bar */}
-          {isMobileFrame && (
-            <div className="relative z-50 w-full px-7 pt-3 pb-1 flex items-center justify-between text-[11px] font-semibold text-neutral-800 select-none pointer-events-none shrink-0 bg-white">
-              <span>9:41</span>
-              <div className="w-20 h-4 bg-neutral-200 rounded-full mx-auto -mt-1" />
-              <div className="flex items-center gap-1.5 text-neutral-600">
-                <Wifi className="w-3 h-3 text-purple-600" />
-                <span className="text-[10px] font-mono">5G</span>
-                <Battery className="w-3.5 h-3.5 text-neutral-700" />
-              </div>
-            </div>
-          )}
-
-          {/* Active Screen Tab View */}
-          <div className="flex-1 w-full h-full relative overflow-hidden">
-            {currentTab === 'home' && (
+    <div className="w-full min-h-screen bg-neutral-900 sm:bg-neutral-950 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white p-0 sm:py-6 sm:px-4">
+      {/* Mobile Phone Frame Container */}
+      <div
+        id="app-viewport-container"
+        className="relative w-full max-w-[400px] h-[100dvh] sm:h-[844px] bg-white flex flex-col overflow-hidden sm:rounded-[44px] sm:border-[10px] sm:border-neutral-800 sm:shadow-2xl sm:shadow-black/70 sm:ring-1 sm:ring-neutral-700"
+      >
+        {/* Active Screen Tab View */}
+        <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col">
+          {currentTab === 'home' && (
               <MeetingHomeScreen
                 userProfile={userProfile}
                 rooms={rooms}
@@ -1106,7 +977,6 @@ export default function App() {
             userAvatar={userProfile.avatar}
           />
         </div>
-      </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
