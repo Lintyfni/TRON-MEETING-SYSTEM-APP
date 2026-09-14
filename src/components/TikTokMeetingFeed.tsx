@@ -26,6 +26,7 @@ interface TikTokMeetingFeedProps {
   onSelectUser?: (user: SocialUser | UserProfile) => void;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
   onToggleLikeComment?: (meetingToken: string, commentId: string, replyId?: string) => void;
+  onUpdateSettings?: (newSettings: Partial<UserSettings>) => void;
 }
 
 export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
@@ -51,6 +52,7 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
   onSelectUser,
   onAddComment,
   onToggleLikeComment,
+  onUpdateSettings,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
@@ -206,6 +208,7 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
             onSelectUser={onSelectUser}
             onAddComment={onAddComment}
             onToggleLikeComment={onToggleLikeComment}
+            onUpdateSettings={onUpdateSettings}
           />
         )}
       </div>

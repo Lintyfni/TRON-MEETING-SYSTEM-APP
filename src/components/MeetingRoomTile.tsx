@@ -39,6 +39,9 @@ import { ZoomParticipantsDrawer } from './ZoomParticipantsDrawer';
 import { ZoomSecurityModal } from './ZoomSecurityModal';
 import { ZoomReactionsTray } from './ZoomReactionsTray';
 import { RichEmojiPicker } from './RichEmojiPicker';
+import { AvatarFaceMaskCanvas } from './AvatarFaceMaskCanvas';
+import { AvatarPickerModal } from './AvatarPickerModal';
+import { TRENDING_AVATARS } from '../data/avatarPresets';
 import { api } from '../services/api';
 import { webrtc, RemoteParticipant } from '../services/webrtc';
 import { languageOptions, initialUserProfile, virtualBackgroundPresets } from '../data/initialData';
@@ -70,6 +73,7 @@ interface MeetingRoomTileProps {
   onSelectUser?: (user: SocialUser | UserProfile) => void;
   onAddComment?: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
   onToggleLikeComment?: (meetingToken: string, commentId: string, replyId?: string) => void;
+  onUpdateSettings?: (newSettings: Partial<UserSettings>) => void;
 }
 
 interface FloatingHeart {
@@ -113,7 +117,13 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
   onSelectUser,
   onAddComment,
   onToggleLikeComment,
+  onUpdateSettings,
 }) => {
+  // Avatar Picker Modal state
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const currentAvatarPreset =
+    TRENDING_AVATARS.find((a) => a.id === settings.selectedAvatarId) || TRENDING_AVATARS[0];
+
   // Search bar state for searching users (in this meeting & social network)
   const meetingSearchContainerRef = useRef<HTMLDivElement | null>(null);
   const [meetingSearchQuery, setMeetingSearchQuery] = useState('');
@@ -1450,6 +1460,37 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                         </>
                       )}
 
+                      {/* Real-time Facial Movement Tracking Avatar Face Mask */}
+                      {settings.enableAvatarMask && (
+                        <div className="absolute inset-0 z-15 pointer-events-none">
+                          <AvatarFaceMaskCanvas
+                            avatarId={settings.selectedAvatarId || 'fox_cyber'}
+                            videoElement={videoRef.current}
+                            audioStream={localStream}
+                            mode={settings.avatarMaskMode || 'mask_overlay'}
+                            mirror={settings.mirrorMyVideo}
+                            showHUD={false}
+                          />
+                        </div>
+                      )}
+
+                      {/* Active Avatar Badge with Quick Change Button */}
+                      {settings.enableAvatarMask && (
+                        <div className="absolute top-2.5 right-2.5 z-25 flex items-center gap-1.5 bg-black/80 border border-purple-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-purple-200 backdrop-blur-md shadow-lg pointer-events-auto">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                          <span>
+                            {currentAvatarPreset.emoji} {currentAvatarPreset.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsAvatarModalOpen(true)}
+                            className="ml-1 text-[8px] text-white bg-purple-600 hover:bg-purple-500 px-1.5 py-0.5 rounded-full transition cursor-pointer"
+                          >
+                            Change
+                          </button>
+                        </div>
+                      )}
+
                       {/* Loading State while Camera is initializing */}
                       {isCameraLoading && (
                         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-white/90 backdrop-blur-xs text-center p-3">
@@ -2048,6 +2089,31 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           )}
         </div>
 
+        {/* Avatar Face Mask Button */}
+        <button
+          id="btn-tile-avatar"
+          type="button"
+          onClick={() => setIsAvatarModalOpen(true)}
+          className="flex flex-col items-center group cursor-pointer"
+          title="Avatar Face Mask (မျက်နှာဖုံး Avatar)"
+        >
+          <div
+            className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-md transition hover:scale-105 shadow-xs relative ${
+              settings.enableAvatarMask
+                ? 'bg-purple-100 text-purple-700 border-2 border-purple-500 ring-2 ring-purple-400/30'
+                : 'bg-white/95 text-neutral-700 border border-neutral-200 hover:bg-purple-50'
+            }`}
+          >
+            <span className="text-xl leading-none">{currentAvatarPreset.emoji}</span>
+            {settings.enableAvatarMask && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-white" />
+            )}
+          </div>
+          <span className="text-[10px] font-semibold text-neutral-800 mt-0.5 drop-shadow-xs">
+            Avatar
+          </span>
+        </button>
+
         {/* Note Pad */}
         <button
           id="btn-tile-notes"
@@ -2489,6 +2555,14 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         onToggleLikeComment={(token, commentId, replyId) => {
           if (onToggleLikeComment) onToggleLikeComment(token, commentId, replyId);
         }}
+      />
+
+      {/* Avatar Face Mask & 10 Trending Avatars Modal */}
+      <AvatarPickerModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        settings={settings}
+        onUpdateSettings={onUpdateSettings || (() => {})}
       />
     </div>
   );

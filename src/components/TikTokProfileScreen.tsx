@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { languageOptions } from '../data/initialData';
 import { SocialFollowModal } from './SocialFollowModal';
+import { compressImageFile } from '../utils/imageCompressor';
 import {
   Grid,
   Heart,
@@ -240,21 +241,29 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   // Favorited recordings
   const favoriteRecordings = recordings.filter((r) => r.isFavorited);
 
-  // Handle local image file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local image file upload with compression to prevent PayloadTooLargeError
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setEditAvatar(dataUrl);
-        onUpdateProfile({ avatar: dataUrl });
-        showToast('📸 Profile picture updated successfully!');
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Compress avatar to 600x600 square max
+      const dataUrl = await compressImageFile(file, 600, 600, 0.85);
+      setEditAvatar(dataUrl);
+      onUpdateProfile({ avatar: dataUrl });
+      showToast('📸 Profile picture updated successfully!');
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (dataUrl) {
+          setEditAvatar(dataUrl);
+          onUpdateProfile({ avatar: dataUrl });
+          showToast('📸 Profile picture updated successfully!');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Save profile changes

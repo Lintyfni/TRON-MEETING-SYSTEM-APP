@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { UserSettings, UserProfile } from '../types';
 import { languageOptions, virtualBackgroundPresets } from '../data/initialData';
+import { TRENDING_AVATARS } from '../data/avatarPresets';
+import { AvatarPickerModal } from './AvatarPickerModal';
+import { compressImageFile } from '../utils/imageCompressor';
 import {
   User,
   ChevronRight,
@@ -22,7 +25,8 @@ import {
   Lock,
   Share2,
   MessageSquare,
-  Edit3
+  Edit3,
+  Smile
 } from 'lucide-react';
 
 interface ZoomSettingsScreenProps {
@@ -39,22 +43,36 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [isChatFilterModalOpen, setIsChatFilterModalOpen] = useState(false);
   const [isBgThemeModalOpen, setIsBgThemeModalOpen] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const selectedAvatar =
+    TRENDING_AVATARS.find((a) => a.id === settings.selectedAvatarId) || TRENDING_AVATARS[0];
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    try {
+      // Compress image to prevent PayloadTooLargeError and improve memory performance
+      const compressedDataUrl = await compressImageFile(file, 1280, 720, 0.85);
       onUpdateSettings({
         enableVirtualBackground: true,
         virtualBackgroundType: 'custom',
-        virtualBackgroundCustomImage: dataUrl,
+        virtualBackgroundCustomImage: compressedDataUrl,
       });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        onUpdateSettings({
+          enableVirtualBackground: true,
+          virtualBackgroundType: 'custom',
+          virtualBackgroundCustomImage: dataUrl,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleRemoveCustomImage = () => {
@@ -262,6 +280,54 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
                 id="toggle-virtual-bg"
                 checked={settings.enableVirtualBackground}
                 onChange={(val) => onUpdateSettings({ enableVirtualBackground: val })}
+              />
+            </div>
+          </div>
+
+          {/* Avatar Face Mask (Virtual Face Filter for Privacy) */}
+          <div
+            id="setting-avatar-mask-row"
+            className="px-4 py-3 flex items-center justify-between hover:bg-neutral-50 transition border-t border-neutral-100"
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-2xl flex items-center justify-center text-lg shadow-xs border"
+                style={{
+                  backgroundColor: `${selectedAvatar.primaryColor}18`,
+                  borderColor: selectedAvatar.primaryColor,
+                }}
+              >
+                {selectedAvatar.emoji}
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-neutral-900">
+                    Avatar Face Mask (မျက်နှာဖုံး)
+                  </span>
+                  <span className="text-[9px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.2 rounded-full">
+                    Face Match
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-500">
+                  {settings.enableAvatarMask
+                    ? `${selectedAvatar.name} (${selectedAvatar.nameMm})`
+                    : 'Disabled (Normal Face Camera)'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                id="btn-open-avatar-modal"
+                type="button"
+                onClick={() => setIsAvatarModalOpen(true)}
+                className="text-xs text-purple-700 hover:text-purple-800 font-semibold px-2.5 py-1 bg-purple-50 rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-100 transition"
+              >
+                Choose Avatar ({TRENDING_AVATARS.length})
+              </button>
+              <Switch
+                id="toggle-avatar-mask"
+                checked={!!settings.enableAvatarMask}
+                onChange={(val) => onUpdateSettings({ enableAvatarMask: val })}
               />
             </div>
           </div>
@@ -644,6 +710,14 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           </div>
         </div>
       )}
+
+      {/* Avatar Face Mask & 10 Trending Avatars Modal */}
+      <AvatarPickerModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        settings={settings}
+        onUpdateSettings={onUpdateSettings}
+      />
     </div>
   );
 };

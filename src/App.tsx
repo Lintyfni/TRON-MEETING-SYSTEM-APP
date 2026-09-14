@@ -895,6 +895,7 @@ export default function App() {
                 onSelectUser={handleSelectUserFromSearch}
                 onAddComment={handleAddComment}
                 onToggleLikeComment={handleToggleLikeComment}
+                onUpdateSettings={handleUpdateSettings}
               />
             )}
 

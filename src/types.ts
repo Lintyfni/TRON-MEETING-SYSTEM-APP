@@ -73,6 +73,49 @@ export interface ChatMessage {
   isDirect?: boolean; // True if private 1-on-1 message
 }
 
+export type AvatarMaskId =
+  | 'fox_cyber'
+  | 'panda_kawaii'
+  | 'robot_mecha'
+  | 'tiger_fire'
+  | 'cat_cool'
+  | 'ape_crypto'
+  | 'alien_galaxy'
+  | 'ninja_oni'
+  | 'lion_golden'
+  | 'bear_anime';
+
+export interface AvatarPreset {
+  id: AvatarMaskId;
+  name: string;
+  nameMm: string;
+  category: string;
+  emoji: string;
+  description: string;
+  badge: string;
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  glowColor: string;
+}
+
+export interface FaceTrackingState {
+  faceDetected: boolean;
+  x: number; // 0..1 normalized center X
+  y: number; // 0..1 normalized center Y
+  width: number; // 0..1 normalized width
+  height: number; // 0..1 normalized height
+  roll: number; // angle in radians (head tilt left/right)
+  pitch: number; // angle in radians (nod up/down)
+  yaw: number; // angle in radians (turn left/right)
+  mouthOpen: number; // 0 (closed) to 1 (wide open)
+  mouthSmile: number; // 0 (neutral) to 1 (smile)
+  leftEyeBlink: number; // 0 (open) to 1 (closed)
+  rightEyeBlink: number; // 0 (open) to 1 (closed)
+  isTalking: boolean;
+  audioVolume: number; // 0 to 1
+}
+
 export interface UserSettings {
   autoMuteMic: boolean;
   turnOffVideoOnJoin: boolean;
@@ -83,6 +126,10 @@ export interface UserSettings {
   enableVirtualBackground: boolean;
   virtualBackgroundType: 'studio' | 'blur' | 'cyberpunk' | 'office' | 'library' | 'custom';
   virtualBackgroundCustomImage?: string;
+  // Avatar Face Mask settings
+  enableAvatarMask?: boolean;
+  selectedAvatarId?: AvatarMaskId;
+  avatarMaskMode?: 'mask_overlay' | 'full_avatar';
   chatFilter: 'all' | 'token';
   subtitleLanguage?: string;
   whisperLanguage?: string; // Kept for backwards compatibility

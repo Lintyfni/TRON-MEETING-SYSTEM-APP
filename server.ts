@@ -134,7 +134,21 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  // Configure body parsers with 50mb limit to handle avatar photos, virtual backgrounds, and meeting notes
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+  // Global payload error handling middleware
+  app.use((err: any, _req: Request, res: Response, next: express.NextFunction) => {
+    if (err?.type === 'entity.too.large' || err?.name === 'PayloadTooLargeError') {
+      console.warn('PayloadTooLargeError intercepted:', err.message);
+      return res.status(413).json({
+        error: 'Payload Too Large',
+        message: 'The uploaded file or payload exceeds the allowed size limit.',
+      });
+    }
+    next(err);
+  });
 
   // ==========================================
   // BACKEND API ROUTES
