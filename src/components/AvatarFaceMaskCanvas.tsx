@@ -17,7 +17,7 @@ export const AvatarFaceMaskCanvas: React.FC<AvatarFaceMaskCanvasProps> = ({
   avatarId,
   videoElement,
   audioStream,
-  mode = 'mask_overlay',
+  mode = 'full_avatar', // Default to Full Studio Privacy
   mirror = false,
   className = 'absolute inset-0 w-full h-full pointer-events-none',
   showHUD = false,
@@ -151,8 +151,71 @@ export const AvatarFaceMaskCanvas: React.FC<AvatarFaceMaskCanvasProps> = ({
         drawAnimeBear(ctx, faceSize, state, preset);
         break;
       default:
-        drawCyberFox(ctx, faceSize, state, preset);
+        // Universal Animal Face Emoji Avatar
+        drawAnimalEmojiAvatar(ctx, faceSize, state, preset);
         break;
+    }
+
+    ctx.restore();
+  };
+
+  // ==========================================
+  // UNIVERSAL ANIMAL FACE EMOJI AVATAR
+  // ==========================================
+  const drawAnimalEmojiAvatar = (
+    ctx: CanvasRenderingContext2D,
+    s: number,
+    state: FaceTrackingState,
+    p: typeof preset
+  ) => {
+    const r = s * 0.46;
+
+    // Glowing aura behind animal face
+    ctx.save();
+    const glowGrad = ctx.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.3);
+    glowGrad.addColorStop(0, p.primaryColor ? `${p.primaryColor}55` : 'rgba(168, 85, 247, 0.3)');
+    glowGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Subtle breathing / talking squash & stretch
+    ctx.save();
+    const talkBounce = state.isTalking ? Math.sin(Date.now() * 0.02) * (0.04 + state.audioVolume * 0.05) : 0;
+    const mouthScaleY = 1 + (state.mouthOpen * 0.1) + talkBounce;
+    const mouthScaleX = 1 - (state.mouthOpen * 0.03);
+    ctx.scale(mouthScaleX, mouthScaleY);
+
+    // High-resolution animal face emoji rendering
+    const fontSize = Math.round(s * 0.95);
+    ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(p.emoji || '🦊', 0, 0);
+
+    // Interactive blinking overlays
+    if (state.leftEyeBlink > 0.45 || state.rightEyeBlink > 0.45) {
+      ctx.save();
+      ctx.strokeStyle = '#1E1B4B';
+      ctx.lineWidth = Math.max(3.5, s * 0.04);
+      ctx.lineCap = 'round';
+
+      const eyeOffsetY = -r * 0.12;
+      const eyeSpacingX = r * 0.34;
+
+      if (state.leftEyeBlink > 0.45) {
+        ctx.beginPath();
+        ctx.arc(-eyeSpacingX, eyeOffsetY, r * 0.14, Math.PI * 0.15, Math.PI * 0.85);
+        ctx.stroke();
+      }
+      if (state.rightEyeBlink > 0.45) {
+        ctx.beginPath();
+        ctx.arc(eyeSpacingX, eyeOffsetY, r * 0.14, Math.PI * 0.15, Math.PI * 0.85);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
 
     ctx.restore();
@@ -177,7 +240,7 @@ export const AvatarFaceMaskCanvas: React.FC<AvatarFaceMaskCanvasProps> = ({
 
     // Subtle studio background rim lights
     ctx.save();
-    ctx.fillStyle = preset.glowColor;
+    ctx.fillStyle = preset.glowColor || 'rgba(168, 85, 247, 0.4)';
     ctx.filter = 'blur(40px)';
     ctx.beginPath();
     ctx.arc(w / 2, h * 0.45, w * 0.35, 0, Math.PI * 2);
@@ -202,7 +265,7 @@ export const AvatarFaceMaskCanvas: React.FC<AvatarFaceMaskCanvasProps> = ({
     ctx.fill();
 
     // Collar / Hoodie neon trim
-    ctx.strokeStyle = preset.accentColor;
+    ctx.strokeStyle = preset.accentColor || preset.primaryColor || '#A855F7';
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.restore();

@@ -50,6 +50,8 @@ export interface PostItem {
   id: string;
   meetingToken: string;
   author: string;
+  avatar?: string;
+  handle?: string;
   content: string;
   timestamp: string;
   likes?: number;
@@ -60,6 +62,37 @@ export interface PostItem {
   visibility?: 'public' | 'private';
   repostedByUser?: string;
   comments?: PostComment[];
+  isShort?: boolean;
+  videoUrl?: string;
+  videoDuration?: string;
+  title?: string;
+  isBookmarked?: boolean;
+}
+
+export interface ShortVideoItem {
+  id: string;
+  meetingToken: string;
+  meetingTitle?: string;
+  title: string;
+  author: string;
+  handle: string;
+  avatar: string;
+  videoUrl: string;
+  duration: number; // in seconds (e.g. 30)
+  tags: string[];
+  likes: number;
+  isLiked: boolean;
+  reposts: number;
+  isReposted: boolean;
+  repostedByUser?: string;
+  commentsCount: number;
+  comments: PostComment[];
+  isBookmarked: boolean;
+  timestamp: string;
+  musicTrack?: string;
+  liveParticipantsCount?: number;
+  visibility?: 'public' | 'private';
+  hasActiveMeeting?: boolean;
 }
 
 export interface ChatMessage {
@@ -71,32 +104,23 @@ export interface ChatMessage {
   isMe?: boolean;
   recipient?: string; // If 1-on-1 direct chat, target username (e.g. 'Kyaw Kyaw')
   isDirect?: boolean; // True if private 1-on-1 message
+  avatar?: string;
 }
 
-export type AvatarMaskId =
-  | 'fox_cyber'
-  | 'panda_kawaii'
-  | 'robot_mecha'
-  | 'tiger_fire'
-  | 'cat_cool'
-  | 'ape_crypto'
-  | 'alien_galaxy'
-  | 'ninja_oni'
-  | 'lion_golden'
-  | 'bear_anime';
+export type AvatarMaskId = string;
 
 export interface AvatarPreset {
-  id: AvatarMaskId;
+  id: string;
   name: string;
-  nameMm: string;
-  category: string;
+  nameMm?: string;
+  category?: string;
   emoji: string;
-  description: string;
-  badge: string;
+  description?: string;
+  badge?: string;
   primaryColor: string;
-  secondaryColor: string;
-  accentColor: string;
-  glowColor: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  glowColor?: string;
 }
 
 export interface FaceTrackingState {
@@ -151,6 +175,9 @@ export interface SocialUser {
   isFollowingMe: boolean;
   followersCount: number;
   followingCount: number;
+  isOnline?: boolean;
+  activeRoomToken?: string;
+  lastActive?: string;
 }
 
 export interface UserProfile {
@@ -252,5 +279,5 @@ export interface DateNote {
   time: string;
 }
 
-export type TabType = 'home' | 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
+export type TabType = 'home' | 'shorts' | 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
 

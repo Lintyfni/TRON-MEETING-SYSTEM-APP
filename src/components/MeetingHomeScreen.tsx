@@ -35,7 +35,9 @@ import {
   Edit3,
   AtSign,
   UserCheck,
-  User
+  User,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 
 interface MeetingHomeScreenProps {
@@ -52,6 +54,8 @@ interface MeetingHomeScreenProps {
   onAddScheduledMeeting: (meeting: ScheduledMeeting) => void;
   onAddDateNote: (dateNote: DateNote) => void;
   onSelectUser?: (user: SocialUser | UserProfile) => void;
+  onSendDirectChatMessage?: (targetUserName: string, text: string) => void;
+  onNavigateToChatWithUser?: (userName: string) => void;
 }
 
 export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
@@ -68,6 +72,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
   onAddScheduledMeeting,
   onAddDateNote,
   onSelectUser,
+  onSendDirectChatMessage,
+  onNavigateToChatWithUser,
 }) => {
   // Modal states
   const [isNewMeetingModalOpen, setIsNewMeetingModalOpen] = useState(false);
@@ -170,6 +176,24 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
   const [scheduleTime, setScheduleTime] = useState('10:00 AM');
   const [scheduleDuration, setScheduleDuration] = useState('45 mins');
   const [scheduleCategory, setScheduleCategory] = useState('General');
+
+  // Direct Chat Popup State (Community / Online Friends)
+  const [activeDirectChatUser, setActiveDirectChatUser] = useState<SocialUser | null>(null);
+  const [directChatMessageInput, setDirectChatMessageInput] = useState('');
+  const [directChatFeedback, setDirectChatFeedback] = useState<string | null>(null);
+
+  const handleSendDirectChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directChatMessageInput.trim() || !activeDirectChatUser) return;
+    if (onSendDirectChatMessage) {
+      onSendDirectChatMessage(activeDirectChatUser.name, directChatMessageInput.trim());
+    }
+    setDirectChatFeedback(`Message sent to ${activeDirectChatUser.name}! Stored in Chat History 💬`);
+    setDirectChatMessageInput('');
+    setTimeout(() => {
+      setDirectChatFeedback(null);
+    }, 2800);
+  };
 
   // Add Date Note Form
   const [dateNoteTitle, setDateNoteTitle] = useState('');
@@ -418,66 +442,122 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               </div>
 
               {/* Users list */}
-              <div className="overflow-y-auto divide-y divide-neutral-100 flex-1 p-1 max-h-64">
+              <div className="overflow-y-auto divide-y divide-neutral-100 flex-1 p-1 max-h-72">
                 {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <button
-                      key={user.id}
-                      type="button"
-                      onClick={() => handleSelectUser(user)}
-                      className="w-full p-2.5 rounded-xl hover:bg-purple-50/70 transition flex items-center justify-between text-left group cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Avatar */}
-                        <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-full h-full rounded-full object-cover bg-neutral-100"
-                          />
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-                        </div>
+                  filteredUsers.map((user) => {
+                    const isMutual = user.isFollowedByMe && user.isFollowingMe;
+                    const isOnline = Boolean(user.isOnline || user.id === 'usr_me');
 
-                        {/* Name, Handle, Badges & Bio */}
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-xs text-neutral-900 group-hover:text-purple-600 transition truncate">
-                              {user.name}
-                            </span>
-                            <span className="font-mono text-[11px] text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md font-semibold border border-purple-200/60">
-                              {user.handle}
-                            </span>
-                            {user.id === 'usr_me' && (
-                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
-                                You
-                              </span>
-                            )}
-                            {user.isFollowingMe && user.id !== 'usr_me' && (
-                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
-                                Follows you
-                              </span>
-                            )}
-                            {user.isFollowedByMe && (
-                              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
-                                Following
-                              </span>
+                    return (
+                      <div
+                        key={user.id}
+                        className="w-full p-2.5 rounded-xl hover:bg-purple-50/60 transition flex items-center justify-between text-left group"
+                      >
+                        <div
+                          className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+                          onClick={() => handleSelectUser(user)}
+                        >
+                          {/* Avatar with Facebook-style Green Online Dot */}
+                          <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="w-full h-full rounded-full object-cover bg-neutral-100"
+                            />
+                            {/* Green Facebook Presence Indicator */}
+                            {isOnline && (
+                              <span
+                                className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs animate-pulse"
+                                title="Active Now (Online)"
+                              />
                             )}
                           </div>
-                          <p className="text-[11px] text-neutral-500 truncate max-w-[220px] sm:max-w-xs mt-0.5">
-                            {user.bio}
-                          </p>
+
+                          {/* Name, Handle, Badges & Status */}
+                          <div className="min-w-0 flex-1 pr-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-xs text-neutral-900 group-hover:text-purple-700 transition truncate">
+                                {user.name}
+                              </span>
+                              <span className="font-mono text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md font-semibold border border-purple-200/60">
+                                {user.handle}
+                              </span>
+
+                              {/* Mutual Follow Badge */}
+                              {isMutual && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold flex items-center gap-0.5">
+                                  <span>🤝</span> Mutual
+                                </span>
+                              )}
+
+                              {user.id === 'usr_me' && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                                  You
+                                </span>
+                              )}
+
+                              {user.isFollowingMe && !isMutual && user.id !== 'usr_me' && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                                  Follows you
+                                </span>
+                              )}
+
+                              {user.isFollowedByMe && !isMutual && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                                  Following
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Status info & Bio */}
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {isOnline ? (
+                                <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                  <span>Active now {user.activeRoomToken ? `· In ${user.activeRoomToken}` : ''}</span>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-neutral-400">
+                                  {user.lastActive || 'Offline'}
+                                </span>
+                              )}
+                              <span className="text-neutral-300">·</span>
+                              <p className="text-[10px] text-neutral-500 truncate max-w-[140px] sm:max-w-xs">
+                                {user.bio}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right Action Buttons: Chat Icon & Profile Button */}
+                        <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                          {user.id !== 'usr_me' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsSearchFocused(false);
+                                setActiveDirectChatUser(user);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1 transition active:scale-95 cursor-pointer"
+                              title={`Chat with ${user.name} (Direct message saved to Chat History)`}
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>Chat</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleSelectUser(user)}
+                            className="px-2 py-1 rounded-lg bg-neutral-100 hover:bg-purple-100 text-neutral-700 hover:text-purple-700 font-medium text-[11px] border border-neutral-200 transition cursor-pointer"
+                            title="View Profile"
+                          >
+                            Profile
+                          </button>
                         </div>
                       </div>
-
-                      {/* Right indicator button */}
-                      <div className="flex items-center gap-1 text-purple-600 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
-                        <span className="text-[11px] font-bold text-purple-700 bg-purple-100/60 px-2 py-1 rounded-lg border border-purple-200 group-hover:bg-purple-600 group-hover:text-white transition">
-                          Profile
-                        </span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </button>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="py-7 px-4 text-center">
                     <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-2 border border-purple-200">
@@ -1334,6 +1414,116 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* DIRECT CHAT MODAL (Facebook Messenger style with online status) */}
+      {activeDirectChatUser && (
+        <div
+          id="direct-chat-modal-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 animate-in fade-in duration-150"
+          onClick={() => setActiveDirectChatUser(null)}
+        >
+          <div
+            id="direct-chat-modal"
+            className="w-full max-w-sm bg-white border border-neutral-200 rounded-3xl overflow-hidden shadow-2xl text-left flex flex-col animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-3.5 bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="relative w-9 h-9 rounded-full ring-2 ring-white/50 overflow-hidden shrink-0">
+                  <img
+                    src={activeDirectChatUser.avatar}
+                    alt={activeDirectChatUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                  {(activeDirectChatUser.isOnline || activeDirectChatUser.id === 'usr_me') && (
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-purple-800" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-white">{activeDirectChatUser.name}</h3>
+                    <span className="text-[10px] text-purple-200 font-mono">
+                      {activeDirectChatUser.handle}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-emerald-300 flex items-center gap-1 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {activeDirectChatUser.isOnline ? 'Online now · Active' : 'Offline'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveDirectChatUser(null)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Success Toast / Feedback */}
+            {directChatFeedback && (
+              <div className="m-3 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 animate-in fade-in">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-semibold text-[11px]">{directChatFeedback}</span>
+              </div>
+            )}
+
+            {/* Content & Input Form */}
+            <form onSubmit={handleSendDirectChat} className="p-4 space-y-3">
+              <div>
+                <label className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block mb-1">
+                  Send Direct Message to {activeDirectChatUser.name}
+                </label>
+                <textarea
+                  value={directChatMessageInput}
+                  onChange={(e) => setDirectChatMessageInput(e.target.value)}
+                  placeholder={`Say hello or coordinate a meeting with ${activeDirectChatUser.name}...`}
+                  rows={3}
+                  autoFocus
+                  className="w-full bg-neutral-50 border border-neutral-200 focus:border-purple-600 rounded-2xl p-2.5 text-xs text-neutral-900 outline-hidden resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
+                {onNavigateToChatWithUser && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const name = activeDirectChatUser.name;
+                      setActiveDirectChatUser(null);
+                      onNavigateToChatWithUser(name);
+                    }}
+                    className="text-[11px] text-purple-600 hover:text-purple-800 font-semibold hover:underline cursor-pointer"
+                  >
+                    Open in Chat Tab →
+                  </button>
+                )}
+
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setActiveDirectChatUser(null)}
+                    className="px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-xs font-semibold transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!directChatMessageInput.trim()}
+                    className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-purple-600/30 flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Send Message</span>
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

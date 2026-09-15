@@ -7,7 +7,8 @@ import {
   LanguageOption,
   PostItem,
   PostComment,
-  SocialUser
+  SocialUser,
+  ShortVideoItem
 } from '../types';
 import { languageOptions } from '../data/initialData';
 import { SocialFollowModal } from './SocialFollowModal';
@@ -47,7 +48,9 @@ import {
   Layers,
   EyeOff,
   User,
-  AtSign
+  AtSign,
+  Bookmark,
+  DoorOpen
 } from 'lucide-react';
 
 interface TikTokProfileScreenProps {
@@ -58,6 +61,7 @@ interface TikTokProfileScreenProps {
   notes: MeetingNote[];
   rooms: MeetingRoom[];
   posts?: PostItem[];
+  shorts?: ShortVideoItem[];
   socialUsers?: SocialUser[];
   onToggleFollowUser?: (userId: string) => void;
   onSimulateIncomingFollow?: (userId: string) => void;
@@ -77,7 +81,7 @@ interface TikTokProfileScreenProps {
   onBackToHome?: () => void;
 }
 
-type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats';
+type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats' | 'bookmarks';
 
 export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   userProfile,
@@ -87,6 +91,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   notes,
   rooms,
   posts = [],
+  shorts = [],
   socialUsers = [],
   onToggleFollowUser,
   onSimulateIncomingFollow,
@@ -738,6 +743,22 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             <MessageSquareCode className="w-4 h-4" />
             <span className="text-[10px] mt-1 whitespace-nowrap">Chats</span>
           </button>
+
+          {/* Tab 6: Bookmarks (Saved Short Videos & Clips) */}
+          <button
+            id="tab-profile-bookmarks"
+            type="button"
+            onClick={() => setActiveTab('bookmarks')}
+            className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
+              activeTab === 'bookmarks'
+                ? 'border-purple-600 text-purple-700 font-bold'
+                : 'border-transparent text-neutral-500 hover:text-neutral-800'
+            }`}
+            title="Bookmarks (Saved Short Videos & Items)"
+          >
+            <Bookmark className="w-4 h-4" />
+            <span className="text-[10px] mt-1 whitespace-nowrap">Bookmarks</span>
+          </button>
         </div>
 
         {/* 4. TAB CONTENTS */}
@@ -1162,6 +1183,32 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                         {post.content}
                       </p>
 
+                      {/* Video Clip for 30s Short / Video Posts */}
+                      {post.videoUrl && (
+                        <div className="relative w-full h-44 rounded-xl overflow-hidden bg-black mt-1 group">
+                          <video
+                            src={post.videoUrl}
+                            className="w-full h-full object-cover"
+                            muted
+                            loop
+                            playsInline
+                            autoPlay
+                          />
+                          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-red-600/90 text-white font-bold text-[9px] flex items-center gap-1 shadow-md">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            30s Short
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onJumpToMeeting?.(post.meetingToken)}
+                            className="absolute bottom-2 right-2 px-2.5 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] shadow-lg flex items-center gap-1 transition cursor-pointer"
+                          >
+                            <DoorOpen className="w-3 h-3" />
+                            Join Room ({post.meetingToken})
+                          </button>
+                        </div>
+                      )}
+
                       {/* X Action Buttons */}
                       <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-neutral-500 text-xs px-2">
                         {/* Comments Button */}
@@ -1568,6 +1615,120 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 6: BOOKMARKS (Saved Short Videos & Live Meeting Items) */}
+        {activeTab === 'bookmarks' && (
+          <div className="p-3 space-y-3 bg-neutral-50 min-h-[300px]">
+            {/* Header info */}
+            <div className="bg-white p-3 rounded-xl border border-neutral-200 shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-200 flex items-center justify-center shrink-0">
+                  <Bookmark className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-neutral-800">Saved Bookmarks</h3>
+                  <p className="text-[11px] text-neutral-500">
+                    Short videos and items you saved from the Shorts Feed & Meetings
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 shrink-0">
+                {shorts.filter((s) => s.isBookmarked).length} saved
+              </span>
+            </div>
+
+            {/* List of Bookmarked Shorts */}
+            {shorts.filter((s) => s.isBookmarked).length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {shorts
+                  .filter((s) => s.isBookmarked)
+                  .map((short) => (
+                    <div
+                      key={short.id}
+                      className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col group text-left"
+                    >
+                      {/* Video Preview */}
+                      <div className="relative w-full h-44 bg-black overflow-hidden">
+                        <video
+                          src={short.videoUrl}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          muted
+                          loop
+                          playsInline
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-red-600/90 text-white font-bold text-[9px] flex items-center gap-1 shadow-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                          30s Short
+                        </div>
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-yellow-300 font-semibold text-[10px] flex items-center gap-1">
+                          <Bookmark className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          Saved
+                        </div>
+
+                        {/* Quick Join Room Overlay Button */}
+                        <button
+                          type="button"
+                          onClick={() => onJumpToMeeting?.(short.meetingToken)}
+                          className="absolute bottom-2 right-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-[11px] shadow-lg flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                        >
+                          <DoorOpen className="w-3.5 h-3.5" />
+                          <span>Join Live ({short.meetingToken})</span>
+                        </button>
+                      </div>
+
+                      {/* Info */}
+                      <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <img
+                              src={short.avatar}
+                              alt={short.author}
+                              className="w-5 h-5 rounded-full object-cover ring-1 ring-purple-400"
+                            />
+                            <span className="text-xs font-bold text-neutral-800 truncate">
+                              {short.author}
+                            </span>
+                            <span className="text-[10px] text-neutral-400 font-mono">
+                              {short.handle}
+                            </span>
+                          </div>
+                          <p className="text-xs text-neutral-700 font-medium line-clamp-2 mt-1.5 leading-snug">
+                            {short.title}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-[11px] text-neutral-500">
+                          <span className="font-mono text-purple-700 font-semibold">
+                            {short.meetingToken}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1">
+                              <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                              {short.likes}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Repeat className="w-3 h-3 text-emerald-600" />
+                              {short.reposts}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-neutral-200 p-8 text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-yellow-50 text-yellow-600 mx-auto flex items-center justify-center">
+                  <Bookmark className="w-6 h-6" />
+                </div>
+                <h4 className="text-xs font-bold text-neutral-800">No Bookmarks Saved Yet</h4>
+                <p className="text-xs text-neutral-500 max-w-xs mx-auto">
+                  Go to the Shorts Feed (between Home and Meetings) and tap the Bookmark icon to save 30s videos and meeting discussions here!
+                </p>
               </div>
             )}
           </div>

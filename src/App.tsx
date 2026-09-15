@@ -12,7 +12,8 @@ import {
   CommentReply,
   ScheduledMeeting,
   DateNote,
-  SocialUser
+  SocialUser,
+  ShortVideoItem
 } from './types';
 import { api } from './services/api';
 import {
@@ -28,7 +29,9 @@ import {
   initialDateNotes,
 } from './data/initialData';
 import { initialSocialUsers } from './data/socialUsers';
+import { initialShorts } from './data/shortsData';
 import { MeetingHomeScreen } from './components/MeetingHomeScreen';
+import { ShortsFeedScreen } from './components/ShortsFeedScreen';
 import { TikTokMeetingFeed } from './components/TikTokMeetingFeed';
 import { XFeedScreen } from './components/XFeedScreen';
 import { MeetingChatScreen } from './components/MeetingChatScreen';
@@ -50,6 +53,197 @@ export default function App() {
   const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '');
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
+
+  // Shorts Feed state with local persistence
+  const [shorts, setShorts] = useState<ShortVideoItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('shorts_feed_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasBrokenMixkit = parsed.some((s: ShortVideoItem) => s.videoUrl && s.videoUrl.includes('mixkit'));
+          if (!hasBrokenMixkit) {
+            return parsed;
+          }
+        }
+      }
+    } catch {}
+    try {
+      localStorage.setItem('shorts_feed_data', JSON.stringify(initialShorts));
+    } catch {}
+    return initialShorts;
+  });
+
+  const handleToggleLikeShort = (shortId: string) => {
+    setShorts((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id === shortId) {
+          const nextLiked = !s.isLiked;
+          return {
+            ...s,
+            isLiked: nextLiked,
+            likes: nextLiked ? s.likes + 1 : Math.max(0, s.likes - 1),
+          };
+        }
+        return s;
+      });
+      try {
+        localStorage.setItem('shorts_feed_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleToggleBookmarkShort = (shortId: string) => {
+    setShorts((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id === shortId) {
+          return {
+            ...s,
+            isBookmarked: !s.isBookmarked,
+          };
+        }
+        return s;
+      });
+      try {
+        localStorage.setItem('shorts_feed_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleRepostShort = (shortId: string) => {
+    setShorts((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id === shortId) {
+          const nextReposted = !s.isReposted;
+          return {
+            ...s,
+            reposts: nextReposted ? s.reposts + 1 : Math.max(0, s.reposts - 1),
+            isReposted: nextReposted,
+          };
+        }
+        return s;
+      });
+      try {
+        localStorage.setItem('shorts_feed_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const targetShort = shorts.find((s) => s.id === shortId);
+    if (targetShort) {
+      const repostPost: PostItem = {
+        id: `post_repost_${Date.now()}`,
+        author: userProfile.name,
+        handle: userProfile.handle,
+        avatar: userProfile.avatar,
+        timestamp: 'Just now',
+        content: `🔁 Reposted 30s Short from ${targetShort.author}: "${targetShort.title}" 🎥 Join live meeting at ${targetShort.meetingToken}!`,
+        likes: 0,
+        comments: [],
+        reposts: 1,
+        isLiked: false,
+        isReposted: true,
+        meetingToken: targetShort.meetingToken,
+        videoUrl: targetShort.videoUrl,
+        isShort: true,
+      };
+      setPosts((prev) => [repostPost, ...prev]);
+    }
+  };
+
+  const handleAddShortComment = (shortId: string, text: string) => {
+    const newCommentItem = {
+      id: `comm_${Date.now()}`,
+      author: userProfile.name,
+      handle: userProfile.handle,
+      avatar: userProfile.avatar,
+      content: text,
+      timestamp: 'Just now',
+      likes: 0,
+      isLiked: false,
+    };
+
+    setShorts((prev) => {
+      const updated = prev.map((s) => {
+        if (s.id === shortId) {
+          return {
+            ...s,
+            commentsCount: s.commentsCount + 1,
+            comments: [...(s.comments || []), newCommentItem],
+          };
+        }
+        return s;
+      });
+      try {
+        localStorage.setItem('shorts_feed_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleUploadShort = (newShort: Omit<ShortVideoItem, 'id' | 'likes' | 'commentsCount' | 'reposts' | 'isLiked' | 'isBookmarked' | 'isReposted' | 'comments'>) => {
+    const hasActiveMeeting = Boolean(newShort.meetingToken && newShort.meetingToken.trim() !== '' && newShort.meetingToken !== 'none');
+    const fullShort: ShortVideoItem = {
+      id: `short_${Date.now()}`,
+      ...newShort,
+      meetingToken: hasActiveMeeting ? newShort.meetingToken : '',
+      hasActiveMeeting,
+      visibility: newShort.visibility || 'public',
+      likes: 0,
+      commentsCount: 0,
+      reposts: 0,
+      isLiked: false,
+      isBookmarked: false,
+      isReposted: false,
+      comments: [],
+    };
+
+    setShorts((prev) => {
+      const updated = [fullShort, ...prev];
+      try {
+        localStorage.setItem('shorts_feed_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    const newPost: PostItem = {
+      id: `post_short_${Date.now()}`,
+      author: userProfile.name,
+      handle: userProfile.handle,
+      avatar: userProfile.avatar,
+      timestamp: 'Just now',
+      content: hasActiveMeeting
+        ? `${newShort.title} 🎥 30s Short Clip. Tap to join live discussion in ${newShort.meetingToken}!`
+        : `${newShort.title} 🎥 30s Standalone Short Clip.`,
+      likes: 0,
+      comments: [],
+      reposts: 0,
+      isLiked: false,
+      isReposted: false,
+      meetingToken: hasActiveMeeting ? newShort.meetingToken : undefined,
+      videoUrl: newShort.videoUrl,
+      isShort: true,
+      visibility: newShort.visibility || 'public',
+    };
+    setPosts((prev) => [newPost, ...prev]);
+  };
+
+  const handleSendDirectChatMessage = (targetUserName: string, text: string) => {
+    const newChat: ChatMessage = {
+      id: `chat_dm_${Date.now()}`,
+      sender: userProfile.name,
+      avatar: userProfile.avatar,
+      message: text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      meetingToken: activeRoomToken || 'DIRECT',
+      isDirect: true,
+      recipient: targetUserName,
+      isMe: true,
+    };
+    setChats((prev) => [...prev, newChat]);
+  };
 
   // User Profile state with local persistence
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -851,24 +1045,46 @@ export default function App() {
         {/* Active Screen Tab View */}
         <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col">
           {currentTab === 'home' && (
-              <MeetingHomeScreen
-                userProfile={userProfile}
-                rooms={rooms}
-                notes={notes}
-                recordings={recordings}
-                scheduledMeetings={scheduledMeetings}
-                dateNotes={dateNotes}
-                socialUsers={socialUsers}
-                onStartNewMeeting={handleStartNewMeeting}
-                onJoinMeeting={handleJoinMeeting}
-                onNavigateToProfileTab={handleNavigateToProfileTab}
-                onAddScheduledMeeting={handleAddScheduledMeeting}
-                onAddDateNote={handleAddDateNote}
-                onSelectUser={handleSelectUserFromSearch}
-              />
-            )}
+            <MeetingHomeScreen
+              userProfile={userProfile}
+              rooms={rooms}
+              notes={notes}
+              recordings={recordings}
+              scheduledMeetings={scheduledMeetings}
+              dateNotes={dateNotes}
+              socialUsers={socialUsers}
+              onStartNewMeeting={handleStartNewMeeting}
+              onJoinMeeting={handleJoinMeeting}
+              onNavigateToProfileTab={handleNavigateToProfileTab}
+              onAddScheduledMeeting={handleAddScheduledMeeting}
+              onAddDateNote={handleAddDateNote}
+              onSelectUser={handleSelectUserFromSearch}
+              onSendDirectChatMessage={handleSendDirectChatMessage}
+              onNavigateToChatWithUser={(userName) => setCurrentTab('chat')}
+            />
+          )}
 
-            {currentTab === 'meetings' && (
+          {currentTab === 'shorts' && (
+            <ShortsFeedScreen
+              shorts={shorts}
+              rooms={rooms}
+              userProfile={userProfile}
+              onJoinMeeting={handleJoinMeeting}
+              onToggleLikeShort={handleToggleLikeShort}
+              onToggleBookmarkShort={handleToggleBookmarkShort}
+              onToggleRepostShort={handleRepostShort}
+              onAddShortComment={handleAddShortComment}
+              onCreateShort={handleUploadShort}
+              onResetSampleShorts={() => {
+                setShorts(initialShorts);
+                try {
+                  localStorage.setItem('shorts_feed_data', JSON.stringify(initialShorts));
+                } catch {}
+              }}
+            />
+          )}
+
+          {currentTab === 'meetings' && (
               <TikTokMeetingFeed
                 rooms={rooms}
                 notes={notes}
@@ -937,6 +1153,7 @@ export default function App() {
                 notes={notes}
                 rooms={rooms}
                 posts={posts}
+                shorts={shorts}
                 socialUsers={socialUsers}
                 onToggleFollowUser={handleToggleFollowUser}
                 onSimulateIncomingFollow={handleSimulateIncomingFollow}

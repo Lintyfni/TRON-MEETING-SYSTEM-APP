@@ -284,52 +284,27 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
             </div>
           </div>
 
-          {/* Avatar Face Mask (Virtual Face Filter for Privacy) */}
+          {/* Avatar on/off */}
           <div
-            id="setting-avatar-mask-row"
+            id="setting-avatar-row"
             className="px-4 py-3 flex items-center justify-between hover:bg-neutral-50 transition border-t border-neutral-100"
           >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-2xl flex items-center justify-center text-lg shadow-xs border"
-                style={{
-                  backgroundColor: `${selectedAvatar.primaryColor}18`,
-                  borderColor: selectedAvatar.primaryColor,
-                }}
-              >
-                {selectedAvatar.emoji}
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-medium text-neutral-900">
-                    Avatar Face Mask (မျက်နှာဖုံး)
-                  </span>
-                  <span className="text-[9px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.2 rounded-full">
-                    Face Match
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500">
-                  {settings.enableAvatarMask
-                    ? `${selectedAvatar.name} (${selectedAvatar.nameMm})`
-                    : 'Disabled (Normal Face Camera)'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <button
-                id="btn-open-avatar-modal"
-                type="button"
-                onClick={() => setIsAvatarModalOpen(true)}
-                className="text-xs text-purple-700 hover:text-purple-800 font-semibold px-2.5 py-1 bg-purple-50 rounded-lg border border-purple-200 cursor-pointer hover:bg-purple-100 transition"
-              >
-                Choose Avatar ({TRENDING_AVATARS.length})
-              </button>
-              <Switch
-                id="toggle-avatar-mask"
-                checked={!!settings.enableAvatarMask}
-                onChange={(val) => onUpdateSettings({ enableAvatarMask: val })}
-              />
-            </div>
+            <span
+              className="text-sm font-medium text-neutral-900 cursor-pointer"
+              onClick={() => setIsAvatarModalOpen(true)}
+            >
+              Avatar
+            </span>
+            <Switch
+              id="toggle-avatar-mask"
+              checked={!!settings.enableAvatarMask}
+              onChange={(val) =>
+                onUpdateSettings({
+                  enableAvatarMask: val,
+                  avatarMaskMode: 'full_avatar',
+                })
+              }
+            />
           </div>
         </div>
 

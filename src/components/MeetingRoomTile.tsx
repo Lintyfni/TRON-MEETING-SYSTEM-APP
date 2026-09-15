@@ -1464,10 +1464,10 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
                       {settings.enableAvatarMask && (
                         <div className="absolute inset-0 z-15 pointer-events-none">
                           <AvatarFaceMaskCanvas
-                            avatarId={settings.selectedAvatarId || 'fox_cyber'}
+                            avatarId={settings.selectedAvatarId || 'fox'}
                             videoElement={videoRef.current}
                             audioStream={localStream}
-                            mode={settings.avatarMaskMode || 'mask_overlay'}
+                            mode="full_avatar"
                             mirror={settings.mirrorMyVideo}
                             showHUD={false}
                           />
@@ -1476,18 +1476,13 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
 
                       {/* Active Avatar Badge with Quick Change Button */}
                       {settings.enableAvatarMask && (
-                        <div className="absolute top-2.5 right-2.5 z-25 flex items-center gap-1.5 bg-black/80 border border-purple-500/70 px-2 py-0.5 rounded-full text-[9px] font-bold text-purple-200 backdrop-blur-md shadow-lg pointer-events-auto">
+                        <div
+                          onClick={() => setIsAvatarModalOpen(true)}
+                          className="absolute top-2.5 right-2.5 z-25 flex items-center gap-1.5 bg-black/80 border border-purple-500/70 px-2.5 py-1 rounded-full text-xs font-bold text-purple-200 backdrop-blur-md shadow-lg pointer-events-auto cursor-pointer hover:bg-black/90 transition"
+                        >
                           <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-                          <span>
-                            {currentAvatarPreset.emoji} {currentAvatarPreset.name}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setIsAvatarModalOpen(true)}
-                            className="ml-1 text-[8px] text-white bg-purple-600 hover:bg-purple-500 px-1.5 py-0.5 rounded-full transition cursor-pointer"
-                          >
-                            Change
-                          </button>
+                          <span className="text-base leading-none">{currentAvatarPreset.emoji}</span>
+                          <span>{currentAvatarPreset.name}</span>
                         </div>
                       )}
 
