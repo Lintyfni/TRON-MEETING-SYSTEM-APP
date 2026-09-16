@@ -13,7 +13,9 @@ import {
   ScheduledMeeting,
   DateNote,
   SocialUser,
-  ShortVideoItem
+  ShortVideoItem,
+  FacebookGroup,
+  GroupChatMessage,
 } from './types';
 import { api } from './services/api';
 import {
@@ -30,6 +32,7 @@ import {
 } from './data/initialData';
 import { initialSocialUsers } from './data/socialUsers';
 import { initialShorts } from './data/shortsData';
+import { initialGroups, initialGroupChats } from './data/initialGroups';
 import { MeetingHomeScreen } from './components/MeetingHomeScreen';
 import { ShortsFeedScreen } from './components/ShortsFeedScreen';
 import { TikTokMeetingFeed } from './components/TikTokMeetingFeed';
@@ -53,6 +56,45 @@ export default function App() {
   const [activeRoomToken, setActiveRoomToken] = useState<string>(initialRooms[0]?.token || '');
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
+
+  // Facebook Groups State
+  const [groups, setGroups] = useState<FacebookGroup[]>(() => {
+    try {
+      const saved = localStorage.getItem('facebook_groups_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return initialGroups;
+  });
+
+  const [activeGroupId, setActiveGroupId] = useState<string>(initialGroups[0]?.id || 'grp_1');
+
+  const [groupChats, setGroupChats] = useState<GroupChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem('facebook_group_chats');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return initialGroupChats;
+  });
+
+  // Persist groups
+  useEffect(() => {
+    try {
+      localStorage.setItem('facebook_groups_data', JSON.stringify(groups));
+    } catch {}
+  }, [groups]);
+
+  // Persist group chats
+  useEffect(() => {
+    try {
+      localStorage.setItem('facebook_group_chats', JSON.stringify(groupChats));
+    } catch {}
+  }, [groupChats]);
 
   // Shorts Feed state with local persistence
   const [shorts, setShorts] = useState<ShortVideoItem[]>(() => {
@@ -188,6 +230,7 @@ export default function App() {
     const fullShort: ShortVideoItem = {
       id: `short_${Date.now()}`,
       ...newShort,
+      thumbnailUrl: newShort.thumbnailUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&h=1280&fit=crop',
       meetingToken: hasActiveMeeting ? newShort.meetingToken : '',
       hasActiveMeeting,
       visibility: newShort.visibility || 'public',
@@ -737,11 +780,13 @@ export default function App() {
     }
   };
 
-  // Add new X post
+  // Add new X post (with optional Facebook group linking)
   const handleAddPost = (
     token: string,
     content: string,
-    visibility: 'public' | 'private' = 'public'
+    visibility: 'public' | 'private' = 'public',
+    groupId?: string,
+    groupName?: string
   ) => {
     const newPost: PostItem = {
       id: `post_${Date.now()}`,
@@ -756,9 +801,237 @@ export default function App() {
       isReposted: false,
       visibility: visibility || 'public',
       comments: [],
+      groupId,
+      groupName,
     };
     setPosts((prev) => [newPost, ...prev]);
     setPrefilledPostText('');
+  };
+
+  // Group Handlers
+  const handleCreateGroup = (groupData: any) => {
+    const newGroup: FacebookGroup = {
+      id: `grp_${Date.now()}`,
+      name: groupData.name,
+      description: groupData.description || '',
+      category: groupData.category || 'Technology & Dev',
+      avatar:
+        groupData.avatar ||
+        'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=160&h=160&fit=crop&crop=faces',
+      coverImage:
+        groupData.coverImage ||
+        'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1000&h=350&fit=crop',
+      admin: userProfile.name,
+      members: [userProfile.name, 'You'],
+      pendingRequests: [],
+      privacy: groupData.privacy || 'public',
+      theme: groupData.theme || 'ocean',
+      linkedMeetingToken: groupData.linkedMeetingToken || activeRoomToken || '#MEET-9021',
+      requireApproval: Boolean(groupData.requireApproval),
+      createdAt: 'Just now',
+    };
+
+    setGroups((prev) => [newGroup, ...prev]);
+    setActiveGroupId(newGroup.id);
+
+    // Initial system announcement
+    const welcomeMsg: GroupChatMessage = {
+      id: `gc_${Date.now()}`,
+      groupId: newGroup.id,
+      sender: 'System',
+      senderAvatar: newGroup.avatar,
+      text: `🎉 Welcome to "${newGroup.name}"! Group created by ${userProfile.name}. Start posting and chatting!`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMe: false,
+      reactions: {},
+    };
+    setGroupChats((prev) => [...prev, welcomeMsg]);
+  };
+
+  const handleUpdateGroup = (groupId: string, updates: Partial<FacebookGroup>) => {
+    setGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g))
+    );
+  };
+
+  const handleAddUserToGroup = (groupId: string, userName: string) => {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId && !g.members.includes(userName)) {
+          return {
+            ...g,
+            members: [...g.members, userName],
+            pendingRequests: g.pendingRequests.filter((u) => u !== userName),
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleRemoveUserFromGroup = (groupId: string, userName: string) => {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            members: g.members.filter((m) => m !== userName),
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleRequestJoinGroup = (groupId: string) => {
+    const currentName = userProfile.name;
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId) {
+          if (g.privacy === 'public' && !g.requireApproval) {
+            // Join immediately
+            return {
+              ...g,
+              members: [...g.members, currentName],
+            };
+          } else {
+            // Add to pending
+            if (!g.pendingRequests.includes(currentName) && !g.members.includes(currentName)) {
+              return {
+                ...g,
+                pendingRequests: [...g.pendingRequests, currentName],
+              };
+            }
+          }
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleApproveJoinRequest = (groupId: string, userName: string) => {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            members: [...g.members, userName],
+            pendingRequests: g.pendingRequests.filter((u) => u !== userName),
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleDeclineJoinRequest = (groupId: string, userName: string) => {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            pendingRequests: g.pendingRequests.filter((u) => u !== userName),
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleLeaveGroup = (groupId: string) => {
+    const currentName = userProfile.name;
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            members: g.members.filter((m) => m !== currentName && m !== 'You'),
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleSendGroupMessage = (groupId: string, text: string, mediaUrl?: string) => {
+    const newMsg: GroupChatMessage = {
+      id: `gc_${Date.now()}`,
+      groupId,
+      sender: userProfile.name,
+      senderAvatar: userProfile.avatar,
+      text,
+      mediaUrl,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMe: true,
+      reactions: {},
+    };
+
+    setGroupChats((prev) => [...prev, newMsg]);
+
+    // Realistic interactive bot reply from group member
+    const targetGroup = groups.find((g) => g.id === groupId);
+    if (targetGroup) {
+      const otherMembers = targetGroup.members.filter(
+        (m) => m !== userProfile.name && m !== 'You' && m !== 'System'
+      );
+      if (otherMembers.length > 0) {
+        const randomMember = otherMembers[Math.floor(Math.random() * otherMembers.length)];
+        setTimeout(() => {
+          const replyTextChoices = [
+            `မင်္ဂလာပါ @${userProfile.name}! Thanks for sharing in ${targetGroup.name}. 👍`,
+            `Great point! Let's discuss this further in our meeting today. 💡`,
+            `Agree with you! Looking forward to the next update. 🔥`,
+            `Thanks for the message! Very helpful info. 👏`,
+          ];
+          const chosenReply = replyTextChoices[Math.floor(Math.random() * replyTextChoices.length)];
+
+          const botMsg: GroupChatMessage = {
+            id: `gc_${Date.now() + 1}`,
+            groupId,
+            sender: randomMember,
+            senderAvatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face`,
+            text: chosenReply,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isMe: false,
+            reactions: {},
+          };
+          setGroupChats((prev) => [...prev, botMsg]);
+        }, 1200);
+      }
+    }
+  };
+
+  const handleToggleGroupReaction = (messageId: string, emoji: string) => {
+    const currentName = userProfile.name;
+    setGroupChats((prev) =>
+      prev.map((msg) => {
+        if (msg.id === messageId) {
+          const currentReactions = { ...(msg.reactions || {}) };
+          const usersForEmoji = currentReactions[emoji] || [];
+          const hasReacted = usersForEmoji.includes(currentName);
+
+          if (hasReacted) {
+            currentReactions[emoji] = usersForEmoji.filter((u) => u !== currentName);
+            if (currentReactions[emoji].length === 0) {
+              delete currentReactions[emoji];
+            }
+          } else {
+            currentReactions[emoji] = [...usersForEmoji, currentName];
+          }
+
+          return {
+            ...msg,
+            reactions: currentReactions,
+          };
+        }
+        return msg;
+      })
+    );
+  };
+
+  const handleOpenGroupChat = (groupId: string) => {
+    setActiveGroupId(groupId);
+    setCurrentTab('chat');
   };
 
   // Toggle post like
@@ -1131,6 +1404,18 @@ export default function App() {
                   setActiveRoomToken(activeRoomToken || rooms[0]?.token || 'MEET-001');
                   setCurrentTab('meetings');
                 }}
+                groups={groups}
+                activeGroupId={activeGroupId}
+                onSelectGroup={(id) => id && setActiveGroupId(id)}
+                onCreateGroup={handleCreateGroup}
+                onUpdateGroup={handleUpdateGroup}
+                onAddUserToGroup={handleAddUserToGroup}
+                onRemoveUserFromGroup={handleRemoveUserFromGroup}
+                onRequestJoinGroup={handleRequestJoinGroup}
+                onApproveJoinRequest={handleApproveJoinRequest}
+                onDeclineJoinRequest={handleDeclineJoinRequest}
+                onLeaveGroup={handleLeaveGroup}
+                onOpenGroupChat={handleOpenGroupChat}
               />
             )}
 
@@ -1141,6 +1426,24 @@ export default function App() {
                 activeRoomToken={activeRoomToken}
                 onSendMessage={handleSendMessage}
                 onJumpToMeeting={handleJoinMeeting}
+                groups={groups}
+                activeGroupId={activeGroupId}
+                onSelectGroup={(id) => setActiveGroupId(id)}
+                groupChats={groupChats}
+                currentUser={userProfile}
+                onSendGroupMessage={handleSendGroupMessage}
+                onToggleGroupReaction={handleToggleGroupReaction}
+                onUpdateGroup={handleUpdateGroup}
+                onAddUserToGroup={handleAddUserToGroup}
+                onRemoveUserFromGroup={handleRemoveUserFromGroup}
+                onApproveRequest={handleApproveJoinRequest}
+                onDeclineRequest={handleDeclineJoinRequest}
+                onLeaveGroup={handleLeaveGroup}
+                onCreateGroup={handleCreateGroup}
+                onGoToGroupPosts={(groupId) => {
+                  setActiveGroupId(groupId);
+                  setCurrentTab('posts');
+                }}
               />
             )}
 

@@ -70,6 +70,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [videoErrorMap, setVideoErrorMap] = useState<Record<string, boolean>>({});
+  const [loadedVideos, setLoadedVideos] = useState<Record<string, boolean>>({});
 
   // New Short Upload / Record State
   const [shortCaption, setShortCaption] = useState('');
@@ -79,10 +80,49 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [isRecordingWebcam, setIsRecordingWebcam] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
+  const [uploadedThumbnail, setUploadedThumbnail] = useState<string | null>(null);
+  const [isExtractingThumbnail, setIsExtractingThumbnail] = useState(false);
   const webcamVideoRef = useRef<HTMLVideoElement | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const recordingTimerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Smooth Thumbnail Extractor from uploaded video file or stream
+  const extractThumbnailFromVideo = (videoSrc: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const tempVideo = document.createElement('video');
+      tempVideo.src = videoSrc;
+      tempVideo.crossOrigin = 'anonymous';
+      tempVideo.muted = true;
+      tempVideo.playsInline = true;
+      tempVideo.currentTime = 0.5;
+
+      const capture = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = tempVideo.videoWidth || 360;
+          canvas.height = tempVideo.videoHeight || 640;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            resolve(dataUrl);
+            return;
+          }
+        } catch {
+          // Cross-origin fallback
+        }
+        resolve('');
+      };
+
+      tempVideo.onloadeddata = () => {
+        tempVideo.currentTime = 0.5;
+      };
+      tempVideo.onseeked = capture;
+      tempVideo.onerror = () => resolve('');
+      setTimeout(() => resolve(''), 1200);
+    });
+  };
 
   // Touch Swipe State for Mobile / Tablet TikTok gestures
   const touchStartY = useRef<number>(0);
@@ -209,16 +249,27 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       webcamStreamRef.current = null;
     }
     setIsRecordingWebcam(false);
-    setUploadedVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+    const recordedVideo = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+    const recordedThumb = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=720&h=1280&fit=crop';
+    setUploadedVideoUrl(recordedVideo);
+    setUploadedThumbnail(recordedThumb);
     showToast('30s Short recorded successfully! Ready to publish.');
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setUploadedVideoUrl(url);
+      setIsExtractingThumbnail(true);
       showToast(`Video selected: ${file.name}`);
+      const thumb = await extractThumbnailFromVideo(url);
+      if (thumb) {
+        setUploadedThumbnail(thumb);
+      } else {
+        setUploadedThumbnail('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&h=1280&fit=crop');
+      }
+      setIsExtractingThumbnail(false);
     }
   };
 
@@ -232,6 +283,13 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     const room = isMeetingLinked ? rooms.find((r) => r.token === selectedMeetingToken) : null;
     const tagsArray = shortTags.split(/\s+/).filter((t) => t.startsWith('#'));
 
+    const finalVideoUrl =
+      uploadedVideoUrl ||
+      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4';
+    const finalThumbnailUrl =
+      uploadedThumbnail ||
+      'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=720&h=1280&fit=crop';
+
     onCreateShort({
       meetingToken: isMeetingLinked ? selectedMeetingToken : '',
       meetingTitle: isMeetingLinked ? (room?.title || 'Live Meeting Discussion') : undefined,
@@ -239,7 +297,8 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       author: userProfile.name,
       handle: userProfile.handle,
       avatar: userProfile.avatar,
-      videoUrl: uploadedVideoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+      videoUrl: finalVideoUrl,
+      thumbnailUrl: finalThumbnailUrl,
       duration: 30,
       tags: tagsArray.length > 0 ? tagsArray : ['#30sShort', '#LiveRoom'],
       musicTrack: `Original Sound - ${userProfile.name} 🎵`,
@@ -251,7 +310,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     setIsCreateModalOpen(false);
     setShortCaption('');
     setUploadedVideoUrl(null);
+    setUploadedThumbnail(null);
     setRecordingSeconds(0);
+    setActiveIndex(0);
     showToast(`Published ${shortVisibility === 'private' ? '🔒 Private' : '🌐 Public'} Short to Feed & Profile Posts!`);
   };
 
@@ -407,18 +468,47 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         {activeShort ? (
           <div
             key={activeShort.id}
-            className="relative w-full h-full max-w-md mx-auto sm:rounded-2xl overflow-hidden bg-black shadow-lg border-0 sm:border border-neutral-200 flex items-center justify-center"
+            className="relative w-full h-full max-w-md mx-auto sm:rounded-2xl overflow-hidden bg-neutral-900 shadow-lg border-0 sm:border border-neutral-200 flex items-center justify-center"
           >
-            {/* Real Video Element */}
+            {/* Instant Poster & Backdrop (Prevents black screen flash while video buffers or begins) */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+              <img
+                src={
+                  activeShort.thumbnailUrl ||
+                  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=720&h=1280&fit=crop'
+                }
+                alt={activeShort.title}
+                className="w-full h-full object-cover filter blur-xs scale-105"
+              />
+              <div className="absolute inset-0 bg-black/10" />
+            </div>
+
+            {/* Subtle floating buffer indicator when stream is first connecting */}
+            {!loadedVideos[activeShort.id] && !videoErrorMap[activeShort.id] && (
+              <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[10px] font-semibold pointer-events-none animate-pulse shadow-md">
+                <Sparkles className="w-3 h-3 text-purple-300 animate-spin" />
+                <span>Buffering stream...</span>
+              </div>
+            )}
+
+            {/* Real Video Element with smooth presentation */}
             {!videoErrorMap[activeShort.id] ? (
               <video
                 ref={videoRef}
                 src={activeShort.videoUrl}
-                className="w-full h-full object-cover cursor-pointer"
+                poster={activeShort.thumbnailUrl}
+                preload="auto"
+                className="relative z-1 w-full h-full object-cover cursor-pointer"
                 autoPlay
                 playsInline
                 loop
                 muted={isMuted}
+                onLoadedData={() => {
+                  setLoadedVideos((prev) => ({ ...prev, [activeShort.id]: true }));
+                }}
+                onCanPlay={() => {
+                  setLoadedVideos((prev) => ({ ...prev, [activeShort.id]: true }));
+                }}
                 onClick={() => setIsPlaying(!isPlaying)}
                 onError={() => {
                   setVideoErrorMap((prev) => ({ ...prev, [activeShort.id]: true }));
@@ -909,21 +999,39 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   </button>
                 </div>
               ) : uploadedVideoUrl ? (
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full bg-neutral-900 flex items-center justify-center">
+                  {uploadedThumbnail && (
+                    <img
+                      src={uploadedThumbnail}
+                      alt="Thumbnail preview"
+                      className="absolute inset-0 w-full h-full object-cover filter blur-xs scale-105"
+                    />
+                  )}
                   <video
                     src={uploadedVideoUrl}
-                    className="w-full h-full object-cover"
+                    poster={uploadedThumbnail || undefined}
+                    className="relative z-1 w-full h-full object-cover"
                     autoPlay
                     loop
                     muted
+                    playsInline
                   />
-                  <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  {isExtractingThumbnail && (
+                    <div className="absolute inset-0 z-2 bg-black/50 backdrop-blur-xs flex items-center justify-center gap-1.5 text-white text-[11px] font-semibold">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-spin" />
+                      <span>Optimizing preview...</span>
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 z-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                     <CheckCircle2 className="w-3 h-3" /> Ready
                   </div>
                   <button
                     type="button"
-                    onClick={() => setUploadedVideoUrl(null)}
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-white/90 text-neutral-900 text-[10px] font-semibold px-3 py-1 rounded-full hover:bg-white transition cursor-pointer border border-neutral-300 shadow-md"
+                    onClick={() => {
+                      setUploadedVideoUrl(null);
+                      setUploadedThumbnail(null);
+                    }}
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 z-3 bg-white/95 text-neutral-900 text-[10px] font-semibold px-3 py-1 rounded-full hover:bg-white transition cursor-pointer border border-neutral-300 shadow-md active:scale-95"
                   >
                     Change Video
                   </button>

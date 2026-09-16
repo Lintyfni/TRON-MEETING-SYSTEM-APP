@@ -67,6 +67,42 @@ export interface PostItem {
   videoDuration?: string;
   title?: string;
   isBookmarked?: boolean;
+  groupId?: string;
+  groupName?: string;
+  mediaUrl?: string;
+}
+
+export interface FacebookGroup {
+  id: string;
+  name: string;
+  description: string;
+  coverImage: string;
+  avatar: string;
+  category: string;
+  privacy: 'public' | 'private';
+  requiresApproval?: boolean;
+  requireApproval?: boolean;
+  admin: string;
+  members: string[];
+  pendingRequests: string[];
+  chatTheme?: 'default' | 'ocean' | 'berry' | 'sunset' | 'emerald';
+  theme?: string;
+  createdAt: string;
+  linkedMeetingToken?: string;
+}
+
+export interface GroupChatMessage {
+  id: string;
+  groupId: string;
+  sender: string;
+  senderAvatar?: string;
+  message?: string;
+  text?: string;
+  time?: string;
+  timestamp?: string;
+  isMe?: boolean;
+  reactions?: Record<string, string[]>;
+  mediaUrl?: string;
 }
 
 export interface ShortVideoItem {
@@ -78,6 +114,7 @@ export interface ShortVideoItem {
   handle: string;
   avatar: string;
   videoUrl: string;
+  thumbnailUrl?: string;
   duration: number; // in seconds (e.g. 30)
   tags: string[];
   likes: number;
