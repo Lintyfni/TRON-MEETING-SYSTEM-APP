@@ -10,9 +10,13 @@ import {
   Video,
   Users,
   Plus,
+  ChevronDown,
+  Check,
+  Layers,
 } from 'lucide-react';
 import { ChatMessage, MeetingRoom, FacebookGroup, GroupChatMessage, UserProfile } from '../types';
 import { GroupMessengerChat } from './GroupMessengerChat';
+import { AllChatsList } from './AllChatsList';
 import { CreateGroupModal } from './CreateGroupModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
 
@@ -62,13 +66,29 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
   onCreateGroup,
   onGoToGroupPosts,
 }) => {
-  const [chatMode, setChatMode] = useState<'groups' | 'rooms'>('groups');
+  const [chatMode, setChatMode] = useState<'groups' | 'rooms' | 'all'>('groups');
   const [selectedRoomFilter, setSelectedRoomFilter] = useState<string>(activeRoomToken || 'ALL');
   const [directUser, setDirectUser] = useState<string | null>(null);
   const [inputText, setInputText] = useState<string>('');
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [groupForSettings, setGroupForSettings] = useState<FacebookGroup | null>(null);
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+  const [isRoomFilterDropdownOpen, setIsRoomFilterDropdownOpen] = useState(false);
+  const [selectedGroupIdState, setSelectedGroupIdState] = useState<string>(activeGroupId || groups[0]?.id || '');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (activeGroupId) {
+      setSelectedGroupIdState(activeGroupId);
+    } else if (!selectedGroupIdState && groups.length > 0) {
+      setSelectedGroupIdState(groups[0].id);
+    }
+  }, [activeGroupId, groups]);
+
+  const currentActiveGroup = groups.find((g) => g.id === (selectedGroupIdState || activeGroupId)) || groups[0];
+  const totalPendingRequests = groups.reduce((acc, g) => acc + (g.pendingRequests?.length || 0), 0);
+  const myGroupsCount = groups.filter((g) => g.members.includes(currentUser?.name || 'Aung Myint') || g.members.includes('You')).length;
+  const notiCount = totalPendingRequests > 0 ? totalPendingRequests : myGroupsCount;
 
   // Auto-scroll when messages update
   useEffect(() => {
@@ -121,102 +141,190 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
       id="meeting-chat-screen"
       className="w-full h-full bg-neutral-50 flex flex-col overflow-hidden text-neutral-900 animate-in fade-in duration-200"
     >
-      {/* 1. Top Header with Mode Selector */}
-      <header className="px-3 py-2 bg-white border-b border-neutral-200 flex items-center justify-between gap-1.5 shrink-0 shadow-2xs">
-        {/* Left: Mode Switcher (Groups vs Rooms) */}
-        <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80 shrink-0">
-          <button
-            type="button"
-            onClick={() => setChatMode('groups')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              chatMode === 'groups'
-                ? 'bg-purple-600 text-white shadow-2xs'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5 shrink-0" />
-            <span>Groups</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold text-white ${
-                chatMode === 'groups' ? 'bg-white/25' : 'bg-purple-600'
-              }`}
-            >
-              {groups.filter((g) => g.members.includes(currentUser?.name || 'Aung Myint') || g.members.includes('You')).length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setChatMode('rooms')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              chatMode === 'rooms'
-                ? 'bg-purple-600 text-white shadow-2xs'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-            <span>Rooms</span>
-          </button>
-        </div>
-
-        {/* Right Header Actions */}
-        {chatMode === 'rooms' ? (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="relative flex items-center">
-              <select
-                id="select-chat-token-filter"
-                value={selectedRoomFilter}
-                onChange={(e) => {
-                  setSelectedRoomFilter(e.target.value);
-                  setDirectUser(null);
-                }}
-                className="bg-white border border-neutral-200 rounded-xl h-8 pl-2.5 pr-6 text-xs text-purple-700 font-semibold focus:outline-none focus:border-purple-500 appearance-none cursor-pointer shadow-2xs max-w-[92px] truncate"
-              >
-                <option value="ALL" className="bg-white text-neutral-900">
-                  All Tokens
-                </option>
-                {rooms.map((r) => (
-                  <option key={r.id} value={r.token} className="bg-white text-purple-700 font-medium">
-                    {r.token}
-                  </option>
-                ))}
-              </select>
-              <Filter className="w-3 h-3 text-purple-600 absolute right-2 pointer-events-none" />
-            </div>
-
-            {onJumpToMeeting && (
-              <button
-                type="button"
-                id="btn-chat-goto-meeting"
-                onClick={() => onJumpToMeeting(selectedRoomFilter === 'ALL' ? activeRoomToken : selectedRoomFilter)}
-                className="h-8 px-2.5 rounded-xl bg-neutral-100 hover:bg-purple-50 text-neutral-700 hover:text-purple-700 hover:border-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-neutral-200 transition shadow-2xs cursor-pointer shrink-0"
-                title="Go to Live Meeting"
-              >
-                <Video className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                <span>Meet</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-1.5 shrink-0">
+      {/* 1. Top Header with Centered Equal-Sized Mode Switcher (Groups / Rooms / All Chats) */}
+      <header className="px-3 py-2 bg-white border-b border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
+        {/* Centered Mode Switcher - 3 Equal Size & Symmetrical Buttons */}
+        <div className="w-full max-w-sm sm:max-w-md flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
+          {/* Groups Tab with Dropdown Filter */}
+          <div className="flex-1 relative">
             <button
               type="button"
-              onClick={() => setIsCreateGroupModalOpen(true)}
-              className="h-8 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs shrink-0 cursor-pointer"
+              id="btn-group-dropdown-filter"
+              onClick={() => {
+                setChatMode('groups');
+                setIsGroupDropdownOpen((prev) => !prev);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                chatMode === 'groups'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+              title="Click to Filter Groups"
             >
-              <Plus className="w-3.5 h-3.5 shrink-0" />
-              <span>Create Group</span>
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>Groups</span>
+              {notiCount > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black text-white shrink-0 ${
+                    chatMode === 'groups' ? 'bg-white/25' : 'bg-purple-600'
+                  }`}
+                >
+                  {notiCount}
+                </span>
+              )}
+              <ChevronDown
+                className={`w-3 h-3 shrink-0 transition-transform duration-150 ${
+                  isGroupDropdownOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {/* Dropdown Menu - Line by Line Group Names */}
+            {isGroupDropdownOpen && (
+              <>
+                {/* Backdrop to close when clicking outside */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsGroupDropdownOpen(false)}
+                />
+
+                <div className="absolute left-0 sm:-left-4 top-full mt-2 w-72 sm:w-80 max-h-84 bg-white rounded-2xl shadow-2xl border border-neutral-200 z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* Dropdown Header */}
+                  <div className="px-3.5 py-2.5 bg-neutral-50 border-b border-neutral-100 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
+                      <Filter className="w-3 h-3 text-purple-600" />
+                      Select Group
+                    </span>
+                    <span className="text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/60">
+                      {groups.length} groups
+                    </span>
+                  </div>
+
+                  {/* Groups List (Line by Line) */}
+                  <div className="overflow-y-auto max-h-60 py-1 divide-y divide-neutral-100">
+                    {groups.map((grp) => {
+                      const isSelected = grp.id === currentActiveGroup?.id;
+                      const pendingCount = grp.pendingRequests?.length || 0;
+
+                      return (
+                        <button
+                          key={grp.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroupIdState(grp.id);
+                            if (onSelectGroup) onSelectGroup(grp.id);
+                            setChatMode('groups');
+                            setIsGroupDropdownOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2.5 text-left flex items-center gap-2.5 transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-purple-50 text-purple-900 font-bold'
+                              : 'hover:bg-neutral-50 text-neutral-800'
+                          }`}
+                        >
+                          <img
+                            src={grp.avatar}
+                            alt={grp.name}
+                            className="w-8 h-8 rounded-full object-cover border border-purple-200 shrink-0 shadow-2xs"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-xs truncate font-bold text-neutral-900">
+                                {grp.name}
+                              </span>
+                              {isSelected && (
+                                <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 mt-0.5">
+                              <span>{grp.members.length} members</span>
+                              <span>·</span>
+                              <span className="capitalize">{grp.privacy}</span>
+                              {pendingCount > 0 && (
+                                <span className="ml-auto text-[9px] px-1.5 py-0.2 rounded-full bg-red-500 text-white font-black shrink-0">
+                                  {pendingCount} new
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Create New Group Option at bottom */}
+                  <div className="p-2 border-t border-neutral-100 bg-neutral-50/70">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGroupDropdownOpen(false);
+                        setIsCreateGroupModalOpen(true);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-sm"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Create New Group</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Rooms Tab - Equal Size */}
+          <div className="flex-1">
+            <button
+              type="button"
+              id="btn-chat-mode-rooms"
+              onClick={() => {
+                setChatMode('rooms');
+                setIsGroupDropdownOpen(false);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                chatMode === 'rooms'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+              <span>Rooms</span>
             </button>
           </div>
-        )}
+
+          {/* All Chats Tab - Equal Size */}
+          <div className="flex-1">
+            <button
+              type="button"
+              id="btn-chat-mode-all"
+              onClick={() => {
+                setChatMode('all');
+                setIsGroupDropdownOpen(false);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                chatMode === 'all'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span>All Chats</span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* 2. CHAT CONTENT BASED ON MODE */}
       {chatMode === 'groups' ? (
         <GroupMessengerChat
           groups={groups}
-          activeGroupId={activeGroupId || groups[0]?.id || ''}
-          onSelectGroup={(id) => onSelectGroup && onSelectGroup(id)}
+          activeGroupId={selectedGroupIdState || activeGroupId || groups[0]?.id || ''}
+          onSelectGroup={(id) => {
+            setSelectedGroupIdState(id);
+            if (onSelectGroup) onSelectGroup(id);
+          }}
           groupChats={groupChats}
           currentUser={currentUser}
           onSendGroupMessage={(groupId, text, mediaUrl) =>
@@ -231,47 +339,163 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
           onGoToGroupPosts={onGoToGroupPosts}
           onAddUserToGroup={onAddUserToGroup}
         />
+      ) : chatMode === 'all' ? (
+        <AllChatsList
+          groups={groups}
+          rooms={rooms}
+          groupChats={groupChats}
+          roomChats={chats}
+          currentUser={currentUser}
+          onOpenGroup={(groupId) => {
+            setSelectedGroupIdState(groupId);
+            if (onSelectGroup) onSelectGroup(groupId);
+            setChatMode('groups');
+          }}
+          onOpenRoom={(roomToken) => {
+            setSelectedRoomFilter(roomToken);
+            setDirectUser(null);
+            setChatMode('rooms');
+          }}
+        />
       ) : (
         /* Room Chats Stream */
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Direct 1-on-1 Participant Selector Chips */}
-          <div className="px-4 py-2 bg-white border-b border-neutral-200 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
-            <span className="text-[11px] font-semibold text-neutral-500 shrink-0 mr-1">
-              Chat with:
-            </span>
-            <button
-              type="button"
-              onClick={() => setDirectUser(null)}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition ${
-                !directUser
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs'
-                  : 'bg-neutral-100 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200 border border-neutral-200/60'
-              }`}
-            >
-              # Room Chat
-            </button>
-            {participants
-              .filter((user) => user !== 'Me')
-              .map((user) => {
-                const isSelected = directUser === user;
-                return (
-                  <button
-                    key={user}
-                    type="button"
-                    onClick={() => setDirectUser(user)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs'
-                        : 'bg-neutral-100 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-200 border border-neutral-200/60'
-                    }`}
-                  >
-                    <div className="w-3.5 h-3.5 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center text-[9px] font-bold">
-                      {user[0]}
+          {/* Full-width All Room Filter Bar with long readable title */}
+          <div className="px-3 py-2 bg-white border-b border-neutral-200 shrink-0 shadow-2xs">
+            <div className="relative w-full">
+              <button
+                type="button"
+                id="btn-all-room-filter-fullwidth"
+                onClick={() => setIsRoomFilterDropdownOpen((prev) => !prev)}
+                className="w-full min-h-[42px] px-3.5 py-1.5 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100/80 hover:border-purple-300 focus:bg-white flex items-center justify-between gap-3 transition cursor-pointer shadow-2xs text-left"
+                title="Click to select or change room filter"
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0 border border-purple-200">
+                    <Filter className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-neutral-900 truncate">
+                        {selectedRoomFilter === 'ALL'
+                          ? `All Room (Combined Public Feed Across ${rooms.length} Rooms)`
+                          : `#${selectedRoomFilter} • ${activeRoomObj?.title || 'Meeting Room'}`}
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-100 text-purple-800 shrink-0">
+                        {selectedRoomFilter === 'ALL'
+                          ? 'Public Feed'
+                          : `${activeRoomObj?.participants.length || 0} Members`}
+                      </span>
                     </div>
-                    <span>@{user}</span>
-                  </button>
-                );
-              })}
+                    <p className="text-[10px] text-neutral-500 truncate mt-0.5">
+                      {selectedRoomFilter === 'ALL'
+                        ? 'Showing public messages across all rooms • Click to choose a specific room'
+                        : `Viewing messages for #${selectedRoomFilter} (${activeRoomObj?.participants.length || 0} active participants) • Click to switch`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 text-neutral-400 pl-2">
+                  <ChevronDown
+                    className={`w-4 h-4 text-neutral-500 transition-transform duration-150 ${
+                      isRoomFilterDropdownOpen ? 'rotate-180 text-purple-600' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Full-width All Room Filter Dropdown */}
+              {isRoomFilterDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsRoomFilterDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1.5 w-full bg-white rounded-2xl shadow-xl border border-neutral-200 z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-150 max-h-72 flex flex-col">
+                    <div className="px-3.5 py-2 bg-neutral-50 border-b border-neutral-100 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Filter className="w-3 h-3 text-purple-600" />
+                        Choose Room Filter
+                      </span>
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/60">
+                        {rooms.length} Rooms
+                      </span>
+                    </div>
+
+                    <div className="overflow-y-auto py-1 divide-y divide-neutral-100">
+                      {/* Option 1: All Room */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRoomFilter('ALL');
+                          setDirectUser(null);
+                          setIsRoomFilterDropdownOpen(false);
+                        }}
+                        className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                          selectedRoomFilter === 'ALL'
+                            ? 'bg-purple-50 text-purple-900 font-bold'
+                            : 'hover:bg-neutral-50 text-neutral-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                            <MessageSquare className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-neutral-900">All Room</div>
+                            <div className="text-[10px] text-neutral-500 truncate">
+                              Combined public feed across all {rooms.length} active meeting rooms
+                            </div>
+                          </div>
+                        </div>
+                        {selectedRoomFilter === 'ALL' && (
+                          <Check className="w-4 h-4 text-purple-600 shrink-0 ml-2" />
+                        )}
+                      </button>
+
+                      {/* Option 2..N: Individual Rooms */}
+                      {rooms.map((r) => {
+                        const isSelected = selectedRoomFilter === r.token;
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRoomFilter(r.token);
+                              setDirectUser(null);
+                              setIsRoomFilterDropdownOpen(false);
+                            }}
+                            className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-purple-50 text-purple-900 font-bold'
+                                : 'hover:bg-neutral-50 text-neutral-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-7 h-7 rounded-xl bg-neutral-100 text-purple-600 flex items-center justify-center font-mono font-bold text-xs shrink-0 border border-neutral-200">
+                                #
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-bold text-neutral-900 flex items-center gap-1.5 truncate">
+                                  <span className="font-mono text-purple-700 font-bold">{r.token}</span>
+                                  {r.title && <span className="truncate">• {r.title}</span>}
+                                </div>
+                                <div className="text-[10px] text-neutral-500 truncate">
+                                  {r.participants.length} participants active • {r.type || 'Meeting'}
+                                </div>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-purple-600 shrink-0 ml-2" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Active 1:1 Direct Chat Banner */}

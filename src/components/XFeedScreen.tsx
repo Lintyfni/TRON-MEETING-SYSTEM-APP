@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
   List,
   LayoutGrid,
+  ChevronDown,
 } from 'lucide-react';
 import { CreateGroupModal } from './CreateGroupModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
@@ -89,8 +90,13 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   onLeaveGroup,
   onOpenGroupChat,
 }) => {
-  const [activeTab, setActiveTab] = useState<'feed' | 'groups'>('feed');
-  const [selectedTokenFilter, setSelectedTokenFilter] = useState<string>('All');
+  const [postMode, setPostMode] = useState<'groups' | 'rooms' | 'all'>('all');
+  const [selectedRoomFilter, setSelectedRoomFilter] = useState<string>('ALL');
+  const [isRoomFilterDropdownOpen, setIsRoomFilterDropdownOpen] = useState<boolean>(false);
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState<boolean>(false);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('ALL');
+  const [groupSubView, setGroupSubView] = useState<'feed' | 'directory'>('feed');
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedPostToken, setSelectedPostToken] = useState<string>(
     rooms[0]?.token || '#MEET-9021'
@@ -114,6 +120,25 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   const [groupPostInput, setGroupPostInput] = useState('');
 
   const currentUserName = currentUser?.name || 'Aung Myint';
+  const totalPendingRequests = groups.reduce((acc, g) => acc + (g.pendingRequests?.length || 0), 0);
+  const myGroupsCount = groups.filter(
+    (g) => g.members.includes(currentUser?.name || 'Aung Myint') || g.members.includes('You')
+  ).length;
+  const notiCount = totalPendingRequests > 0 ? totalPendingRequests : myGroupsCount;
+
+  // Active room object based on selectedRoomFilter
+  const activeRoomObj = rooms.find(
+    (r) => r.token.toUpperCase() === selectedRoomFilter.toUpperCase()
+  );
+
+  // Sync activeGroupId if passed
+  React.useEffect(() => {
+    if (activeGroupId) {
+      setSelectedGroupId(activeGroupId);
+      setSelectedGroupFilter(activeGroupId);
+      setPostMode('groups');
+    }
+  }, [activeGroupId]);
 
   // Handle passed initial post text from Granola Notes
   React.useEffect(() => {
@@ -128,13 +153,33 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
       onGoToMeeting();
     } else if (onSelectMeetingToken) {
       const targetToken =
-        selectedTokenFilter === 'All' ? rooms[0]?.token || 'MEET-001' : selectedTokenFilter;
+        selectedRoomFilter === 'ALL' ? rooms[0]?.token || 'MEET-001' : selectedRoomFilter;
       onSelectMeetingToken(targetToken);
     }
   };
 
   const filteredPosts = posts
-    .filter((p) => (selectedTokenFilter === 'All' ? true : p.meetingToken === selectedTokenFilter))
+    .filter((p) => {
+      if (postMode === 'groups') {
+        // Group post filter
+        if (!p.groupId) return false;
+        if (selectedGroupFilter !== 'ALL' && p.groupId !== selectedGroupFilter) return false;
+        return true;
+      }
+      if (postMode === 'rooms') {
+        // Room post filter
+        if (!p.meetingToken) return false;
+        if (
+          selectedRoomFilter !== 'ALL' &&
+          p.meetingToken.toUpperCase() !== selectedRoomFilter.toUpperCase()
+        ) {
+          return false;
+        }
+        return true;
+      }
+      // 'all': Show all posts
+      return true;
+    })
     .filter((p) => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
@@ -227,103 +272,461 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
     setCommentInput((prev) => ({ ...prev, [postId]: '' }));
   };
 
-  return (
-    <div id="xfeed-screen" className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden">
-      {/* 1. APP BAR */}
-      <div className="sticky top-0 z-20 bg-white border-b border-neutral-200 px-3 py-2 flex items-center justify-between gap-1.5 shadow-2xs">
-        {/* Left: Feed / Groups Switcher Tabs */}
-        <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-xl border border-neutral-200/80 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('feed');
-              setSelectedGroupId(null);
-            }}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'feed'
-                ? 'bg-purple-600 text-white shadow-2xs'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5 shrink-0" />
-            <span>Posts</span>
-          </button>
+  // Reusable Post Item Card renderer for Groups, Rooms, and All Posts
+  const renderPostItem = (post: PostItem) => {
+    const isLiked = post.isLiked || false;
+    const likesCount = post.likes || 0;
+    const isReposted = post.isReposted || false;
+    const repostsCount = post.reposts || 0;
+    const commentsCount = (post.comments ? post.comments.length : post.replies) || 0;
+    const isCommentsOpen = expandedCommentsPostId === post.id;
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('groups')}
-            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'groups'
-                ? 'bg-purple-600 text-white shadow-2xs'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5 shrink-0" />
-            <span>Groups</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold text-white ${
-                activeTab === 'groups' ? 'bg-white/25' : 'bg-purple-600'
-              }`}
-            >
-              {groups.filter((g) => g.members.includes(currentUserName) || g.members.includes('You')).length}
+    return (
+      <article
+        key={post.id}
+        id={`post-item-${post.id}`}
+        className="p-4 hover:bg-neutral-50/80 transition duration-150 flex flex-col bg-white"
+      >
+        {/* Repost Header if applicable */}
+        {post.repostedByUser && (
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-semibold mb-2 pl-9">
+            <Repeat className="w-3.5 h-3.5 text-emerald-600" />
+            <span>
+              {currentUser && currentUser.name === post.repostedByUser
+                ? 'You reposted'
+                : `${post.repostedByUser} reposted`}
             </span>
-          </button>
-        </div>
+          </div>
+        )}
 
-        {/* Right Action Bar */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {activeTab === 'feed' ? (
-            <>
-              {/* Token Filter Dropdown */}
-              <div className="relative flex items-center">
-                <select
-                  id="select-token-filter"
-                  value={selectedTokenFilter}
-                  onChange={(e) => setSelectedTokenFilter(e.target.value)}
-                  className="bg-white border border-neutral-200 rounded-xl h-8 pl-2.5 pr-6 text-xs text-purple-700 font-semibold focus:outline-none focus:border-purple-500 appearance-none cursor-pointer shadow-2xs max-w-[92px] truncate"
-                >
-                  <option value="All" className="bg-white text-neutral-900">
-                    All Tokens
-                  </option>
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.token} className="bg-white text-purple-700 font-medium">
-                      {r.token}
-                    </option>
-                  ))}
-                </select>
-                <Filter className="w-3 h-3 text-purple-600 absolute right-2 pointer-events-none" />
+        {/* Author Row */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+              {post.author[0]}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-sm text-neutral-900 truncate">{post.author}</span>
+                <span className="text-[11px] text-neutral-500">· {post.timestamp}</span>
+                {/* Visibility Badge */}
+                {post.visibility === 'private' ? (
+                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-neutral-600 bg-neutral-100 px-1.5 py-0.2 rounded-md border border-neutral-200">
+                    <Lock className="w-2.5 h-2.5 text-neutral-500" />
+                    Private
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md border border-purple-200">
+                    <Globe className="w-2.5 h-2.5 text-purple-600" />
+                    Public
+                  </span>
+                )}
               </div>
+              <span className="text-[11px] text-neutral-500">
+                @{post.author.replace(/\s+/g, '').toLowerCase()}
+              </span>
+            </div>
+          </div>
 
-              {/* Go to Meeting */}
-              <button
-                type="button"
-                id="btn-post-goto-meeting"
-                onClick={handleGoToMeeting}
-                className="h-8 px-2.5 rounded-xl bg-neutral-100 hover:bg-purple-50 text-neutral-700 hover:text-purple-700 hover:border-purple-300 text-xs font-semibold flex items-center gap-1.5 border border-neutral-200 transition shadow-2xs cursor-pointer shrink-0"
-                title="Go to Live Meeting"
-              >
-                <Video className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                <span>Meet</span>
-              </button>
-            </>
-          ) : (
+          {/* Token Pill */}
+          {post.meetingToken && (
             <button
               type="button"
-              onClick={() => setIsCreateGroupModalOpen(true)}
-              className="h-8 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs shrink-0 cursor-pointer"
+              onClick={() => {
+                setPostMode('rooms');
+                setSelectedRoomFilter(post.meetingToken);
+                onSelectMeetingToken?.(post.meetingToken);
+              }}
+              className="px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-mono text-xs font-semibold hover:bg-purple-100 hover:border-purple-300 transition shrink-0 cursor-pointer"
+              title="Filter by this meeting room"
             >
-              <Plus className="w-3.5 h-3.5 shrink-0" />
-              <span>Create Group</span>
+              {post.meetingToken}
             </button>
           )}
         </div>
-      </div>
+
+        {/* Group Badge if posted inside Facebook Group */}
+        {post.groupName && (
+          <div className="pl-11 mt-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setPostMode('groups');
+                if (post.groupId) {
+                  setSelectedGroupId(post.groupId);
+                  setSelectedGroupFilter(post.groupId);
+                  setGroupSubView('feed');
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold hover:bg-blue-100 transition cursor-pointer"
+              title="View Group"
+            >
+              <Users className="w-3 h-3 text-blue-600" />
+              <span>Group: {post.groupName}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="mt-2.5 text-sm text-neutral-800 leading-relaxed pl-11 whitespace-pre-line">
+          {formatContentWithHashtags(post.content)}
+        </div>
+
+        {/* Post Action Buttons */}
+        <div className="mt-3 flex items-center justify-between text-neutral-500 text-xs pl-11 pr-6 max-w-sm">
+          <button
+            id={`btn-comments-toggle-${post.id}`}
+            type="button"
+            onClick={() =>
+              setExpandedCommentsPostId((prev) => (prev === post.id ? null : post.id))
+            }
+            className={`flex items-center gap-1.5 transition cursor-pointer ${
+              isCommentsOpen ? 'text-purple-600 font-bold' : 'hover:text-purple-600'
+            }`}
+            title="Comments"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>{commentsCount}</span>
+          </button>
+
+          <button
+            id={`btn-repost-${post.id}`}
+            type="button"
+            onClick={() => onToggleRepost?.(post.id)}
+            className={`flex items-center gap-1.5 transition cursor-pointer ${
+              isReposted ? 'text-emerald-600 font-bold' : 'hover:text-emerald-600'
+            }`}
+            title="Repost"
+          >
+            <Repeat className="w-4 h-4" />
+            <span>{repostsCount}</span>
+          </button>
+
+          <button
+            id={`btn-like-${post.id}`}
+            type="button"
+            onClick={() => onToggleLike(post.id)}
+            className={`flex items-center gap-1.5 transition cursor-pointer ${
+              isLiked ? 'text-rose-500 font-bold' : 'hover:text-rose-500'
+            }`}
+            title="Like"
+          >
+            <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
+            <span>{likesCount}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSharePost(post.id)}
+            className="flex items-center gap-1.5 hover:text-purple-600 transition cursor-pointer"
+            title="Share Post"
+          >
+            {copiedPostId === post.id ? (
+              <span className="text-purple-600 font-bold flex items-center gap-1 text-[11px]">
+                <Check className="w-3.5 h-3.5" /> Copied!
+              </span>
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {/* Comments Drawer */}
+        {isCommentsOpen && (
+          <div className="mt-3 pl-11 pr-4 pt-3 border-t border-neutral-100">
+            <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+              {post.comments && post.comments.length > 0 ? (
+                post.comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="p-2.5 rounded-xl bg-neutral-50 border border-neutral-200/60 text-xs"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-neutral-900">{comment.author}</span>
+                      <span className="text-[10px] text-neutral-400">{comment.timestamp}</span>
+                    </div>
+                    <p className="text-neutral-700 leading-relaxed">{comment.content}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-neutral-400 py-1">No comments yet. Be the first to comment!</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={commentInput[post.id] || ''}
+                onChange={(e) =>
+                  setCommentInput((prev) => ({ ...prev, [post.id]: e.target.value }))
+                }
+                onKeyDown={(e) => e.key === 'Enter' && handleSendComment(post.id)}
+                className="flex-1 px-3 py-1.5 text-xs bg-neutral-50 border border-neutral-300 rounded-xl focus:border-purple-600 outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => handleSendComment(post.id)}
+                className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                Reply
+              </button>
+            </div>
+          </div>
+        )}
+      </article>
+    );
+  };
+
+  return (
+    <div id="xfeed-screen" className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden">
+      {/* 1. APP BAR - Centered Equal-Sized Mode Switcher (Groups / Rooms / All Posts) */}
+      <header className="sticky top-0 z-20 bg-white border-b border-neutral-200 px-3 py-2 flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="w-full max-w-sm sm:max-w-md flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
+          {/* Groups Tab with Dropdown Filter */}
+          <div className="flex-1 relative">
+            <button
+              type="button"
+              id="btn-posts-mode-groups"
+              onClick={() => {
+                setPostMode('groups');
+                setIsGroupDropdownOpen((prev) => !prev);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                postMode === 'groups'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+              title="Click to Filter Groups"
+            >
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span>Groups</span>
+              {notiCount > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-black text-white shrink-0 ${
+                    postMode === 'groups' ? 'bg-white/25' : 'bg-purple-600'
+                  }`}
+                >
+                  {notiCount}
+                </span>
+              )}
+              <ChevronDown
+                className={`w-3 h-3 shrink-0 transition-transform duration-150 ${
+                  isGroupDropdownOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+
+            {/* Groups Dropdown Filter Menu */}
+            {isGroupDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsGroupDropdownOpen(false)}
+                />
+                <div className="absolute left-0 sm:-left-4 top-full mt-2 w-72 sm:w-80 max-h-84 bg-white rounded-2xl shadow-2xl border border-neutral-200 z-50 overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-3.5 py-2.5 bg-neutral-50 border-b border-neutral-100 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider flex items-center gap-1.5">
+                      <Filter className="w-3 h-3 text-purple-600" />
+                      Select Group
+                    </span>
+                    <span className="text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/60">
+                      {groups.length} groups
+                    </span>
+                  </div>
+
+                  <div className="overflow-y-auto max-h-60 py-1 divide-y divide-neutral-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedGroupFilter('ALL');
+                        setSelectedGroupId(null);
+                        setGroupSubView('feed');
+                        setPostMode('groups');
+                        setIsGroupDropdownOpen(false);
+                      }}
+                      className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                        selectedGroupFilter === 'ALL' && !selectedGroupId
+                          ? 'bg-purple-50 text-purple-900 font-bold'
+                          : 'hover:bg-neutral-50 text-neutral-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-neutral-900">All Group Posts</div>
+                          <div className="text-[10px] text-neutral-500 truncate">
+                            View posts across all {groups.length} groups
+                          </div>
+                        </div>
+                      </div>
+                      {selectedGroupFilter === 'ALL' && !selectedGroupId && (
+                        <Check className="w-4 h-4 text-purple-600 shrink-0" />
+                      )}
+                    </button>
+
+                    {groups.map((grp) => {
+                      const isSelected = selectedGroupId === grp.id || selectedGroupFilter === grp.id;
+                      return (
+                        <button
+                          key={grp.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroupFilter(grp.id);
+                            setSelectedGroupId(grp.id);
+                            setGroupSubView('feed');
+                            setPostMode('groups');
+                            setIsGroupDropdownOpen(false);
+                          }}
+                          className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                            isSelected
+                              ? 'bg-purple-50 text-purple-900 font-bold'
+                              : 'hover:bg-neutral-50 text-neutral-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img
+                              src={grp.avatar}
+                              alt={grp.name}
+                              className="w-8 h-8 rounded-xl object-cover shrink-0 border border-neutral-200"
+                            />
+                            <div className="min-w-0">
+                              <div className="font-bold text-neutral-900 truncate">{grp.name}</div>
+                              <div className="text-[10px] text-neutral-500 truncate flex items-center gap-1.5">
+                                <span>{grp.members.length} members</span>
+                                <span>·</span>
+                                <span className="text-purple-600">{grp.category}</span>
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-purple-600 shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-2 bg-neutral-50 border-t border-neutral-100 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGroupDropdownOpen(false);
+                        setIsCreateGroupModalOpen(true);
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold flex items-center justify-center gap-1 shadow-2xs cursor-pointer transition"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Create Group</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsGroupDropdownOpen(false);
+                        setSelectedGroupFilter('ALL');
+                        setSelectedGroupId(null);
+                        setGroupSubView('directory');
+                        setPostMode('groups');
+                      }}
+                      className="py-1.5 px-2.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-700 border border-neutral-200 text-[11px] font-semibold flex items-center justify-center gap-1 shadow-2xs cursor-pointer transition"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5 text-neutral-500" />
+                      <span>Explore</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Rooms Tab - Equal Size */}
+          <div className="flex-1">
+            <button
+              type="button"
+              id="btn-posts-mode-rooms"
+              onClick={() => {
+                setPostMode('rooms');
+                setIsGroupDropdownOpen(false);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                postMode === 'rooms'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+            >
+              <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+              <span>Rooms</span>
+            </button>
+          </div>
+
+          {/* All Posts Tab - Equal Size */}
+          <div className="flex-1">
+            <button
+              type="button"
+              id="btn-posts-mode-all"
+              onClick={() => {
+                setPostMode('all');
+                setIsGroupDropdownOpen(false);
+                setIsRoomFilterDropdownOpen(false);
+              }}
+              className={`w-full h-8.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
+                postMode === 'all'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span>All Posts</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* ========================================================= */}
       {/* 2. TAB A: GROUPS VIEW */}
       {/* ========================================================= */}
-      {activeTab === 'groups' && (
-        <div className="flex-1 overflow-y-auto pb-24 bg-neutral-50">
+      {postMode === 'groups' && (
+        <div className="flex-1 overflow-y-auto pb-24 bg-neutral-50 flex flex-col">
+          {/* Subbar for Group Filter & Actions when not in specific group view */}
+          {!currentOpenGroup && (
+            <div className="px-3.5 py-2 bg-white border-b border-neutral-200 shrink-0 flex items-center justify-between gap-2 shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs font-bold text-neutral-800 truncate">
+                  {selectedGroupFilter === 'ALL'
+                    ? `All Group Posts (${groups.length} Groups)`
+                    : groups.find((g) => g.id === selectedGroupFilter)?.name || 'Group Posts'}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                  {selectedGroupFilter === 'ALL' ? 'All Groups' : 'Filtered'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setGroupSubView(groupSubView === 'directory' ? 'feed' : 'directory')}
+                  className={`h-8 px-2.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
+                    groupSubView === 'directory'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-2xs'
+                      : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>{groupSubView === 'directory' ? 'View Feed' : 'Explore Groups'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsCreateGroupModalOpen(true)}
+                  className="h-8 px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Create</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {currentOpenGroup ? (
             /* --- SUBVIEW: SPECIFIC GROUP FEED --- */
             <div className="animate-in fade-in">
@@ -331,7 +734,10 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
               <div className="px-3 py-2 bg-white border-b border-neutral-200 flex items-center justify-between gap-1.5 shadow-2xs">
                 <button
                   type="button"
-                  onClick={() => setSelectedGroupId(null)}
+                  onClick={() => {
+                    setSelectedGroupId(null);
+                    setSelectedGroupFilter('ALL');
+                  }}
                   className="h-8 px-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
@@ -623,7 +1029,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
                 )}
               </div>
             </div>
-          ) : (
+          ) : groupSubView === 'directory' ? (
             /* --- SUBVIEW: GROUP DISCOVERY & SEARCH LIST --- */
             <div className="p-4 space-y-4 max-w-4xl mx-auto animate-in fade-in">
               {/* Search Groups & Action Header */}
@@ -939,15 +1345,247 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
                 </div>
               )}
             </div>
+          ) : (
+            /* --- SUBVIEW: ALL GROUP POSTS FEED --- */
+            <div className="flex-1 divide-y divide-neutral-200 bg-white">
+              {filteredPosts.length === 0 ? (
+                <div className="p-12 text-center text-neutral-500">
+                  <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-3 text-purple-600 border border-purple-100">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-bold text-neutral-800">No group posts found</p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Join groups or create a group post to start discussions!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setGroupSubView('directory')}
+                    className="mt-3.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>Explore Groups</span>
+                  </button>
+                </div>
+              ) : (
+                filteredPosts.map((post) => renderPostItem(post))
+              )}
+            </div>
           )}
         </div>
       )}
 
       {/* ========================================================= */}
-      {/* 3. TAB B: ALL POSTS FEED */}
+      {/* 2. TAB B: ROOMS VIEW */}
       {/* ========================================================= */}
-      {activeTab === 'feed' && (
-        <div className="flex-1 flex flex-col overflow-hidden">
+      {postMode === 'rooms' && (
+        <div className="flex-1 flex flex-col overflow-hidden bg-neutral-50">
+          {/* Full-width Room Filter Bar (အောက်တလိုင်း ရှည်ရှည် All Room dropdown filter bar) */}
+          <div className="w-full px-3 py-2 bg-white border-b border-neutral-200 shrink-0 shadow-2xs">
+            <div className="relative w-full">
+              <button
+                type="button"
+                id="btn-posts-room-filter"
+                onClick={() => {
+                  setIsRoomFilterDropdownOpen((prev) => !prev);
+                  setIsGroupDropdownOpen(false);
+                }}
+                className="w-full min-h-[42px] px-3.5 py-1.5 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-neutral-100/80 hover:border-purple-300 focus:bg-white flex items-center justify-between gap-3 transition cursor-pointer shadow-2xs text-left"
+                title="Click to select or change room filter"
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0 border border-purple-200">
+                    <Filter className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-neutral-900 truncate">
+                        {selectedRoomFilter === 'ALL'
+                          ? `All Room (Combined Posts Across ${rooms.length} Rooms)`
+                          : `#${selectedRoomFilter} • ${activeRoomObj?.title || 'Meeting Room'}`}
+                      </span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-100 text-purple-800 shrink-0">
+                        {selectedRoomFilter === 'ALL'
+                          ? 'All Rooms'
+                          : `${activeRoomObj?.participants.length || 0} Members`}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-neutral-500 truncate mt-0.5">
+                      {selectedRoomFilter === 'ALL'
+                        ? 'Showing posts across all rooms • Click to choose a specific room'
+                        : `Viewing posts for #${selectedRoomFilter} (${activeRoomObj?.participants.length || 0} active participants) • Click to switch`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 text-neutral-400 pl-2">
+                  <ChevronDown
+                    className={`w-4 h-4 text-neutral-500 transition-transform duration-150 ${
+                      isRoomFilterDropdownOpen ? 'rotate-180 text-purple-600' : ''
+                    }`}
+                  />
+                </div>
+              </button>
+
+              {/* Full-width All Room Filter Dropdown */}
+              {isRoomFilterDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsRoomFilterDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1.5 w-full bg-white rounded-2xl shadow-xl border border-neutral-200 z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-150 max-h-72 flex flex-col">
+                    <div className="px-3.5 py-2 bg-neutral-50 border-b border-neutral-100 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Filter className="w-3 h-3 text-purple-600" />
+                        Choose Room Filter
+                      </span>
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/60">
+                        {rooms.length} Rooms
+                      </span>
+                    </div>
+
+                    <div className="overflow-y-auto py-1 divide-y divide-neutral-100">
+                      {/* Option 1: All Room */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRoomFilter('ALL');
+                          setIsRoomFilterDropdownOpen(false);
+                        }}
+                        className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                          selectedRoomFilter === 'ALL'
+                            ? 'bg-purple-50 text-purple-900 font-bold'
+                            : 'hover:bg-neutral-50 text-neutral-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                            <MessageSquare className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-neutral-900">All Room (အခန်းပေါင်းစုံ)</div>
+                            <div className="text-[10px] text-neutral-500 truncate">
+                              Combined posts across all {rooms.length} active meeting rooms
+                            </div>
+                          </div>
+                        </div>
+                        {selectedRoomFilter === 'ALL' && (
+                          <Check className="w-4 h-4 text-purple-600 shrink-0 ml-2" />
+                        )}
+                      </button>
+
+                      {/* Option 2..N: Individual Rooms */}
+                      {rooms.map((r) => {
+                        const isSelected = selectedRoomFilter.toUpperCase() === r.token.toUpperCase();
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRoomFilter(r.token);
+                              setSelectedPostToken(r.token);
+                              setIsRoomFilterDropdownOpen(false);
+                            }}
+                            className={`w-full px-3.5 py-2.5 text-left flex items-center justify-between text-xs transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-purple-50 text-purple-900 font-bold'
+                                : 'hover:bg-neutral-50 text-neutral-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-7 h-7 rounded-xl bg-neutral-100 text-neutral-700 flex items-center justify-center font-mono text-[10px] font-bold shrink-0">
+                                #
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-neutral-900 truncate">
+                                    {r.token}
+                                  </span>
+                                  <span className="text-[10px] text-neutral-500 truncate">
+                                    · {r.title}
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-neutral-500 truncate">
+                                  {r.participants.length} participants · {r.category}
+                                </div>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <Check className="w-4 h-4 text-purple-600 shrink-0 ml-2" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Quick inline composer for rooms */}
+          <div className="px-4 py-2 bg-white border-b border-neutral-200 flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              {currentUserName[0]}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedRoomFilter !== 'ALL') {
+                  setSelectedPostToken(selectedRoomFilter);
+                }
+                setIsCreateModalOpen(true);
+              }}
+              className="flex-1 h-9 px-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs text-neutral-500 text-left transition cursor-pointer flex items-center justify-between"
+            >
+              <span className="truncate">
+                {selectedRoomFilter === 'ALL'
+                  ? 'Post meeting discussion, notes or takeaway...'
+                  : `Post an update in #${selectedRoomFilter}...`}
+              </span>
+              <Edit3 className="w-3.5 h-3.5 text-purple-600 shrink-0 ml-1.5" />
+            </button>
+          </div>
+
+          {/* Room Posts Feed */}
+          <div className="flex-1 overflow-y-auto divide-y divide-neutral-200 bg-white pb-24">
+            {filteredPosts.length === 0 ? (
+              <div className="p-12 text-center text-neutral-500">
+                <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-3 text-purple-600 border border-purple-100">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <p className="text-sm font-bold text-neutral-800">
+                  {selectedRoomFilter === 'ALL'
+                    ? 'No room posts yet'
+                    : `No posts found for #${selectedRoomFilter}`}
+                </p>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Be the first to post a takeaway or discussion for this room!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedRoomFilter !== 'ALL') setSelectedPostToken(selectedRoomFilter);
+                    setIsCreateModalOpen(true);
+                  }}
+                  className="mt-3.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Create Room Post</span>
+                </button>
+              </div>
+            ) : (
+              filteredPosts.map((post) => renderPostItem(post))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 3. TAB C: ALL POSTS VIEW */}
+      {/* ========================================================= */}
+      {postMode === 'all' && (
+        <div className="flex-1 flex flex-col overflow-hidden bg-neutral-50">
           {/* Search bar */}
           <div className="px-4 py-2 border-b border-neutral-200 bg-white flex items-center gap-2 shrink-0">
             <div className="flex-1 flex items-center gap-2 bg-neutral-100 px-3 py-1.5 rounded-xl border border-neutral-200 text-xs">
@@ -967,6 +1605,21 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
             </div>
           </div>
 
+          {/* Quick inline composer for all posts */}
+          <div className="px-4 py-2 bg-white border-b border-neutral-200 flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              {currentUserName[0]}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex-1 h-9 px-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl text-xs text-neutral-500 text-left transition cursor-pointer flex items-center justify-between"
+            >
+              <span className="truncate">What's on your mind? Share an update or meeting note...</span>
+              <Edit3 className="w-3.5 h-3.5 text-purple-600 shrink-0 ml-1.5" />
+            </button>
+          </div>
+
           {/* Posts list */}
           <div className="flex-1 overflow-y-auto divide-y divide-neutral-200 bg-white pb-24">
             {filteredPosts.length === 0 ? (
@@ -978,199 +1631,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
                 <p className="text-xs text-neutral-500 mt-1">Tap the edit button to publish a public or private post!</p>
               </div>
             ) : (
-              filteredPosts.map((post) => {
-                const isLiked = post.isLiked || false;
-                const likesCount = post.likes || 0;
-                const isReposted = post.isReposted || false;
-                const repostsCount = post.reposts || 0;
-                const commentsCount = (post.comments ? post.comments.length : post.replies) || 0;
-                const isCommentsOpen = expandedCommentsPostId === post.id;
-
-                return (
-                  <article
-                    key={post.id}
-                    id={`post-item-${post.id}`}
-                    className="p-4 hover:bg-neutral-50/80 transition duration-150 flex flex-col"
-                  >
-                    {/* Repost Header if applicable */}
-                    {post.repostedByUser && (
-                      <div className="flex items-center gap-1.5 text-xs text-neutral-500 font-semibold mb-2 pl-9">
-                        <Repeat className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>
-                          {currentUser && currentUser.name === post.repostedByUser
-                            ? 'You reposted'
-                            : `${post.repostedByUser} reposted`}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Author Row */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                          {post.author[0]}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-sm text-neutral-900 truncate">{post.author}</span>
-                            <span className="text-[11px] text-neutral-500">· {post.timestamp}</span>
-                            {/* Visibility Badge */}
-                            {post.visibility === 'private' ? (
-                              <span className="flex items-center gap-0.5 text-[10px] font-semibold text-neutral-600 bg-neutral-100 px-1.5 py-0.2 rounded-md border border-neutral-200">
-                                <Lock className="w-2.5 h-2.5 text-neutral-500" />
-                                Private
-                              </span>
-                            ) : (
-                              <span className="flex items-center gap-0.5 text-[10px] font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded-md border border-purple-200">
-                                <Globe className="w-2.5 h-2.5 text-purple-600" />
-                                Public
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-neutral-500">
-                            @{post.author.replace(/\s+/g, '').toLowerCase()}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Token Pill */}
-                      {post.meetingToken && (
-                        <button
-                          onClick={() => onSelectMeetingToken?.(post.meetingToken)}
-                          className="px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-mono text-xs font-semibold hover:bg-purple-100 hover:border-purple-300 transition shrink-0"
-                        >
-                          {post.meetingToken}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Group Badge if posted inside Facebook Group */}
-                    {post.groupName && (
-                      <div className="pl-11 mt-1.5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab('groups');
-                            if (post.groupId) setSelectedGroupId(post.groupId);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold hover:bg-blue-100 transition cursor-pointer"
-                        >
-                          <Users className="w-3 h-3 text-blue-600" />
-                          <span>Group: {post.groupName}</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Content */}
-                    <div className="mt-2.5 text-sm text-neutral-800 leading-relaxed pl-11 whitespace-pre-line">
-                      {formatContentWithHashtags(post.content)}
-                    </div>
-
-                    {/* Post Action Buttons */}
-                    <div className="mt-3 flex items-center justify-between text-neutral-500 text-xs pl-11 pr-6 max-w-sm">
-                      <button
-                        id={`btn-comments-toggle-${post.id}`}
-                        type="button"
-                        onClick={() =>
-                          setExpandedCommentsPostId((prev) => (prev === post.id ? null : post.id))
-                        }
-                        className={`flex items-center gap-1.5 transition cursor-pointer ${
-                          isCommentsOpen ? 'text-purple-600 font-bold' : 'hover:text-purple-600'
-                        }`}
-                        title="Comments"
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{commentsCount}</span>
-                      </button>
-
-                      <button
-                        id={`btn-repost-${post.id}`}
-                        type="button"
-                        onClick={() => onToggleRepost?.(post.id)}
-                        className={`flex items-center gap-1.5 transition cursor-pointer ${
-                          isReposted ? 'text-emerald-600 font-bold' : 'hover:text-emerald-600'
-                        }`}
-                        title="Repost"
-                      >
-                        <Repeat className="w-4 h-4" />
-                        <span>{repostsCount}</span>
-                      </button>
-
-                      <button
-                        id={`btn-like-${post.id}`}
-                        type="button"
-                        onClick={() => onToggleLike(post.id)}
-                        className={`flex items-center gap-1.5 transition cursor-pointer ${
-                          isLiked ? 'text-rose-500 font-bold' : 'hover:text-rose-500'
-                        }`}
-                        title="Like"
-                      >
-                        <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
-                        <span>{likesCount}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleSharePost(post.id)}
-                        className="flex items-center gap-1.5 hover:text-purple-600 transition cursor-pointer"
-                        title="Share Post"
-                      >
-                        {copiedPostId === post.id ? (
-                          <span className="text-purple-600 font-bold flex items-center gap-1 text-[11px]">
-                            <Check className="w-3.5 h-3.5" /> Copied!
-                          </span>
-                        ) : (
-                          <Share2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Comments Drawer */}
-                    {isCommentsOpen && (
-                      <div className="mt-3 pl-11 pr-4 pt-3 border-t border-neutral-100">
-                        <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
-                          {post.comments && post.comments.length > 0 ? (
-                            post.comments.map((comment) => (
-                              <div
-                                key={comment.id}
-                                className="p-2.5 rounded-xl bg-neutral-50 border border-neutral-200/60 text-xs"
-                              >
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="font-bold text-neutral-900">{comment.author}</span>
-                                  <span className="text-[10px] text-neutral-400">{comment.timestamp}</span>
-                                </div>
-                                <p className="text-neutral-700 leading-relaxed">{comment.content}</p>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-neutral-400 py-1">No comments yet. Be the first to comment!</p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            placeholder="Write a comment..."
-                            value={commentInput[post.id] || ''}
-                            onChange={(e) =>
-                              setCommentInput((prev) => ({ ...prev, [post.id]: e.target.value }))
-                            }
-                            onKeyDown={(e) => e.key === 'Enter' && handleSendComment(post.id)}
-                            className="flex-1 px-3 py-1.5 text-xs bg-neutral-50 border border-neutral-300 rounded-xl focus:border-purple-600 outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleSendComment(post.id)}
-                            className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition"
-                          >
-                            Reply
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </article>
-                );
-              })
+              filteredPosts.map((post) => renderPostItem(post))
             )}
           </div>
         </div>
