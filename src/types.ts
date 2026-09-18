@@ -70,6 +70,18 @@ export interface PostItem {
   groupId?: string;
   groupName?: string;
   mediaUrl?: string;
+  mediaType?: 'image' | 'video';
+  quotedPost?: {
+    id: string;
+    meetingToken?: string;
+    author: string;
+    avatar?: string;
+    handle?: string;
+    content: string;
+    timestamp: string;
+    mediaUrl?: string;
+    mediaType?: 'image' | 'video';
+  };
 }
 
 export interface FacebookGroup {

@@ -27,6 +27,10 @@ import {
   List,
   LayoutGrid,
   ChevronDown,
+  Film,
+  Paperclip,
+  Trash2,
+  Quote,
 } from 'lucide-react';
 import { CreateGroupModal } from './CreateGroupModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
@@ -41,7 +45,10 @@ interface XFeedScreenProps {
     content: string,
     visibility?: 'public' | 'private',
     groupId?: string,
-    groupName?: string
+    groupName?: string,
+    mediaUrl?: string,
+    mediaType?: 'image' | 'video',
+    quotedPost?: PostItem['quotedPost']
   ) => void;
   onToggleLike: (postId: string) => void;
   onToggleRepost?: (postId: string) => void;
@@ -108,6 +115,20 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   const [expandedCommentsPostId, setExpandedCommentsPostId] = useState<string | null>(null);
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
   const [copiedPostId, setCopiedPostId] = useState<string | null>(null);
+
+  // Repost & Quote states
+  const [repostMenuPost, setRepostMenuPost] = useState<PostItem | null>(null);
+  const [quoteModalPost, setQuoteModalPost] = useState<PostItem | null>(null);
+  const [quoteText, setQuoteText] = useState('');
+  const [quoteMediaUrl, setQuoteMediaUrl] = useState('');
+  const [quoteMediaType, setQuoteMediaType] = useState<'image' | 'video'>('image');
+
+  // Create Post media attachment states
+  const [postMediaUrl, setPostMediaUrl] = useState('');
+  const [postMediaType, setPostMediaType] = useState<'image' | 'video'>('image');
+
+  // Feedback Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Group specific states
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(activeGroupId || null);
@@ -215,7 +236,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
 
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postContent.trim()) return;
+    if (!postContent.trim() && !postMediaUrl) return;
 
     let targetGroupId: string | undefined = undefined;
     let targetGroupName: string | undefined = undefined;
@@ -228,11 +249,96 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
       }
     }
 
-    onAddPost(selectedPostToken, postContent.trim(), postVisibility, targetGroupId, targetGroupName);
+    onAddPost(
+      selectedPostToken,
+      postContent.trim(),
+      postVisibility,
+      targetGroupId,
+      targetGroupName,
+      postMediaUrl || undefined,
+      postMediaType
+    );
     setPostContent('');
+    setPostMediaUrl('');
     setPostVisibility('public');
     setSelectedPostGroupId('none');
     setIsCreateModalOpen(false);
+    setToastMessage('Post published!');
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleCreateQuotePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quoteModalPost) return;
+
+    onAddPost(
+      quoteModalPost.meetingToken || rooms[0]?.token || '#MEET-9021',
+      quoteText.trim() || 'Quoted post',
+      'public',
+      quoteModalPost.groupId,
+      quoteModalPost.groupName,
+      quoteMediaUrl || undefined,
+      quoteMediaType,
+      {
+        id: quoteModalPost.id,
+        meetingToken: quoteModalPost.meetingToken,
+        author: quoteModalPost.author,
+        avatar: quoteModalPost.avatar,
+        handle: quoteModalPost.handle,
+        content: quoteModalPost.content,
+        timestamp: quoteModalPost.timestamp,
+        mediaUrl: quoteModalPost.mediaUrl,
+        mediaType: quoteModalPost.mediaType,
+      }
+    );
+
+    if (!quoteModalPost.isReposted) {
+      onToggleRepost?.(quoteModalPost.id);
+    }
+
+    setToastMessage('Quote post published to feed!');
+    setTimeout(() => setToastMessage(null), 2500);
+
+    setQuoteText('');
+    setQuoteMediaUrl('');
+    setQuoteModalPost(null);
+  };
+
+  const handleOpenRepostMenu = (post: PostItem) => {
+    setRepostMenuPost(post);
+  };
+
+  const handleConfirmRepost = (post: PostItem) => {
+    onToggleRepost?.(post.id);
+    setRepostMenuPost(null);
+    setToastMessage(post.isReposted ? 'Removed repost' : 'Reposted to your feed & profile!');
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleOpenQuoteModal = (post: PostItem) => {
+    setRepostMenuPost(null);
+    setQuoteModalPost(post);
+    setQuoteText('');
+    setQuoteMediaUrl('');
+    setQuoteMediaType('image');
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'post' | 'quote') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const isVideo = file.type.startsWith('video');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      if (target === 'post') {
+        setPostMediaUrl(result);
+        setPostMediaType(isVideo ? 'video' : 'image');
+      } else {
+        setQuoteMediaUrl(result);
+        setQuoteMediaType(isVideo ? 'video' : 'image');
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleCreateGroupDirectPost = (e: React.FormEvent) => {
@@ -372,6 +478,67 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
           {formatContentWithHashtags(post.content)}
         </div>
 
+        {/* Attached Photo or Video */}
+        {post.mediaUrl && (
+          <div className="mt-2.5 pl-11 pr-2">
+            {post.mediaType === 'video' || post.mediaUrl.match(/\.(mp4|webm|mov)($|\?)/i) || post.mediaUrl.startsWith('data:video') ? (
+              <div className="relative rounded-2xl overflow-hidden bg-black border border-neutral-200 max-h-80 shadow-xs">
+                <video
+                  src={post.mediaUrl}
+                  controls
+                  playsInline
+                  className="w-full max-h-80 object-contain bg-black"
+                />
+              </div>
+            ) : (
+              <div className="relative rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-100 max-h-80 shadow-xs">
+                <img
+                  src={post.mediaUrl}
+                  alt="Post attachment"
+                  className="w-full max-h-80 object-cover hover:scale-[1.01] transition-transform duration-200 cursor-pointer"
+                  onClick={() => window.open(post.mediaUrl, '_blank')}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quoted Post Card (Twitter / X style embedded card) */}
+        {post.quotedPost && (
+          <div className="mt-2.5 pl-11 pr-2">
+            <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 hover:bg-neutral-100/70 transition p-3">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                  {post.quotedPost.author[0]}
+                </div>
+                <span className="font-bold text-xs text-neutral-900 truncate">
+                  {post.quotedPost.author}
+                </span>
+                <span className="text-[10px] text-neutral-500">
+                  @{post.quotedPost.handle || post.quotedPost.author.replace(/\s+/g, '').toLowerCase()} · {post.quotedPost.timestamp}
+                </span>
+                {post.quotedPost.meetingToken && (
+                  <span className="ml-auto text-[10px] font-mono text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-md border border-purple-200">
+                    {post.quotedPost.meetingToken}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-neutral-800 leading-relaxed line-clamp-3">
+                {post.quotedPost.content}
+              </p>
+              {post.quotedPost.mediaUrl && (
+                <div className="mt-2 rounded-xl overflow-hidden max-h-44 border border-neutral-200 bg-black">
+                  {post.quotedPost.mediaType === 'video' ? (
+                    <video src={post.quotedPost.mediaUrl} controls playsInline className="w-full max-h-44 object-contain bg-black" />
+                  ) : (
+                    <img src={post.quotedPost.mediaUrl} alt="Quoted attachment" className="w-full max-h-44 object-cover" />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Post Action Buttons */}
         <div className="mt-3 flex items-center justify-between text-neutral-500 text-xs pl-11 pr-6 max-w-sm">
           <button
@@ -392,11 +559,11 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
           <button
             id={`btn-repost-${post.id}`}
             type="button"
-            onClick={() => onToggleRepost?.(post.id)}
+            onClick={() => handleOpenRepostMenu(post)}
             className={`flex items-center gap-1.5 transition cursor-pointer ${
               isReposted ? 'text-emerald-600 font-bold' : 'hover:text-emerald-600'
             }`}
-            title="Repost"
+            title="Repost or Quote"
           >
             <Repeat className="w-4 h-4" />
             <span>{repostsCount}</span>
@@ -1761,12 +1928,79 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
                 <textarea
                   id="input-post-content"
                   rows={4}
-                  required
                   placeholder="Share meeting highlights, key takeaways, and updates..."
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
                   className="w-full bg-neutral-50 border border-neutral-300 rounded-xl p-3 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-purple-600 outline-none resize-none leading-relaxed"
                 />
+
+                {/* Attached Media Preview */}
+                {postMediaUrl && (
+                  <div className="relative mt-2.5 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 max-h-52">
+                    {postMediaType === 'video' ? (
+                      <video src={postMediaUrl} controls className="w-full max-h-52 object-contain bg-black" />
+                    ) : (
+                      <img src={postMediaUrl} alt="Attached" className="w-full max-h-52 object-cover" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPostMediaUrl('')}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
+                      title="Remove attachment"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Media Attachment toolbar */}
+                <div className="mt-2.5 p-2 rounded-xl bg-neutral-50 border border-neutral-200/80 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-neutral-500">Attach Media:</span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <label className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-neutral-200 hover:border-purple-300 text-neutral-700 text-[11px] font-medium transition cursor-pointer shadow-2xs">
+                      <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Photo</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, 'post')}
+                      />
+                    </label>
+
+                    <label className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-neutral-200 hover:border-purple-300 text-neutral-700 text-[11px] font-medium transition cursor-pointer shadow-2xs">
+                      <Film className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Video</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e, 'post')}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPostMediaUrl('https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&fit=crop');
+                        setPostMediaType('image');
+                      }}
+                      className="px-2 py-1 rounded-lg bg-purple-50 text-purple-700 text-[10px] font-semibold hover:bg-purple-100 transition cursor-pointer"
+                    >
+                      Sample Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPostMediaUrl('https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-41584-large.mp4');
+                        setPostMediaType('video');
+                      }}
+                      className="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-semibold hover:bg-indigo-100 transition cursor-pointer"
+                    >
+                      Sample Video
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
@@ -1780,7 +2014,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
                 <button
                   id="btn-submit-post"
                   type="submit"
-                  disabled={!postContent.trim()}
+                  disabled={!postContent.trim() && !postMediaUrl}
                   className="px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-40 rounded-xl transition shadow-md shadow-purple-500/20 cursor-pointer"
                 >
                   Post {postVisibility === 'private' ? '(Private)' : '(Public)'}
@@ -1788,6 +2022,253 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* REPOST & QUOTE MENU MODAL */}
+      {repostMenuPost && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-2xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
+          onClick={() => setRepostMenuPost(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden p-4 space-y-2 animate-in slide-in-from-bottom-4 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+              <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                Repost Options
+              </span>
+              <button
+                type="button"
+                onClick={() => setRepostMenuPost(null)}
+                className="w-7 h-7 rounded-full hover:bg-neutral-100 text-neutral-500 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Option 1: Direct Repost Confirm */}
+            <button
+              id="btn-confirm-repost"
+              type="button"
+              onClick={() => handleConfirmRepost(repostMenuPost)}
+              className="w-full p-3.5 rounded-xl hover:bg-neutral-50 border border-neutral-200/80 transition flex items-center gap-3 text-left cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition">
+                <Repeat className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm text-neutral-900 flex items-center gap-2">
+                  <span>{repostMenuPost.isReposted ? 'Undo Repost' : 'Repost'}</span>
+                  {repostMenuPost.isReposted && (
+                    <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-neutral-500 truncate">
+                  {repostMenuPost.isReposted
+                    ? 'Remove this repost from your feed'
+                    : 'Instantly repost to your feed & profile'}
+                </p>
+              </div>
+            </button>
+
+            {/* Option 2: Quote Post */}
+            <button
+              id="btn-open-quote"
+              type="button"
+              onClick={() => handleOpenQuoteModal(repostMenuPost)}
+              className="w-full p-3.5 rounded-xl hover:bg-neutral-50 border border-neutral-200/80 transition flex items-center gap-3 text-left cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition">
+                <Edit3 className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm text-neutral-900">Quote</div>
+                <p className="text-xs text-neutral-500 truncate">
+                  Add your commentary, photo or video before sharing
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QUOTE POST MODAL (X/Twitter style) */}
+      {quoteModalPost && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-5 py-3.5 border-b border-neutral-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-neutral-900">Quote Post</h3>
+                  <p className="text-[11px] text-neutral-500">Add commentary or media to repost</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuoteModalPost(null)}
+                className="w-8 h-8 rounded-full hover:bg-neutral-100 text-neutral-500 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateQuotePost} className="p-5 space-y-3.5 overflow-y-auto">
+              {/* Current user header */}
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+                  {currentUserName[0]}
+                </div>
+                <div>
+                  <span className="font-bold text-xs text-neutral-900">{currentUserName}</span>
+                  <p className="text-[10px] text-neutral-400">
+                    Replying with a quote to @{quoteModalPost.handle || quoteModalPost.author.replace(/\s+/g, '').toLowerCase()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quote comment text area */}
+              <textarea
+                id="input-quote-content"
+                rows={3}
+                placeholder="Add your comment or thoughts..."
+                value={quoteText}
+                onChange={(e) => setQuoteText(e.target.value)}
+                className="w-full bg-neutral-50 border border-neutral-300 rounded-xl p-3 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-purple-600 outline-none resize-none leading-relaxed"
+                autoFocus
+              />
+
+              {/* Media preview if attached */}
+              {quoteMediaUrl && (
+                <div className="relative rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 max-h-48">
+                  {quoteMediaType === 'video' ? (
+                    <video src={quoteMediaUrl} controls className="w-full max-h-48 object-contain bg-black" />
+                  ) : (
+                    <img src={quoteMediaUrl} alt="Quote Attachment" className="w-full max-h-48 object-cover" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setQuoteMediaUrl('')}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Media attachment toolbar for Quote */}
+              <div className="p-2 rounded-xl bg-neutral-50 border border-neutral-200/80 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] font-semibold text-neutral-500">Attach Media:</span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <label className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-neutral-200 hover:border-purple-300 text-neutral-700 text-[11px] font-medium transition cursor-pointer shadow-2xs">
+                    <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Photo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, 'quote')}
+                    />
+                  </label>
+
+                  <label className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-neutral-200 hover:border-purple-300 text-neutral-700 text-[11px] font-medium transition cursor-pointer shadow-2xs">
+                    <Film className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Video</span>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, 'quote')}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteMediaUrl('https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&fit=crop');
+                      setQuoteMediaType('image');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-purple-50 text-purple-700 text-[10px] font-semibold hover:bg-purple-100 transition cursor-pointer"
+                  >
+                    Sample Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuoteMediaUrl('https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-41584-large.mp4');
+                      setQuoteMediaType('video');
+                    }}
+                    className="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-semibold hover:bg-indigo-100 transition cursor-pointer"
+                  >
+                    Sample Video
+                  </button>
+                </div>
+              </div>
+
+              {/* Embedded Quoted Post Preview (X Card) */}
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 select-none">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">
+                    {quoteModalPost.author[0]}
+                  </div>
+                  <span className="font-bold text-xs text-neutral-900">{quoteModalPost.author}</span>
+                  <span className="text-[10px] text-neutral-500">
+                    @{quoteModalPost.handle || quoteModalPost.author.replace(/\s+/g, '').toLowerCase()} · {quoteModalPost.timestamp}
+                  </span>
+                  {quoteModalPost.meetingToken && (
+                    <span className="ml-auto text-[10px] font-mono text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+                      {quoteModalPost.meetingToken}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-neutral-700 leading-relaxed line-clamp-3">
+                  {quoteModalPost.content}
+                </p>
+                {quoteModalPost.mediaUrl && (
+                  <div className="mt-2 rounded-lg overflow-hidden max-h-32 border border-neutral-200 bg-black">
+                    {quoteModalPost.mediaType === 'video' ? (
+                      <video src={quoteModalPost.mediaUrl} className="w-full max-h-32 object-cover" muted />
+                    ) : (
+                      <img src={quoteModalPost.mediaUrl} alt="Original media" className="w-full max-h-32 object-cover" />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuoteModalPost(null)}
+                  className="px-4 py-2 text-xs font-semibold text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="btn-submit-quote-post"
+                  type="submit"
+                  disabled={!quoteText.trim() && !quoteMediaUrl}
+                  className="px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-40 rounded-xl transition shadow-md shadow-purple-500/20 cursor-pointer"
+                >
+                  Quote Repost
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast feedback */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-neutral-900/90 text-white text-xs px-4 py-2 rounded-full shadow-xl backdrop-blur-md flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
         </div>
       )}
 

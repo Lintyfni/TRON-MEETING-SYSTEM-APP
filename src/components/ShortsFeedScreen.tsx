@@ -375,9 +375,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     const duration = Date.now() - touchStartTime.current;
     setDragOffset(0);
 
-    // Swiped Up (diff < -40) -> Next Video
-    // Swiped Down (diff > 40) -> Previous Video
-    if (Math.abs(diff) > 40 && duration < 500) {
+    // Swiped Up (diff < -35) -> Next Video
+    // Swiped Down (diff > 35) -> Previous Video
+    if (Math.abs(diff) > 35 && duration < 650) {
       if (diff < 0) {
         handleGoNext();
       } else {
@@ -394,8 +394,8 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       return;
     }
     const now = Date.now();
-    if (now - wheelCooldownRef.current < 400) return;
-    if (Math.abs(e.deltaY) > 25) {
+    if (now - wheelCooldownRef.current < 350) return;
+    if (Math.abs(e.deltaY) > 20) {
       wheelCooldownRef.current = now;
       if (e.deltaY > 0) {
         handleGoNext();
@@ -408,7 +408,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   return (
     <div
       id="shorts-feed-container"
-      className="relative w-full h-full bg-white text-neutral-900 flex flex-col overflow-hidden select-none touch-none"
+      className="relative w-full h-full bg-neutral-900 text-neutral-900 flex flex-col overflow-hidden select-none touch-pan-y"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -460,15 +460,15 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         </div>
       </div>
 
-      {/* Main Vertical Video Stage on White Backdrop */}
+      {/* Main Vertical Video Stage */}
       <div
-        className="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden bg-neutral-50 transition-transform duration-150 ease-out p-0 sm:p-2"
+        className="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden bg-neutral-950 transition-transform duration-150 ease-out p-0"
         style={{ transform: dragOffset !== 0 ? `translateY(${dragOffset}px)` : undefined }}
       >
         {activeShort ? (
           <div
             key={activeShort.id}
-            className="relative w-full h-full max-w-md mx-auto sm:rounded-2xl overflow-hidden bg-neutral-900 shadow-lg border-0 sm:border border-neutral-200 flex items-center justify-center"
+            className="relative w-full h-full max-w-full md:max-w-lg lg:max-w-xl mx-auto overflow-hidden bg-black shadow-lg flex items-center justify-center"
           >
             {/* Instant Poster & Backdrop (Prevents black screen flash while video buffers or begins) */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">

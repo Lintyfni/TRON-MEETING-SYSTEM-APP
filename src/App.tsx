@@ -780,18 +780,23 @@ export default function App() {
     }
   };
 
-  // Add new X post (with optional Facebook group linking)
+  // Add new X post (with optional Facebook group linking, media attachment, and quote)
   const handleAddPost = (
     token: string,
     content: string,
     visibility: 'public' | 'private' = 'public',
     groupId?: string,
-    groupName?: string
+    groupName?: string,
+    mediaUrl?: string,
+    mediaType?: 'image' | 'video',
+    quotedPost?: PostItem['quotedPost']
   ) => {
     const newPost: PostItem = {
       id: `post_${Date.now()}`,
       meetingToken: token,
       author: userProfile.name,
+      avatar: userProfile.avatar,
+      handle: userProfile.handle,
       content,
       timestamp: 'Just now',
       likes: 0,
@@ -803,6 +808,9 @@ export default function App() {
       comments: [],
       groupId,
       groupName,
+      mediaUrl,
+      mediaType,
+      quotedPost,
     };
     setPosts((prev) => [newPost, ...prev]);
     setPrefilledPostText('');
@@ -1309,11 +1317,11 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-neutral-900 sm:bg-neutral-950 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white p-0 sm:py-6 sm:px-4">
-      {/* Mobile Phone Frame Container */}
+    <div className="w-full min-h-[100dvh] h-[100dvh] bg-neutral-100/90 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white overflow-hidden p-0">
+      {/* Auto Screen Matching Viewport for Phone & Tablet */}
       <div
         id="app-viewport-container"
-        className="relative w-full max-w-[400px] h-[100dvh] sm:h-[844px] bg-white flex flex-col overflow-hidden sm:rounded-[44px] sm:border-[10px] sm:border-neutral-800 sm:shadow-2xl sm:shadow-black/70 sm:ring-1 sm:ring-neutral-700"
+        className="relative w-full h-[100dvh] bg-white flex flex-col overflow-hidden max-w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl shadow-none md:shadow-2xl md:border-x md:border-neutral-200"
       >
         {/* Active Screen Tab View */}
         <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col">
