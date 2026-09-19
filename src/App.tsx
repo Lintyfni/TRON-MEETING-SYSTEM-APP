@@ -14,7 +14,7 @@ import {
   DateNote,
   SocialUser,
   ShortVideoItem,
-  FacebookGroup,
+  CooMGroup,
   GroupChatMessage,
 } from './types';
 import { api } from './services/api';
@@ -35,11 +35,11 @@ import { initialShorts } from './data/shortsData';
 import { initialGroups, initialGroupChats } from './data/initialGroups';
 import { MeetingHomeScreen } from './components/MeetingHomeScreen';
 import { ShortsFeedScreen } from './components/ShortsFeedScreen';
-import { TikTokMeetingFeed } from './components/TikTokMeetingFeed';
+import { CooMMeetingFeed } from './components/TikTokMeetingFeed';
 import { XFeedScreen } from './components/XFeedScreen';
 import { MeetingChatScreen } from './components/MeetingChatScreen';
 import { ZoomSettingsScreen } from './components/ZoomSettingsScreen';
-import { TikTokProfileScreen } from './components/TikTokProfileScreen';
+import { CooMProfileScreen } from './components/TikTokProfileScreen';
 import { BottomNavBar } from './components/BottomNavBar';
 
 export default function App() {
@@ -57,10 +57,10 @@ export default function App() {
   const [isSubtitlesOverlayOn, setIsSubtitlesOverlayOn] = useState<boolean>(true);
   const [prefilledPostText, setPrefilledPostText] = useState<string>('');
 
-  // Facebook Groups State
-  const [groups, setGroups] = useState<FacebookGroup[]>(() => {
+  // CooM Groups State
+  const [groups, setGroups] = useState<CooMGroup[]>(() => {
     try {
-      const saved = localStorage.getItem('facebook_groups_data');
+      const saved = localStorage.getItem('coom_groups_data') || localStorage.getItem('facebook_groups_data');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -73,7 +73,7 @@ export default function App() {
 
   const [groupChats, setGroupChats] = useState<GroupChatMessage[]>(() => {
     try {
-      const saved = localStorage.getItem('facebook_group_chats');
+      const saved = localStorage.getItem('coom_group_chats') || localStorage.getItem('facebook_group_chats');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -85,14 +85,14 @@ export default function App() {
   // Persist groups
   useEffect(() => {
     try {
-      localStorage.setItem('facebook_groups_data', JSON.stringify(groups));
+      localStorage.setItem('coom_groups_data', JSON.stringify(groups));
     } catch {}
   }, [groups]);
 
   // Persist group chats
   useEffect(() => {
     try {
-      localStorage.setItem('facebook_group_chats', JSON.stringify(groupChats));
+      localStorage.setItem('coom_group_chats', JSON.stringify(groupChats));
     } catch {}
   }, [groupChats]);
 
@@ -818,7 +818,7 @@ export default function App() {
 
   // Group Handlers
   const handleCreateGroup = (groupData: any) => {
-    const newGroup: FacebookGroup = {
+    const newGroup: CooMGroup = {
       id: `grp_${Date.now()}`,
       name: groupData.name,
       description: groupData.description || '',
@@ -856,7 +856,7 @@ export default function App() {
     setGroupChats((prev) => [...prev, welcomeMsg]);
   };
 
-  const handleUpdateGroup = (groupId: string, updates: Partial<FacebookGroup>) => {
+  const handleUpdateGroup = (groupId: string, updates: Partial<CooMGroup>) => {
     setGroups((prev) =>
       prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g))
     );
@@ -1356,6 +1356,7 @@ export default function App() {
               onToggleRepostShort={handleRepostShort}
               onAddShortComment={handleAddShortComment}
               onCreateShort={handleUploadShort}
+              onAddPost={handleAddPost}
               onResetSampleShorts={() => {
                 setShorts(initialShorts);
                 try {
@@ -1366,7 +1367,7 @@ export default function App() {
           )}
 
           {currentTab === 'meetings' && (
-              <TikTokMeetingFeed
+              <CooMMeetingFeed
                 rooms={rooms}
                 notes={notes}
                 chats={chats}
@@ -1456,7 +1457,7 @@ export default function App() {
             )}
 
             {currentTab === 'profile' && (
-              <TikTokProfileScreen
+              <CooMProfileScreen
                 userProfile={userProfile}
                 viewedUser={viewedUser}
                 onClearViewedUser={() => setViewedUser(null)}

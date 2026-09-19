@@ -53,7 +53,7 @@ import {
   DoorOpen
 } from 'lucide-react';
 
-interface TikTokProfileScreenProps {
+interface CooMProfileScreenProps {
   userProfile: UserProfile;
   viewedUser?: SocialUser | UserProfile | null;
   onClearViewedUser?: () => void;
@@ -81,9 +81,11 @@ interface TikTokProfileScreenProps {
   onBackToHome?: () => void;
 }
 
+export type TikTokProfileScreenProps = CooMProfileScreenProps;
+
 type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats' | 'bookmarks';
 
-export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
+export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
   userProfile,
   viewedUser,
   onClearViewedUser,
@@ -191,7 +193,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
   const activeHandle = isViewingOtherUser ? viewedUser!.handle : userProfile.handle;
   const activeAvatar = isViewingOtherUser ? viewedUser!.avatar : userProfile.avatar;
   const activeBio = isViewingOtherUser
-    ? viewedUser!.bio || 'Active participant on TikTok Meeting & Post ⚡'
+    ? viewedUser!.bio || 'Active participant on CooM ⚡'
     : userProfile.bio;
 
   const activeFollowing = isViewingOtherUser
@@ -327,7 +329,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
 
   return (
     <div
-      id="tiktok-profile-screen"
+      id="coom-profile-screen"
       className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden"
     >
       {/* Toast Feedback */}
@@ -347,61 +349,64 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
       />
 
       {/* 1. TOP BAR */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[220px]">
-          {(onBackToHome || onClearViewedUser) && (
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3">
+        <div className="max-w-3xl lg:max-w-4xl mx-auto w-full flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[220px]">
+            {(onBackToHome || onClearViewedUser) && (
+              <button
+                id="btn-profile-back-home"
+                type="button"
+                onClick={() => {
+                  if (isViewingOtherUser && onClearViewedUser) {
+                    onClearViewedUser();
+                  } else if (onBackToHome) {
+                    onBackToHome();
+                  }
+                }}
+                className="p-1 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer flex items-center gap-1"
+                title="Back"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span className="text-xs font-semibold">Back</span>
+              </button>
+            )}
+            <span>{activeHandle}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isViewingOtherUser && onClearViewedUser && (
+              <button
+                id="btn-switch-to-my-profile"
+                type="button"
+                onClick={onClearViewedUser}
+                className="px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold border border-purple-200 transition cursor-pointer flex items-center gap-1"
+                title="Switch to My Profile"
+              >
+                <User className="w-3 h-3" />
+                <span>My Profile</span>
+              </button>
+            )}
+
             <button
-              id="btn-profile-back-home"
               type="button"
               onClick={() => {
-                if (isViewingOtherUser && onClearViewedUser) {
-                  onClearViewedUser();
-                } else if (onBackToHome) {
-                  onBackToHome();
-                }
+                navigator.clipboard?.writeText(window.location.href);
+                showToast('🔗 Profile link copied to clipboard!');
               }}
-              className="p-1 -ml-1 text-neutral-500 hover:text-neutral-900 rounded-lg hover:bg-neutral-100 transition cursor-pointer flex items-center gap-1"
-              title="Back"
+              className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
+              title="Share Profile"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="text-xs font-semibold">Back</span>
+              <Share2 className="w-4 h-4" />
             </button>
-          )}
-          <span>{activeHandle}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isViewingOtherUser && onClearViewedUser && (
-            <button
-              id="btn-switch-to-my-profile"
-              type="button"
-              onClick={onClearViewedUser}
-              className="px-2.5 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold border border-purple-200 transition cursor-pointer flex items-center gap-1"
-              title="Switch to My Profile"
-            >
-              <User className="w-3 h-3" />
-              <span>My Profile</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard?.writeText(window.location.href);
-              showToast('🔗 Profile link copied to clipboard!');
-            }}
-            className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900 transition cursor-pointer"
-            title="Share Profile"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
+          </div>
         </div>
       </div>
 
       {/* SCROLLABLE PROFILE CONTAINER */}
-      <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-200 bg-white">
-        {/* 2. PROFILE HEADER & EDIT BIO */}
+      <div className="flex-1 overflow-y-auto pb-24 bg-white">
+        <div className="max-w-3xl lg:max-w-4xl mx-auto w-full divide-y divide-neutral-200">
+          {/* 2. PROFILE HEADER & EDIT BIO */}
         <div className="p-4 flex flex-col items-center text-center bg-white">
           {/* Avatar */}
           <div
@@ -1733,7 +1738,13 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             )}
           </div>
         )}
+
+        {/* CooM Copyright Notice */}
+        <div className="py-8 text-center text-xs text-neutral-400 font-medium select-none">
+          © 2026 CooM. All rights reserved.
+        </div>
       </div>
+    </div>
 
       {/* 5. INDIVIDUAL NOTE HISTORY DETAIL MODAL */}
       {selectedNoteDetail && (
@@ -1976,7 +1987,7 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200">
               <div className="flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-purple-600" />
-                <h3 className="font-bold text-sm text-neutral-900">Edit TikTok Profile</h3>
+                <h3 className="font-bold text-sm text-neutral-900">Edit CooM Profile</h3>
               </div>
               <button
                 type="button"
@@ -2219,3 +2230,5 @@ export const TikTokProfileScreen: React.FC<TikTokProfileScreenProps> = ({
     </div>
   );
 };
+
+export const TikTokProfileScreen = CooMProfileScreen;

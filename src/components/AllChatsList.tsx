@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import {
-  FacebookGroup,
+  CooMGroup,
   MeetingRoom,
   GroupChatMessage,
   ChatMessage,
@@ -18,7 +18,7 @@ import {
 } from '../types';
 
 interface AllChatsListProps {
-  groups: FacebookGroup[];
+  groups: CooMGroup[];
   rooms: MeetingRoom[];
   groupChats: GroupChatMessage[];
   roomChats: ChatMessage[];
@@ -128,7 +128,8 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
   const roomsCount = conversations.filter((c) => c.type === 'room').length;
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-50/50">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-50/50 items-center">
+      <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
       {/* Messenger-Style Search & Filter Header */}
       <div className="p-3 bg-white border-b border-neutral-200/80 space-y-2.5 shrink-0 shadow-2xs">
         {/* Search Bar */}
@@ -216,7 +217,7 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
         </div>
       </div>
 
-      {/* Facebook Messenger Style Conversations List (Line by Line) */}
+      {/* CooM Messenger Style Conversations List (Line by Line) */}
       <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1">
         {filteredConversations.length === 0 ? (
           <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-neutral-400">
@@ -324,6 +325,7 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
             );
           })
         )}
+      </div>
       </div>
     </div>
   );

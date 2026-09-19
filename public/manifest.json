@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "TikTok Meeting & Post System",
-  "short_name": "TikTokMeet",
-  "description": "TikTok-style vertical meeting feed with multi-user video filtering and AI notes.",
+  "name": "CooM",
+  "short_name": "CooM",
+  "description": "CooM - Next-generation live video meetings, vertical video shorts, group communities, and real-time feeds. © 2026 CooM. All rights reserved.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

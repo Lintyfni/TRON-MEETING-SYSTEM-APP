@@ -331,7 +331,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
       {/* TOP BRANDING & PROFILE BAR */}
       <div className="px-3.5 py-2.5 bg-white/95 border-b border-neutral-200 sticky top-0 z-20 backdrop-blur-md">
-        <div className="flex items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           {/* User profile preview chip */}
           <div
             onClick={() => onNavigateToProfileTab('recordings')}
@@ -346,20 +346,22 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
             </div>
             <div className="text-left">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <span className="font-bold text-xs sm:text-sm text-neutral-900 group-hover:text-purple-600 transition truncate max-w-[150px]">
                   {userProfile.name}
                 </span>
-                <Sparkles className="w-3 h-3 text-purple-600" />
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 tracking-wider">
+                  CooM
+                </span>
               </div>
               <p className="text-[10px] text-neutral-500 font-mono">{userProfile.handle}</p>
             </div>
           </div>
 
-          {/* Current Date Badge */}
+          {/* Current Date Badge & CooM branding */}
           <div className="flex flex-col items-end">
-            <span className="text-[9px] font-mono uppercase tracking-wider text-neutral-500">
-              Wednesday
+            <span className="text-[9px] font-bold uppercase tracking-wider text-purple-700">
+              CooM Platform
             </span>
             <span className="text-[11px] font-bold text-neutral-800 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full">
               Sep 9, 2026
@@ -369,7 +371,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
       </div>
 
       {/* MAIN CONTAINER */}
-      <div className="p-3 space-y-3 bg-white">
+      <div className="p-3 space-y-3 bg-white max-w-4xl lg:max-w-5xl mx-auto w-full">
         {/* ========================================================================= */}
         {/* HORIZONTAL ELONGATED SEARCH BAR FOR @USERNAME (Directly Above Meeting Actions) */}
         {/* ========================================================================= */}
@@ -457,14 +459,14 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                           className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
                           onClick={() => handleSelectUser(user)}
                         >
-                          {/* Avatar with Facebook-style Green Online Dot */}
+                          {/* Avatar with CooM Active Green Online Dot */}
                           <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
                             <img
                               src={user.avatar}
                               alt={user.name}
                               className="w-full h-full rounded-full object-cover bg-neutral-100"
                             />
-                            {/* Green Facebook Presence Indicator */}
+                            {/* CooM Active Presence Indicator */}
                             {isOnline && (
                               <span
                                 className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white shadow-xs animate-pulse"
@@ -894,6 +896,11 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               </p>
             )}
           </div>
+        </div>
+
+        {/* CooM Copyright Footer */}
+        <div className="pt-4 pb-10 text-center text-[11px] text-neutral-400 font-medium select-none">
+          © 2026 CooM. All rights reserved.
         </div>
       </div>
 
@@ -1418,7 +1425,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
         </div>
       )}
 
-      {/* DIRECT CHAT MODAL (Facebook Messenger style with online status) */}
+      {/* DIRECT CHAT MODAL (CooM Direct Messenger with online status) */}
       {activeDirectChatUser && (
         <div
           id="direct-chat-modal-backdrop"

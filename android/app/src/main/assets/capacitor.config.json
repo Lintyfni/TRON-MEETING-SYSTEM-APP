@@ -1,6 +1,6 @@
 {
-	"appId": "com.tiktokmeeting.app",
-	"appName": "TikTok Meeting",
+	"appId": "com.coom.app",
+	"appName": "CooM",
 	"webDir": "dist",
 	"server": {
 		"androidScheme": "https",

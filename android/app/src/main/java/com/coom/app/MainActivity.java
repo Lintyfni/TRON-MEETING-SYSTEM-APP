@@ -1,4 +1,4 @@
-package com.tiktokmeeting.app;
+package com.coom.app;
 
 import com.getcapacitor.BridgeActivity;
 

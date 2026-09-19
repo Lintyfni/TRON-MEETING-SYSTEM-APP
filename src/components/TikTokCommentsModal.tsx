@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { MeetingComment, CommentReply, UserProfile } from '../types';
 
-interface TikTokCommentsModalProps {
+interface CooMCommentsModalProps {
   isOpen: boolean;
   onClose: () => void;
   meetingToken: string;
@@ -24,9 +24,11 @@ interface TikTokCommentsModalProps {
   onToggleLikeComment: (meetingToken: string, commentId: string, replyId?: string) => void;
 }
 
+export type TikTokCommentsModalProps = CooMCommentsModalProps;
+
 const QUICK_EMOJIS = ['❤️', '🔥', '👏', '😂', '💯', '🚀', '✨', '👍'];
 
-export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
+export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
   isOpen,
   onClose,
   meetingToken,
@@ -105,12 +107,12 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
 
   return (
     <div
-      id="tiktok-comments-backdrop"
+      id="coom-comments-backdrop"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs animate-in fade-in"
       onClick={onClose}
     >
       <div
-        id="tiktok-comments-container"
+        id="coom-comments-container"
         className="w-full max-w-lg max-h-[85vh] h-[75vh] bg-white border border-neutral-200 rounded-t-3xl sm:rounded-3xl flex flex-col text-neutral-900 shadow-2xl animate-in slide-from-bottom-6 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -408,3 +410,5 @@ export const TikTokCommentsModal: React.FC<TikTokCommentsModalProps> = ({
     </div>
   );
 };
+
+export const TikTokCommentsModal = CooMCommentsModal;

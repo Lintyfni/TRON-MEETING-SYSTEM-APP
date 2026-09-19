@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FacebookGroup, MeetingRoom, UserProfile } from '../types';
+import { CooMGroup, MeetingRoom, UserProfile } from '../types';
 import { X, Users, Globe, Lock, ShieldCheck, Sparkles, Image as ImageIcon } from 'lucide-react';
 
 interface CreateGroupModalProps {
@@ -7,7 +7,7 @@ interface CreateGroupModalProps {
   onClose: () => void;
   currentUser?: UserProfile;
   rooms?: MeetingRoom[];
-  onCreateGroup: (groupData: Omit<FacebookGroup, 'id' | 'createdAt' | 'members' | 'pendingRequests' | 'admin'>) => void;
+  onCreateGroup: (groupData: Omit<CooMGroup, 'id' | 'createdAt' | 'members' | 'pendingRequests' | 'admin'>) => void;
 }
 
 const coverPresets = [

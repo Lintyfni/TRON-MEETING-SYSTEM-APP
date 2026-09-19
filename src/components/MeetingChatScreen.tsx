@@ -14,7 +14,7 @@ import {
   Check,
   Layers,
 } from 'lucide-react';
-import { ChatMessage, MeetingRoom, FacebookGroup, GroupChatMessage, UserProfile } from '../types';
+import { ChatMessage, MeetingRoom, CooMGroup, GroupChatMessage, UserProfile } from '../types';
 import { GroupMessengerChat } from './GroupMessengerChat';
 import { AllChatsList } from './AllChatsList';
 import { CreateGroupModal } from './CreateGroupModal';
@@ -26,15 +26,15 @@ interface MeetingChatScreenProps {
   activeRoomToken: string;
   onSendMessage: (roomToken: string, text: string, recipient?: string) => void;
   onJumpToMeeting?: (roomToken: string) => void;
-  // Facebook Group Chat Props
-  groups?: FacebookGroup[];
+  // CooM Group Chat Props
+  groups?: CooMGroup[];
   activeGroupId?: string;
   onSelectGroup?: (groupId: string) => void;
   groupChats?: GroupChatMessage[];
   currentUser?: UserProfile;
   onSendGroupMessage?: (groupId: string, text: string, mediaUrl?: string) => void;
   onToggleGroupReaction?: (messageId: string, emoji: string) => void;
-  onUpdateGroup?: (groupId: string, updates: Partial<FacebookGroup>) => void;
+  onUpdateGroup?: (groupId: string, updates: Partial<CooMGroup>) => void;
   onAddUserToGroup?: (groupId: string, userName: string) => void;
   onRemoveUserFromGroup?: (groupId: string, userName: string) => void;
   onApproveRequest?: (groupId: string, userName: string) => void;
@@ -71,7 +71,7 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
   const [directUser, setDirectUser] = useState<string | null>(null);
   const [inputText, setInputText] = useState<string>('');
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
-  const [groupForSettings, setGroupForSettings] = useState<FacebookGroup | null>(null);
+  const [groupForSettings, setGroupForSettings] = useState<CooMGroup | null>(null);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
   const [isRoomFilterDropdownOpen, setIsRoomFilterDropdownOpen] = useState(false);
   const [selectedGroupIdState, setSelectedGroupIdState] = useState<string>(activeGroupId || groups[0]?.id || '');
@@ -359,7 +359,8 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
         />
       ) : (
         /* Room Chats Stream */
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden items-center bg-neutral-50/50">
+          <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
           {/* Full-width All Room Filter Bar with long readable title */}
           <div className="px-3 py-2 bg-white border-b border-neutral-200 shrink-0 shadow-2xs">
             <div className="relative w-full">
@@ -618,6 +619,7 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
               <Send className="w-4 h-4" />
             </button>
           </form>
+          </div>
         </div>
       )}
 

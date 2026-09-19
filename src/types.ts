@@ -84,7 +84,7 @@ export interface PostItem {
   };
 }
 
-export interface FacebookGroup {
+export interface CooMGroup {
   id: string;
   name: string;
   description: string;
@@ -102,6 +102,8 @@ export interface FacebookGroup {
   createdAt: string;
   linkedMeetingToken?: string;
 }
+
+export type FacebookGroup = CooMGroup;
 
 export interface GroupChatMessage {
   id: string;

@@ -34,7 +34,7 @@ import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, Us
 import { MultiFilterDialog } from './MultiFilterDialog';
 import { GranolaNotesModal } from './GranolaNotesModal';
 import { MeetingChatModal } from './MeetingChatModal';
-import { TikTokCommentsModal } from './TikTokCommentsModal';
+import { CooMCommentsModal } from './TikTokCommentsModal';
 import { ZoomParticipantsDrawer } from './ZoomParticipantsDrawer';
 import { ZoomSecurityModal } from './ZoomSecurityModal';
 import { ZoomReactionsTray } from './ZoomReactionsTray';
@@ -999,7 +999,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     'English (US)': [
       'Audio stream translated to text in real-time with Whisper AI...',
       'Multi-user dynamic grid layout actively synchronizing...',
-      'Capturing key discussion points for automated X-Feed recap...',
+      'Capturing key discussion points for automated CooM Posts recap...',
       'Whisper AI speech model latency below 45ms across WebRTC streams...',
     ],
     'Thai (TH)': [
@@ -1012,7 +1012,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
     ],
     'Chinese (ZH)': [
       'Whisper AI 正在将多路会议音频实时转化为字幕...',
-      '会议要点与 X-Feed 摘要正在同步就绪...',
+      '会议要点与 CooM Posts 摘要正在同步就绪...',
     ],
     'Spanish (ES)': [
       'Transmisión de audio traducida a texto en tiempo real con Whisper AI...',
@@ -1203,7 +1203,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
             </button>
           </div>
         ) : isScreenSharing ? (
-          <div className="w-full h-full relative rounded-2xl overflow-hidden bg-white flex flex-col border border-neutral-200 shadow-xl">
+          <div className="w-full max-w-4xl mx-auto h-full relative rounded-2xl overflow-hidden bg-white flex flex-col border border-neutral-200 shadow-xl">
             {/* Top Zoom Banner */}
             <div className="bg-white/95 border-b border-neutral-200 px-4 py-2 flex items-center justify-between text-xs text-neutral-900 z-30 backdrop-blur-md">
               <div className="flex items-center gap-2">
@@ -1293,7 +1293,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
           </div>
         ) : (
           <div
-            className={`w-full h-full grid gap-2 ${
+            className={`w-full max-w-4xl mx-auto h-full grid gap-2 ${
               visibleUsers.length === 1
                 ? 'grid-cols-1 grid-rows-1'
                 : visibleUsers.length === 2
@@ -1818,7 +1818,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
       </div>
 
       {/* 2. TOP OVERLAY: Home Button + Search Bar + Recording Button */}
-      <div className="relative z-30 pt-3 px-3 flex items-center justify-between gap-2 pointer-events-auto">
+      <div className="relative z-30 pt-3 px-3 flex items-center justify-between gap-2 pointer-events-auto w-full max-w-4xl mx-auto">
         {onBackToHome && (
           <button
             id="btn-meeting-back-home"
@@ -2181,7 +2181,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
       </div>
 
       {/* 4. BOTTOM OVERLAY: Speaker Role Toggle */}
-      <div className="relative z-30 p-3 pb-2 pointer-events-auto">
+      <div className="relative z-30 p-3 pb-2 pointer-events-auto w-full max-w-4xl mx-auto">
         <button
           id="btn-toggle-speaker-role"
           type="button"
@@ -2535,8 +2535,8 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         </div>
       )}
 
-      {/* TikTok Comments Modal */}
-      <TikTokCommentsModal
+      {/* CooM Comments Modal */}
+      <CooMCommentsModal
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
         meetingToken={room.token}

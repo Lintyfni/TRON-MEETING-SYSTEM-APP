@@ -1,6 +1,6 @@
-import { FacebookGroup, GroupChatMessage } from '../types';
+import { CooMGroup, GroupChatMessage } from '../types';
 
-export const initialGroups: FacebookGroup[] = [
+export const initialGroups: CooMGroup[] = [
   {
     id: 'grp_webrtc_devs',
     name: 'Myanmar WebRTC & Live Streamers 🎥',
@@ -35,7 +35,7 @@ export const initialGroups: FacebookGroup[] = [
   },
   {
     id: 'grp_creator_shorts',
-    name: 'TikTok & Short Video Creators 📱',
+    name: 'CooM Video & Shorts Creators 📱',
     description: 'Tips and tricks for making engaging 30s clips, viral video editing, and live audio room promotion.',
     coverImage: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?w=1200&h=400&fit=crop',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',

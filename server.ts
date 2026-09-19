@@ -660,6 +660,16 @@ Format your response strictly as JSON with this schema:
     res.json({ reactions });
   });
 
+  // Health & Info Check
+  app.get('/api/health', (_req: Request, res: Response) => {
+    res.json({
+      status: 'ok',
+      app: 'CooM',
+      version: '2.4.0',
+      copyright: '© 2026 CooM. All rights reserved.',
+    });
+  });
+
   // ==========================================
   // VITE DEV / PRODUCTION MIDDLEWARE
   // ==========================================
@@ -678,7 +688,7 @@ Format your response strictly as JSON with this schema:
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Zoom Engine Backend] Server running on http://0.0.0.0:${PORT}`);
+    console.log(`[CooM Platform Engine] Server running on http://0.0.0.0:${PORT} - © 2026 CooM. All rights reserved.`);
   });
 }
 

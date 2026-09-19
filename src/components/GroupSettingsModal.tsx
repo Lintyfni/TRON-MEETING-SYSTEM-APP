@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FacebookGroup, SocialUser, UserProfile } from '../types';
+import { CooMGroup, SocialUser, UserProfile } from '../types';
 import {
   X,
   Users,
@@ -21,9 +21,9 @@ import { initialSocialUsers } from '../data/socialUsers';
 interface GroupSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  group: FacebookGroup;
+  group: CooMGroup;
   currentUser?: UserProfile;
-  onUpdateGroup: (groupId: string, updates: Partial<FacebookGroup>) => void;
+  onUpdateGroup: (groupId: string, updates: Partial<CooMGroup>) => void;
   onAddUserToGroup: (groupId: string, userName: string) => void;
   onRemoveUserFromGroup: (groupId: string, userName: string) => void;
   onApproveRequest: (groupId: string, userName: string) => void;

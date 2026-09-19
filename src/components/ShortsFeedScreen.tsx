@@ -3,11 +3,15 @@ import {
   ShortVideoItem,
   MeetingRoom,
   UserProfile,
+  PostItem,
 } from '../types';
 import {
   Heart,
   MessageCircle,
   Repeat2,
+  Repeat,
+  Edit3,
+  Image as ImageIcon,
   Bookmark,
   DoorOpen,
   DoorClosed,
@@ -41,6 +45,16 @@ interface ShortsFeedScreenProps {
   onAddShortComment: (shortId: string, commentText: string) => void;
   onCreateShort: (newShort: Omit<ShortVideoItem, 'id' | 'likes' | 'isLiked' | 'reposts' | 'isReposted' | 'commentsCount' | 'comments' | 'isBookmarked' | 'timestamp'>) => void;
   onResetSampleShorts?: () => void;
+  onAddPost?: (
+    token: string,
+    content: string,
+    visibility?: 'public' | 'private',
+    groupId?: string,
+    groupName?: string,
+    mediaUrl?: string,
+    mediaType?: 'image' | 'video',
+    quotedPost?: PostItem
+  ) => void;
 }
 
 export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
@@ -86,6 +100,14 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const recordingTimerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Repost & Quote Modal state
+  const [repostMenuShort, setRepostMenuShort] = useState<ShortVideoItem | null>(null);
+  const [quoteModalShort, setQuoteModalShort] = useState<ShortVideoItem | null>(null);
+  const [quoteText, setQuoteText] = useState('');
+  const [quoteMediaUrl, setQuoteMediaUrl] = useState('');
+  const [quoteMediaType, setQuoteMediaType] = useState<'image' | 'video'>('image');
+  const quoteFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Smooth Thumbnail Extractor from uploaded video file or stream
   const extractThumbnailFromVideo = (videoSrc: string): Promise<string> => {
@@ -323,9 +345,74 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     setNewCommentText('');
   };
 
-  const handleRepostAction = (shortId: string) => {
-    onToggleRepostShort(shortId);
-    showToast('🔁 Reposted to your Profile Posts feed!');
+  const handleOpenRepostMenu = (shortItem: ShortVideoItem) => {
+    setRepostMenuShort(shortItem);
+  };
+
+  const handleConfirmRepost = (shortItem: ShortVideoItem) => {
+    onToggleRepostShort(shortItem.id);
+    setRepostMenuShort(null);
+    showToast(shortItem.isReposted ? 'Removed repost' : '🔁 Reposted to your Profile & Feed!');
+  };
+
+  const handleOpenQuoteModal = (shortItem: ShortVideoItem) => {
+    setRepostMenuShort(null);
+    setQuoteModalShort(shortItem);
+    setQuoteText('');
+    setQuoteMediaUrl('');
+    setQuoteMediaType('image');
+  };
+
+  const handleCreateQuotePost = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quoteModalShort) return;
+
+    if (onAddPost) {
+      onAddPost(
+        quoteModalShort.meetingToken || (rooms[0]?.token) || '#MEET-9021',
+        quoteText.trim() || 'Quoted video short',
+        'public',
+        undefined,
+        undefined,
+        quoteMediaUrl || undefined,
+        quoteMediaType,
+        {
+          id: quoteModalShort.id,
+          meetingToken: quoteModalShort.meetingToken,
+          author: quoteModalShort.author,
+          avatar: quoteModalShort.avatar,
+          handle: quoteModalShort.handle,
+          content: quoteModalShort.title,
+          timestamp: 'Just now',
+          mediaUrl: quoteModalShort.thumbnailUrl || quoteModalShort.videoUrl,
+          mediaType: 'video',
+        }
+      );
+    }
+
+    if (!quoteModalShort.isReposted) {
+      onToggleRepostShort(quoteModalShort.id);
+    }
+
+    showToast('Quote repost published to Feed & Profile!');
+    setQuoteText('');
+    setQuoteMediaUrl('');
+    setQuoteModalShort(null);
+  };
+
+  const handleQuoteFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const isVideo = file.type.startsWith('video');
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      if (result) {
+        setQuoteMediaUrl(result);
+        setQuoteMediaType(isVideo ? 'video' : 'image');
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleBookmarkAction = (shortId: string) => {
@@ -423,40 +510,42 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       )}
 
       {/* Top Floating Header (Matching White Background & Clean Light Theme) */}
-      <div className="sticky top-0 left-0 right-0 z-30 px-4 py-2.5 flex items-center justify-between bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-2xs">
-        <div className="flex items-center gap-2">
-          <span className="text-base font-black tracking-tight flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-            <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 bg-clip-text text-transparent">
-              SHORTS
+      <div className="sticky top-0 left-0 right-0 z-30 px-4 py-2.5 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-2xs">
+        <div className="w-full max-w-lg lg:max-w-xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-black tracking-tight flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+              <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 bg-clip-text text-transparent">
+                SHORTS
+              </span>
             </span>
-          </span>
-          {activeShort?.visibility === 'private' ? (
-            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-              <Lock className="w-2.5 h-2.5" />
-              Private
-            </span>
-          ) : (
-            <span className="text-[10px] font-bold text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Globe className="w-2.5 h-2.5 text-purple-600" />
-              Public
-            </span>
-          )}
-        </div>
+            {activeShort?.visibility === 'private' ? (
+              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                <Lock className="w-2.5 h-2.5" />
+                Private
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-neutral-600 bg-neutral-100 border border-neutral-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Globe className="w-2.5 h-2.5 text-purple-600" />
+                Public
+              </span>
+            )}
+          </div>
 
-        {/* Top Right Sound Toggle & Total Clips */}
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-neutral-500">
-            {safeShorts.length > 0 ? `${safeActiveIndex + 1}/${safeShorts.length}` : '0/0'}
-          </span>
-          <button
-            type="button"
-            onClick={() => setIsMuted(!isMuted)}
-            className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
-            title={isMuted ? 'Unmute' : 'Mute'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
-          </button>
+          {/* Top Right Sound Toggle & Total Clips */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-neutral-500">
+              {safeShorts.length > 0 ? `${safeActiveIndex + 1}/${safeShorts.length}` : '0/0'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsMuted(!isMuted)}
+              className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-700 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
+              title={isMuted ? 'Unmute' : 'Mute'}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-red-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -752,9 +841,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
               <button
                 id="btn-short-repost"
                 type="button"
-                onClick={() => handleRepostAction(activeShort.id)}
+                onClick={() => handleOpenRepostMenu(activeShort)}
                 className="flex flex-col items-center transition cursor-pointer group active:scale-90"
-                title="Repost to Profile Posts"
+                title="Repost or Quote to Feed & Profile"
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border shadow-md transition ${
@@ -861,12 +950,12 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       {isCommentDrawerOpen && activeShort && (
         <div
           id="shorts-comment-backdrop"
-          className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-150"
+          className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex flex-col justify-end items-center animate-in fade-in duration-150"
           onClick={() => setIsCommentDrawerOpen(false)}
         >
           <div
             id="shorts-comment-sheet"
-            className="w-full h-2/3 bg-white border-t border-neutral-200 rounded-t-3xl flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200"
+            className="w-full max-w-lg lg:max-w-xl h-2/3 bg-white border-t sm:border-x border-neutral-200 rounded-t-3xl flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Header */}
@@ -1191,6 +1280,221 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                 Publish 30s Short
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repost & Quote Selection Modal */}
+      {repostMenuShort && (
+        <div
+          id="shorts-repost-menu-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setRepostMenuShort(null)}
+        >
+          <div
+            className="w-full max-w-xs bg-white rounded-2xl p-4 shadow-2xl border border-neutral-200 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+              <h3 className="text-sm font-bold text-neutral-900">Repost Video</h3>
+              <button
+                type="button"
+                onClick={() => setRepostMenuShort(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {/* Option 1: Repost */}
+              <button
+                type="button"
+                id="btn-shorts-confirm-repost"
+                onClick={() => handleConfirmRepost(repostMenuShort)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left font-bold text-sm text-neutral-800 hover:bg-emerald-50 hover:text-emerald-700 transition cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <Repeat className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="leading-tight">
+                    {repostMenuShort.isReposted ? 'Undo Repost' : 'Repost'}
+                  </p>
+                  <p className="text-[11px] font-normal text-neutral-500">
+                    Instantly share this video to your profile & feed
+                  </p>
+                </div>
+              </button>
+
+              {/* Option 2: Quote */}
+              <button
+                type="button"
+                id="btn-shorts-open-quote"
+                onClick={() => handleOpenQuoteModal(repostMenuShort)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left font-bold text-sm text-neutral-800 hover:bg-purple-50 hover:text-purple-700 transition cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="leading-tight">Quote Video</p>
+                  <p className="text-[11px] font-normal text-neutral-500">
+                    Add your thoughts and attach media with this video
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quote Composer Modal with Text & Media Attachment */}
+      {quoteModalShort && (
+        <div
+          id="shorts-quote-composer-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setQuoteModalShort(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white rounded-2xl p-5 shadow-2xl border border-neutral-200 flex flex-col max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-100 shrink-0">
+              <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-purple-600" />
+                Quote Video
+              </h3>
+              <button
+                type="button"
+                onClick={() => setQuoteModalShort(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateQuotePost} className="flex-1 flex flex-col min-h-0 overflow-y-auto pt-3 space-y-3">
+              {/* User Avatar & Comment Input */}
+              <div className="flex gap-3">
+                <img
+                  src={userProfile.avatar}
+                  alt={userProfile.name}
+                  className="w-10 h-10 rounded-full object-cover border border-neutral-200 shrink-0"
+                />
+                <textarea
+                  id="shorts-quote-input"
+                  value={quoteText}
+                  onChange={(e) => setQuoteText(e.target.value)}
+                  placeholder="Add a comment to this video..."
+                  rows={3}
+                  className="w-full p-2.5 text-sm border border-neutral-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none placeholder:text-neutral-400"
+                  autoFocus
+                />
+              </div>
+
+              {/* Optional Attached Media Preview */}
+              {quoteMediaUrl && (
+                <div className="relative rounded-xl overflow-hidden border border-neutral-200 bg-neutral-900 max-h-48 flex items-center justify-center">
+                  {quoteMediaType === 'video' ? (
+                    <video
+                      src={quoteMediaUrl}
+                      controls
+                      className="max-h-48 w-full object-contain"
+                    />
+                  ) : (
+                    <img
+                      src={quoteMediaUrl}
+                      alt="Quote Attachment"
+                      className="max-h-48 w-full object-contain"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setQuoteMediaUrl('')}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer"
+                    title="Remove attachment"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Quoted Short Card Preview */}
+              <div className="p-3 rounded-xl border border-neutral-200/90 bg-neutral-50/80 flex items-center gap-3">
+                <div className="relative w-16 h-20 rounded-lg overflow-hidden bg-neutral-900 shrink-0 border border-neutral-200">
+                  <img
+                    src={quoteModalShort.thumbnailUrl || quoteModalShort.videoUrl}
+                    alt={quoteModalShort.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <Play className="w-4 h-4 text-white fill-white" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <img
+                      src={quoteModalShort.avatar}
+                      alt={quoteModalShort.author}
+                      className="w-4 h-4 rounded-full object-cover"
+                    />
+                    <span className="text-xs font-bold text-neutral-800 truncate">
+                      {quoteModalShort.author}
+                    </span>
+                    <span className="text-[11px] text-neutral-400">
+                      {quoteModalShort.handle}
+                    </span>
+                  </div>
+                  <p className="text-xs text-neutral-600 line-clamp-2 mt-1">
+                    {quoteModalShort.title}
+                  </p>
+                  {quoteModalShort.meetingToken && (
+                    <span className="inline-block text-[10px] font-bold text-purple-700 bg-purple-100/70 px-1.5 py-0.5 rounded mt-1">
+                      Room: {quoteModalShort.meetingToken}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions: Photo/Video Attachment and Post Button */}
+              <div className="pt-2 flex items-center justify-between border-t border-neutral-100">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => quoteFileInputRef.current?.click()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition border border-neutral-200 cursor-pointer"
+                  >
+                    <ImageIcon className="w-4 h-4 text-purple-600" />
+                    <span>Attach Photo/Video</span>
+                  </button>
+                  <input
+                    ref={quoteFileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleQuoteFileUpload}
+                    className="hidden"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuoteModalShort(null)}
+                    className="px-4 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 rounded-lg transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm transition cursor-pointer"
+                  >
+                    Quote Post
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

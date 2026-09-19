@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FacebookGroup, UserProfile } from '../types';
+import { CooMGroup, UserProfile } from '../types';
 import { initialSocialUsers } from '../data/socialUsers';
 import {
   X,
@@ -14,7 +14,7 @@ import {
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  group: FacebookGroup | null;
+  group: CooMGroup | null;
   currentUser?: UserProfile;
   onAddUserToGroup: (groupId: string, userName: string) => void;
 }

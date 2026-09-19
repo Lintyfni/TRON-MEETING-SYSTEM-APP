@@ -62,34 +62,36 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   return (
     <nav
       id="main-bottom-navigation"
-      className="shrink-0 w-full bg-white border-t border-neutral-200 px-1 sm:px-2 py-1.5 flex items-center justify-around z-40 select-none shadow-xs"
+      className="shrink-0 w-full bg-white border-t border-neutral-200 px-1 sm:px-4 py-1.5 z-40 select-none shadow-xs"
     >
-      {tabs.map((tab) => {
-        const isActive = currentTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            id={`nav-tab-${tab.id}`}
-            type="button"
-            onClick={() => onSelectTab(tab.id)}
-            className={`flex-1 flex flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
-              isActive ? 'text-purple-600 font-bold' : 'text-neutral-500 hover:text-neutral-800'
-            }`}
-          >
-            <div className="relative">
-              {tab.icon}
-              {tab.id === 'chat' && unreadChatsCount > 0 && (
-                <span className="absolute -top-1 -right-2 px-1 rounded-full bg-purple-600 text-white text-[9px] font-bold">
-                  {unreadChatsCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] sm:text-[11px] mt-1 tracking-tight truncate">
-              {tab.label}
-            </span>
-          </button>
-        );
-      })}
+      <div className="max-w-3xl lg:max-w-4xl mx-auto flex items-center justify-around w-full">
+        {tabs.map((tab) => {
+          const isActive = currentTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              id={`nav-tab-${tab.id}`}
+              type="button"
+              onClick={() => onSelectTab(tab.id)}
+              className={`flex-1 max-w-[90px] flex flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
+                isActive ? 'text-purple-600 font-bold' : 'text-neutral-500 hover:text-neutral-800'
+              }`}
+            >
+              <div className="relative">
+                {tab.icon}
+                {tab.id === 'chat' && unreadChatsCount > 0 && (
+                  <span className="absolute -top-1 -right-2 px-1 rounded-full bg-purple-600 text-white text-[9px] font-bold">
+                    {unreadChatsCount}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] sm:text-[11px] mt-1 tracking-tight truncate">
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 };

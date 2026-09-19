@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FacebookGroup, GroupChatMessage, UserProfile } from '../types';
+import { CooMGroup, GroupChatMessage, UserProfile } from '../types';
 import {
   Send,
   Users,
@@ -19,14 +19,14 @@ import {
 import { AddMemberModal } from './AddMemberModal';
 
 interface GroupMessengerChatProps {
-  groups: FacebookGroup[];
+  groups: CooMGroup[];
   activeGroupId: string;
   onSelectGroup: (groupId: string) => void;
   groupChats: GroupChatMessage[];
   currentUser?: UserProfile;
   onSendGroupMessage: (groupId: string, text: string, mediaUrl?: string) => void;
   onToggleReaction: (messageId: string, emoji: string) => void;
-  onOpenGroupSettings: (group: FacebookGroup) => void;
+  onOpenGroupSettings: (group: CooMGroup) => void;
   onCreateGroupClick: () => void;
   onJumpToMeeting?: (roomToken: string) => void;
   onGoToGroupPosts?: (groupId: string) => void;
@@ -35,7 +35,7 @@ interface GroupMessengerChatProps {
 
 const EMOJI_PICKER_OPTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥', '👏'];
 
-// Theme configurations matching Facebook Messenger
+// Theme configurations matching CooM Group Messenger
 const THEME_STYLES: Record<string, { bubble: string; text: string; headerBg: string; buttonBg: string }> = {
   ocean: {
     bubble: 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white',
@@ -158,7 +158,8 @@ export const GroupMessengerChat: React.FC<GroupMessengerChatProps> = ({
   const isMember = activeGroup.members.includes(currentUserName) || activeGroup.members.includes('You');
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-50/50">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-neutral-50/50 items-center">
+      <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
       {/* 1. Group Header (Clean & Spacious) */}
       <div className="px-4 py-2.5 bg-white border-b border-neutral-200 flex items-center justify-between gap-3 shrink-0 shadow-2xs">
         <div className="flex items-center gap-3 min-w-0">
@@ -444,7 +445,7 @@ export const GroupMessengerChat: React.FC<GroupMessengerChatProps> = ({
         </div>
       )}
 
-      {/* 6. Facebook Messenger Input Bar */}
+      {/* 6. CooM Messenger Input Bar */}
       <form
         onSubmit={handleSendMessage}
         className="p-3 bg-white border-t border-neutral-200 flex items-center gap-2 shrink-0 shadow-2xs"
@@ -506,6 +507,7 @@ export const GroupMessengerChat: React.FC<GroupMessengerChatProps> = ({
           onAddUserToGroup={onAddUserToGroup}
         />
       )}
+      </div>
     </div>
   );
 };

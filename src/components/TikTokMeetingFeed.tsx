@@ -3,7 +3,7 @@ import { MeetingRoom, MeetingNote, ChatMessage, UserSettings, MeetingComment, Us
 import { MeetingRoomTile } from './MeetingRoomTile';
 import { Plus, Hash, Sparkles, Video } from 'lucide-react';
 
-interface TikTokMeetingFeedProps {
+interface CooMMeetingFeedProps {
   rooms: MeetingRoom[];
   notes?: MeetingNote[];
   chats: ChatMessage[];
@@ -29,7 +29,9 @@ interface TikTokMeetingFeedProps {
   onUpdateSettings?: (newSettings: Partial<UserSettings>) => void;
 }
 
-export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
+export type TikTokMeetingFeedProps = CooMMeetingFeedProps;
+
+export const CooMMeetingFeed: React.FC<CooMMeetingFeedProps> = ({
   rooms,
   notes = [],
   chats,
@@ -105,6 +107,10 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
 
   // Touch swipe support
   const handleTouchStart = (e: React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('button, input, textarea, select, canvas, [role="dialog"], [role="slider"], #zoom-reactions-tray, #avatar-picker-modal, #meeting-search-users-dropdown')) {
+      touchStartY.current = null;
+      return;
+    }
     touchStartY.current = e.touches[0].clientY;
   };
 
@@ -113,10 +119,10 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
     const touchEndY = e.changedTouches[0].clientY;
     const diff = touchStartY.current - touchEndY;
 
-    if (diff > 50) {
+    if (diff > 45) {
       // Swiped up -> next room
       handleNext();
-    } else if (diff < -50) {
+    } else if (diff < -45) {
       // Swiped down -> previous room
       handlePrev();
     }
@@ -140,7 +146,7 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
 
   return (
     <div
-      id="tiktok-meeting-feed"
+      id="coom-meeting-feed"
       className="relative w-full h-full bg-white flex flex-col overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -294,3 +300,5 @@ export const TikTokMeetingFeed: React.FC<TikTokMeetingFeedProps> = ({
     </div>
   );
 };
+
+export const TikTokMeetingFeed = CooMMeetingFeed;
