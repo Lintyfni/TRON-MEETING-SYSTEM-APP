@@ -144,7 +144,7 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
       {/* 1. Top Header with Centered Equal-Sized Mode Switcher (Groups / Rooms / All Chats) */}
       <header className="px-3 py-2 bg-white border-b border-neutral-200 flex items-center justify-center shrink-0 shadow-2xs">
         {/* Centered Mode Switcher - 3 Equal Size & Symmetrical Buttons */}
-        <div className="w-full max-w-sm sm:max-w-md flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
+        <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
           {/* Groups Tab with Dropdown Filter */}
           <div className="flex-1 relative">
             <button
@@ -360,7 +360,7 @@ export const MeetingChatScreen: React.FC<MeetingChatScreenProps> = ({
       ) : (
         /* Room Chats Stream */
         <div className="flex-1 flex flex-col overflow-hidden items-center bg-neutral-50/50">
-          <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
+          <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
           {/* Full-width All Room Filter Bar with long readable title */}
           <div className="px-3 py-2 bg-white border-b border-neutral-200 shrink-0 shadow-2xs">
             <div className="relative w-full">

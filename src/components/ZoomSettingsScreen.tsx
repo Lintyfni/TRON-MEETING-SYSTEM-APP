@@ -26,19 +26,22 @@ import {
   Share2,
   MessageSquare,
   Edit3,
-  Smile
+  Smile,
+  LogOut
 } from 'lucide-react';
 
 interface ZoomSettingsScreenProps {
   settings: UserSettings;
   userProfile?: UserProfile;
   onUpdateSettings: (newSettings: Partial<UserSettings>) => void;
+  onLogout?: () => void;
 }
 
 export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
   settings,
   userProfile,
   onUpdateSettings,
+  onLogout,
 }) => {
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
   const [isChatFilterModalOpen, setIsChatFilterModalOpen] = useState(false);
@@ -91,12 +94,17 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
       className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden"
     >
       {/* App Bar */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
-        <h1 className="font-bold text-base text-neutral-900">Settings</h1>
-        <span className="text-[11px] text-neutral-500 font-mono">Zoom Core v2.4</span>
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3">
+        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex items-center justify-between">
+          <h1 className="font-bold text-base text-neutral-900">Settings</h1>
+          <span className="text-[11px] text-purple-700 font-bold font-mono bg-purple-50 border border-purple-200/60 px-2 py-0.5 rounded-full">
+            CooM v2.5.0
+          </span>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24 divide-y divide-neutral-200 bg-white">
+      <div className="flex-1 overflow-y-auto pb-24 bg-white">
+        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full divide-y divide-neutral-200">
         {/* 1. Profile Banner (Synchronized with User Profile) */}
         <div
           id="settings-profile-banner"
@@ -352,24 +360,53 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* 5. ABOUT */}
+        {/* 5. ABOUT & LEGAL */}
         <div className="py-2 bg-white">
-          <SectionTitle title="ABOUT" />
+          <SectionTitle title="ABOUT & LEGAL" />
           <div className="px-4 py-3 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-neutral-900">Version</p>
-              <p className="text-xs text-neutral-500">2.5.0-clean.2026</p>
+              <p className="text-sm font-medium text-neutral-900">Application</p>
+              <p className="text-xs text-neutral-500">CooM Social Meeting &amp; Video Platform</p>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-600 font-mono">
-              STABLE
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 font-bold font-mono">
+              v2.5.0-clean.2026
             </span>
           </div>
-          <div className="px-4 py-2 flex items-center gap-2 text-xs text-neutral-500">
-            <Info className="w-3.5 h-3.5 text-purple-600" />
-            <span>Real-Time WebRTC Meeting Feed & Video Pad</span>
+          <div className="px-4 py-2 flex items-center justify-between text-xs text-neutral-500">
+            <span>Package ID (APK)</span>
+            <span className="font-mono text-[11px] text-neutral-700 font-medium">com.coom.app</span>
+          </div>
+          <div className="px-4 py-2 flex items-center justify-between text-xs text-neutral-500">
+            <span>App Name (APK)</span>
+            <span className="font-bold text-neutral-800">CooM</span>
+          </div>
+
+          {/* Account Log Out Action */}
+          {onLogout && (
+            <div className="px-4 pt-3 pb-1">
+              <button
+                type="button"
+                id="btn-settings-logout"
+                onClick={onLogout}
+                className="w-full py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-red-200 transition cursor-pointer active:scale-98"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out of CooM (အကောင့်ထွက်မည်)</span>
+              </button>
+            </div>
+          )}
+
+          <div className="px-4 py-3 border-t border-neutral-100 mt-2 bg-neutral-50/70 rounded-xl mx-4 space-y-1">
+            <p className="text-[11px] font-bold text-neutral-800">
+              © 2026 CooM Inc. All rights reserved.
+            </p>
+            <p className="text-[10px] text-neutral-500 leading-relaxed">
+              CooM™ is a registered trademark of CooM Inc. All content, video streams, audio processing, and software algorithms are protected under international copyright and intellectual property laws.
+            </p>
           </div>
         </div>
       </div>
+    </div>
 
       {/* Subtitle Language Selection Modal */}
       {isLangModalOpen && (

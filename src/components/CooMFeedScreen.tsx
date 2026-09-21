@@ -36,7 +36,7 @@ import { CreateGroupModal } from './CreateGroupModal';
 import { GroupSettingsModal } from './GroupSettingsModal';
 import { AddMemberModal } from './AddMemberModal';
 
-interface XFeedScreenProps {
+interface CooMFeedScreenProps {
   posts: PostItem[];
   rooms: MeetingRoom[];
   initialNewPostText?: string;
@@ -72,7 +72,7 @@ interface XFeedScreenProps {
   onOpenGroupChat?: (groupId: string) => void;
 }
 
-export const XFeedScreen: React.FC<XFeedScreenProps> = ({
+export const CooMFeedScreen: React.FC<CooMFeedScreenProps> = ({
   posts,
   rooms,
   initialNewPostText = '',
@@ -503,7 +503,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
           </div>
         )}
 
-        {/* Quoted Post Card (Twitter / X style embedded card) */}
+        {/* Quoted Post Card (CooM embedded card) */}
         {post.quotedPost && (
           <div className="mt-2.5 pl-11 pr-2">
             <div className="rounded-2xl border border-neutral-200/90 bg-neutral-50/70 hover:bg-neutral-100/70 transition p-3">
@@ -646,10 +646,10 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
   };
 
   return (
-    <div id="xfeed-screen" className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden">
+    <div id="coom-feed-screen" className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden">
       {/* 1. APP BAR - Centered Equal-Sized Mode Switcher (Groups / Rooms / All Posts) */}
       <header className="sticky top-0 z-20 bg-white border-b border-neutral-200 px-3 py-2 flex items-center justify-center shrink-0 shadow-2xs">
-        <div className="w-full max-w-sm sm:max-w-md flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
+        <div className="w-full max-w-sm sm:max-w-md md:max-w-lg flex items-center bg-neutral-100/90 p-1 rounded-2xl border border-neutral-200/90 shadow-2xs gap-1">
           {/* Groups Tab with Dropdown Filter */}
           <div className="flex-1 relative">
             <button
@@ -856,7 +856,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
       {/* ========================================================= */}
       {postMode === 'groups' && (
         <div className="flex-1 overflow-y-auto pb-24 bg-neutral-50 flex flex-col items-center">
-          <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs">
+          <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs">
           {/* Subbar for Group Filter & Actions when not in specific group view */}
           {!currentOpenGroup && (
             <div className="px-3.5 py-2 bg-white border-b border-neutral-200 shrink-0 flex items-center justify-between gap-2 shadow-2xs">
@@ -1550,7 +1550,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
       {/* ========================================================= */}
       {postMode === 'rooms' && (
         <div className="flex-1 flex flex-col overflow-hidden bg-neutral-50 items-center">
-          <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
+          <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
           {/* Full-width Room Filter Bar (အောက်တလိုင်း ရှည်ရှည် All Room dropdown filter bar) */}
           <div className="w-full px-3 py-2 bg-white border-b border-neutral-200 shrink-0 shadow-2xs">
             <div className="relative w-full">
@@ -1759,7 +1759,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
       {/* ========================================================= */}
       {postMode === 'all' && (
         <div className="flex-1 flex flex-col overflow-hidden bg-neutral-50 items-center">
-          <div className="w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
+          <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl flex-1 flex flex-col min-h-0 bg-white sm:border-x border-neutral-200/80 shadow-2xs overflow-hidden">
           {/* Search bar */}
           <div className="px-4 py-2 border-b border-neutral-200 bg-white flex items-center gap-2 shrink-0">
             <div className="flex-1 flex items-center gap-2 bg-neutral-100 px-3 py-1.5 rounded-xl border border-neutral-200 text-xs">
@@ -2104,7 +2104,7 @@ export const XFeedScreen: React.FC<XFeedScreenProps> = ({
         </div>
       )}
 
-      {/* QUOTE POST MODAL (X/Twitter style) */}
+      {/* QUOTE POST MODAL (CooM Style) */}
       {quoteModalPost && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[90vh]">

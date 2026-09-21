@@ -81,8 +81,6 @@ interface CooMProfileScreenProps {
   onBackToHome?: () => void;
 }
 
-export type TikTokProfileScreenProps = CooMProfileScreenProps;
-
 type ProfileTabType = 'recordings' | 'posts' | 'favorites' | 'notes' | 'chats' | 'bookmarks';
 
 export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
@@ -350,7 +348,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
       {/* 1. TOP BAR */}
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3">
-        <div className="max-w-3xl lg:max-w-4xl mx-auto w-full flex items-center justify-between">
+        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-sm text-neutral-900 truncate max-w-[220px]">
             {(onBackToHome || onClearViewedUser) && (
               <button
@@ -405,7 +403,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
       {/* SCROLLABLE PROFILE CONTAINER */}
       <div className="flex-1 overflow-y-auto pb-24 bg-white">
-        <div className="max-w-3xl lg:max-w-4xl mx-auto w-full divide-y divide-neutral-200">
+        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full divide-y divide-neutral-200">
           {/* 2. PROFILE HEADER & EDIT BIO */}
         <div className="p-4 flex flex-col items-center text-center bg-white">
           {/* Avatar */}
@@ -2230,5 +2228,3 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
     </div>
   );
 };
-
-export const TikTokProfileScreen = CooMProfileScreen;

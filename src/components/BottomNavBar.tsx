@@ -64,7 +64,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
       id="main-bottom-navigation"
       className="shrink-0 w-full bg-white border-t border-neutral-200 px-1 sm:px-4 py-1.5 z-40 select-none shadow-xs"
     >
-      <div className="max-w-3xl lg:max-w-4xl mx-auto flex items-center justify-around w-full">
+      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-around w-full">
         {tabs.map((tab) => {
           const isActive = currentTab === tab.id;
           return (

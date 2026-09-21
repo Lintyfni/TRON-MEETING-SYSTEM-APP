@@ -16,6 +16,7 @@ import {
   ShortVideoItem,
   CooMGroup,
   GroupChatMessage,
+  AuthUser,
 } from './types';
 import { api } from './services/api';
 import {
@@ -33,16 +34,42 @@ import {
 import { initialSocialUsers } from './data/socialUsers';
 import { initialShorts } from './data/shortsData';
 import { initialGroups, initialGroupChats } from './data/initialGroups';
+import { CooMAuthScreen } from './components/CooMAuthScreen';
 import { MeetingHomeScreen } from './components/MeetingHomeScreen';
 import { ShortsFeedScreen } from './components/ShortsFeedScreen';
-import { CooMMeetingFeed } from './components/TikTokMeetingFeed';
-import { XFeedScreen } from './components/XFeedScreen';
+import { CooMMeetingFeed } from './components/CooMMeetingFeed';
+import { CooMFeedScreen } from './components/CooMFeedScreen';
 import { MeetingChatScreen } from './components/MeetingChatScreen';
 import { ZoomSettingsScreen } from './components/ZoomSettingsScreen';
-import { CooMProfileScreen } from './components/TikTokProfileScreen';
+import { CooMProfileScreen } from './components/CooMProfileScreen';
 import { BottomNavBar } from './components/BottomNavBar';
 
 export default function App() {
+  // CooM Authentication & Authorization Guard
+  const [authToken, setAuthToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('coom_auth_token') || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('coom_auth_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem('coom_auth_token'));
+    } catch {
+      return false;
+    }
+  });
+
   // Starts with 'home' screen as requested by user ("app စစချင်း ဝင်တဲ့ Screen တခုထည့်ပါ")
   const [currentTab, setCurrentTab] = useState<TabType>('home');
   const [profileActiveTab, setProfileActiveTab] = useState<'recordings' | 'favorites' | 'notes' | 'chats'>('recordings');
@@ -60,7 +87,7 @@ export default function App() {
   // CooM Groups State
   const [groups, setGroups] = useState<CooMGroup[]>(() => {
     try {
-      const saved = localStorage.getItem('coom_groups_data') || localStorage.getItem('facebook_groups_data');
+      const saved = localStorage.getItem('coom_groups_data');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -73,7 +100,7 @@ export default function App() {
 
   const [groupChats, setGroupChats] = useState<GroupChatMessage[]>(() => {
     try {
-      const saved = localStorage.getItem('coom_group_chats') || localStorage.getItem('facebook_group_chats');
+      const saved = localStorage.getItem('coom_group_chats');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -404,7 +431,7 @@ export default function App() {
   const [recordings, setRecordings] = useState<MeetingRecording[]>(initialRecordings);
   // Active Recording state per meeting room
   const [activeRecordingTokens, setActiveRecordingTokens] = useState<Record<string, boolean>>({});
-  // TikTok Meeting Comments state per room token
+  // CooM Meeting Comments state per room token
   const [comments, setComments] = useState<Record<string, MeetingComment[]>>(initialMeetingComments);
 
   // Synchronize with Backend API on mount
@@ -780,7 +807,7 @@ export default function App() {
     }
   };
 
-  // Add new X post (with optional Facebook group linking, media attachment, and quote)
+  // Add new CooM post (with optional group linking, media attachment, and quote)
   const handleAddPost = (
     token: string,
     content: string,
@@ -1316,12 +1343,55 @@ export default function App() {
     setSettings((prev) => ({ ...prev, ...newSettings }));
   };
 
+  const handleAuthSuccess = (user: AuthUser, token: string) => {
+    setAuthToken(token);
+    setAuthUser(user);
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem('coom_auth_token', token);
+      localStorage.setItem('coom_auth_user', JSON.stringify(user));
+    } catch {}
+
+    // Synchronize current user profile with authenticated user credentials
+    setUserProfile((prev) => ({
+      ...prev,
+      name: user.name || prev.name,
+      handle: user.handle || prev.handle,
+      avatar: user.avatar || prev.avatar,
+    }));
+
+    setCurrentTab('home');
+  };
+
+  const handleLogout = () => {
+    if (authToken) {
+      api.logout(authToken).catch(() => {});
+    }
+    try {
+      localStorage.removeItem('coom_auth_token');
+      localStorage.removeItem('coom_auth_user');
+    } catch {}
+    setAuthToken(null);
+    setAuthUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // Auth Guard: If not authenticated, display X-Style CooM Auth Onboarding Screen
+  if (!isAuthenticated) {
+    return (
+      <CooMAuthScreen
+        onAuthSuccess={handleAuthSuccess}
+        defaultEmail={authUser?.email || 'linty.fni@gmail.com'}
+      />
+    );
+  }
+
   return (
-    <div className="w-full min-h-[100dvh] h-[100dvh] bg-neutral-100/90 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white overflow-hidden p-0">
-      {/* Auto Screen Matching Viewport for Phone & Tablet */}
+    <div className="w-full min-h-[100dvh] h-[100dvh] bg-neutral-950 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white overflow-hidden p-0">
+      {/* Auto Screen Matching Viewport for Phone, Tablet & Desktop */}
       <div
         id="app-viewport-container"
-        className="relative w-full h-[100dvh] bg-white flex flex-col overflow-hidden max-w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl shadow-none md:shadow-2xl md:border-x md:border-neutral-200"
+        className="relative w-full h-[100dvh] bg-white flex flex-col overflow-hidden max-w-full 2xl:max-w-7xl shadow-none 2xl:shadow-2xl 2xl:border-x 2xl:border-neutral-200"
       >
         {/* Active Screen Tab View */}
         <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col">
@@ -1398,7 +1468,7 @@ export default function App() {
             )}
 
             {currentTab === 'posts' && (
-              <XFeedScreen
+              <CooMFeedScreen
                 posts={posts}
                 rooms={rooms}
                 initialNewPostText={prefilledPostText}
@@ -1489,7 +1559,9 @@ export default function App() {
             {currentTab === 'settings' && (
               <ZoomSettingsScreen
                 settings={settings}
+                userProfile={userProfile}
                 onUpdateSettings={handleUpdateSettings}
+                onLogout={handleLogout}
               />
             )}
           </div>

@@ -24,8 +24,6 @@ interface CooMCommentsModalProps {
   onToggleLikeComment: (meetingToken: string, commentId: string, replyId?: string) => void;
 }
 
-export type TikTokCommentsModalProps = CooMCommentsModalProps;
-
 const QUICK_EMOJIS = ['❤️', '🔥', '👏', '😂', '💯', '🚀', '✨', '👍'];
 
 export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
@@ -410,5 +408,3 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
     </div>
   );
 };
-
-export const TikTokCommentsModal = CooMCommentsModal;

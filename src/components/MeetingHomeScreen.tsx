@@ -331,7 +331,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
       {/* TOP BRANDING & PROFILE BAR */}
       <div className="px-3.5 py-2.5 bg-white/95 border-b border-neutral-200 sticky top-0 z-20 backdrop-blur-md">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-between gap-3">
           {/* User profile preview chip */}
           <div
             onClick={() => onNavigateToProfileTab('recordings')}
@@ -371,7 +371,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
       </div>
 
       {/* MAIN CONTAINER */}
-      <div className="p-3 space-y-3 bg-white max-w-4xl lg:max-w-5xl mx-auto w-full">
+      <div className="p-3 space-y-3 bg-white max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full">
         {/* ========================================================================= */}
         {/* HORIZONTAL ELONGATED SEARCH BAR FOR @USERNAME (Directly Above Meeting Actions) */}
         {/* ========================================================================= */}

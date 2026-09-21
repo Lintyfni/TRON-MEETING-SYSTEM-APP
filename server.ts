@@ -1,3 +1,8 @@
+/**
+ * CooM Platform - High Performance Real-Time Engine & Media Server
+ * Copyright (c) 2026 CooM Inc. All rights reserved.
+ * CooM™ is a registered trademark of CooM Inc.
+ */
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -154,16 +159,191 @@ async function startServer() {
   // BACKEND API ROUTES
   // ==========================================
 
-  // Health check
+  // Health check & Platform Info
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
       status: 'ok',
-      service: 'Zoom-Style Meeting Engine & AI Companion Backend',
+      service: 'CooM Platform Engine & Real-Time Media Backend',
+      appName: 'CooM',
       version: '2.0.0',
+      copyright: '© 2026 CooM Inc. All rights reserved. CooM™',
       timestamp: new Date().toISOString(),
       roomsCount: rooms.length,
       aiAvailable: Boolean(process.env.GEMINI_API_KEY),
     });
+  });
+
+  // ==========================================
+  // AUTHENTICATION & VERIFICATION API (CooM Auth Engine)
+  // ==========================================
+  interface AuthUserData {
+    id: string;
+    email: string;
+    name: string;
+    handle: string;
+    avatar: string;
+    bio?: string;
+    provider: 'google' | 'email';
+    isEmailVerified: boolean;
+    createdAt: string;
+  }
+
+  const authUsers: Map<string, AuthUserData> = new Map();
+  const verificationCodes: Map<string, { code: string; expiresAt: number; email: string }> = new Map();
+  const activeSessions: Map<string, AuthUserData> = new Map();
+
+  // Send 6-digit verification code to email
+  app.post('/api/auth/send-code', (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email address is required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    // Generate secure 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+    verificationCodes.set(cleanEmail, { code, expiresAt, email: cleanEmail });
+    console.log(`[CooM Auth] 📧 Verification code sent to ${cleanEmail}: ${code}`);
+
+    return res.json({
+      success: true,
+      message: `Verification code sent to ${cleanEmail}`,
+      email: cleanEmail,
+      demoCode: code, // Convenient demo preview for development
+      expiresIn: 600,
+    });
+  });
+
+  // Verify code and log in or register user
+  app.post('/api/auth/verify-code', (req: Request, res: Response) => {
+    const { email, code, name, handle, avatar } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email and 6-digit verification code are required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const stored = verificationCodes.get(cleanEmail);
+
+    // Accept real code or developer fallback code (123456)
+    const isValid = (stored && stored.code === code.trim() && Date.now() <= stored.expiresAt) || code.trim() === '123456';
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid or expired verification code. Please request a new one.' });
+    }
+
+    // Clear used code
+    verificationCodes.delete(cleanEmail);
+
+    // Find or create user
+    let user = authUsers.get(cleanEmail);
+    if (!user) {
+      const emailPrefix = cleanEmail.split('@')[0];
+      const displayName = name?.trim() || emailPrefix.replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) || 'CooM User';
+      const userHandle = handle?.trim() || `@${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, '')}`;
+      const userAvatar = avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanEmail}`;
+
+      user = {
+        id: `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        email: cleanEmail,
+        name: displayName,
+        handle: userHandle,
+        avatar: userAvatar,
+        bio: 'CooM Member',
+        provider: 'email',
+        isEmailVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      authUsers.set(cleanEmail, user);
+    } else {
+      user.isEmailVerified = true;
+      if (name) user.name = name.trim();
+      if (handle) user.handle = handle.trim();
+      if (avatar) user.avatar = avatar;
+    }
+
+    const token = `coom_auth_${Buffer.from(`${cleanEmail}:${Date.now()}`).toString('base64')}`;
+    activeSessions.set(token, user);
+
+    console.log(`[CooM Auth] User verified & logged in: ${cleanEmail}`);
+    return res.json({
+      success: true,
+      message: 'Authentication successful',
+      token,
+      user,
+    });
+  });
+
+  // Google Mail Single-Sign-On Connect
+  app.post('/api/auth/google', (req: Request, res: Response) => {
+    const { email, name, avatar, googleId } = req.body;
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid Google account email is required' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let user = authUsers.get(cleanEmail);
+
+    if (!user) {
+      const emailPrefix = cleanEmail.split('@')[0];
+      const displayName = name?.trim() || emailPrefix.replace(/[._]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) || 'Google User';
+      const userHandle = `@${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, '')}`;
+      const userAvatar = avatar || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face`;
+
+      user = {
+        id: googleId ? `goog_${googleId}` : `user_${Date.now()}`,
+        email: cleanEmail,
+        name: displayName,
+        handle: userHandle,
+        avatar: userAvatar,
+        bio: 'Connected with Google Account',
+        provider: 'google',
+        isEmailVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      authUsers.set(cleanEmail, user);
+    } else {
+      if (name) user.name = name.trim();
+      if (avatar) user.avatar = avatar;
+      user.isEmailVerified = true;
+    }
+
+    const token = `coom_goog_${Buffer.from(`${cleanEmail}:${Date.now()}`).toString('base64')}`;
+    activeSessions.set(token, user);
+
+    console.log(`[CooM Auth] 🚀 Google login success for ${cleanEmail}`);
+    return res.json({
+      success: true,
+      message: 'Connected with Google successfully',
+      token,
+      user,
+    });
+  });
+
+  // Get current user session
+  app.get('/api/auth/me', (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const user = activeSessions.get(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid or expired session token' });
+    }
+
+    return res.json({ success: true, user });
+  });
+
+  // Sign out / invalidate session
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      activeSessions.delete(token);
+    }
+    return res.json({ success: true, message: 'Logged out successfully' });
   });
 
   // 1. MEETING ROOMS API

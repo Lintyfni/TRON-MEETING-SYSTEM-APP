@@ -490,4 +490,98 @@ export const api = {
       return false;
     }
   },
+
+  // ==========================================
+  // AUTHENTICATION & VERIFICATION API METHODS
+  // ==========================================
+  async sendVerificationCode(email: string): Promise<{ success: boolean; message?: string; demoCode?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Failed to send verification code' };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error while sending verification code' };
+    }
+  },
+
+  async verifyCode(params: {
+    email: string;
+    code: string;
+    name?: string;
+    handle?: string;
+    avatar?: string;
+  }): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Invalid verification code' };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error during verification' };
+    }
+  },
+
+  async loginWithGoogle(params: {
+    email: string;
+    name: string;
+    avatar?: string;
+    googleId?: string;
+  }): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Google authentication failed' };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error during Google login' };
+    }
+  },
+
+  async getCurrentUser(token: string): Promise<{ success: boolean; user?: any }> {
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return { success: false };
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
+  },
+
+  async logout(token?: string): Promise<boolean> {
+    try {
+      if (token) {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+      return true;
+    } catch {
+      return true;
+    }
+  },
 };

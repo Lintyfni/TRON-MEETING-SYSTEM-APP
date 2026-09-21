@@ -29,8 +29,6 @@ interface CooMMeetingFeedProps {
   onUpdateSettings?: (newSettings: Partial<UserSettings>) => void;
 }
 
-export type TikTokMeetingFeedProps = CooMMeetingFeedProps;
-
 export const CooMMeetingFeed: React.FC<CooMMeetingFeedProps> = ({
   rooms,
   notes = [],
@@ -300,5 +298,3 @@ export const CooMMeetingFeed: React.FC<CooMMeetingFeedProps> = ({
     </div>
   );
 };
-
-export const TikTokMeetingFeed = CooMMeetingFeed;

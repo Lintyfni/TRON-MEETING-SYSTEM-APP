@@ -74,6 +74,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   onAddShortComment,
   onCreateShort,
   onResetSampleShorts,
+  onAddPost,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -146,7 +147,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     });
   };
 
-  // Touch Swipe State for Mobile / Tablet TikTok gestures
+  // Touch Swipe State for Mobile & Tablet vertical video gestures
   const touchStartY = useRef<number>(0);
   const touchCurrentY = useRef<number>(0);
   const touchStartTime = useRef<number>(0);
@@ -434,7 +435,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
     setActiveIndex((prev) => (prev < safeShorts.length - 1 ? prev + 1 : 0));
   };
 
-  // TikTok Vertical Swipe Gestures for Phone & Tablet
+  // CooM Vertical Swipe Gestures for Phone & Tablet
   const handleTouchStart = (e: React.TouchEvent) => {
     // If touching on interactive controls, drawers, or modals, skip gesture
     if ((e.target as HTMLElement).closest('button, input, textarea, select, #shorts-comment-sheet, #create-short-modal')) {
@@ -511,7 +512,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
 
       {/* Top Floating Header (Matching White Background & Clean Light Theme) */}
       <div className="sticky top-0 left-0 right-0 z-30 px-4 py-2.5 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-2xs">
-        <div className="w-full max-w-lg lg:max-w-xl mx-auto flex items-center justify-between">
+        <div className="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-base font-black tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -557,7 +558,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         {activeShort ? (
           <div
             key={activeShort.id}
-            className="relative w-full h-full max-w-full md:max-w-lg lg:max-w-xl mx-auto overflow-hidden bg-black shadow-lg flex items-center justify-center"
+            className="relative w-full h-full max-w-full sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto overflow-hidden bg-black shadow-2xl flex items-center justify-center sm:rounded-2xl sm:my-auto sm:max-h-[calc(100vh-130px)]"
           >
             {/* Instant Poster & Backdrop (Prevents black screen flash while video buffers or begins) */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">

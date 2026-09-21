@@ -103,8 +103,6 @@ export interface CooMGroup {
   linkedMeetingToken?: string;
 }
 
-export type FacebookGroup = CooMGroup;
-
 export interface GroupChatMessage {
   id: string;
   groupId: string;
@@ -331,4 +329,21 @@ export interface DateNote {
 }
 
 export type TabType = 'home' | 'shorts' | 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  bio?: string;
+  provider: 'google' | 'email';
+  isEmailVerified: boolean;
+  createdAt: string;
+}
+
+export interface AuthSession {
+  token: string;
+  user: AuthUser;
+}
 
