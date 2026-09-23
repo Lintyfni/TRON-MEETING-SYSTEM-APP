@@ -55,11 +55,20 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(168, 85, 247, 0.3);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(192, 38, 211, 0.5);
+}
+
+.coom-nebula-theme {
+  --coom-bg-deep: #06020c;
+  --coom-bg-surface: #0f0720;
+  --coom-bg-card: #150b2c;
+  --coom-border: rgba(168, 85, 247, 0.25);
+  --coom-text-primary: #ffffff;
+  --coom-text-secondary: #c084fc;
 }
 
 html, body, #root {

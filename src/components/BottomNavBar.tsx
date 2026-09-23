@@ -7,6 +7,7 @@ interface BottomNavBarProps {
   onSelectTab: (tab: TabType) => void;
   unreadChatsCount?: number;
   userAvatar?: string;
+  themeMode?: 'dark' | 'light';
 }
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({
@@ -14,7 +15,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   onSelectTab,
   unreadChatsCount = 0,
   userAvatar,
+  themeMode = 'dark',
 }) => {
+  const isDark = themeMode !== 'light';
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     {
       id: 'home',
@@ -62,7 +65,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   return (
     <nav
       id="main-bottom-navigation"
-      className="shrink-0 w-full bg-white border-t border-neutral-200 px-1 sm:px-4 py-1.5 z-40 select-none shadow-xs"
+      className={`shrink-0 w-full px-1 sm:px-4 py-1.5 z-40 select-none shadow-xs transition-colors duration-300 ${
+        isDark
+          ? 'bg-[#090414]/95 border-t border-purple-500/20 backdrop-blur-xl text-slate-400'
+          : 'bg-white border-t border-neutral-200 text-neutral-500'
+      }`}
     >
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-around w-full">
         {tabs.map((tab) => {
@@ -73,8 +80,14 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               id={`nav-tab-${tab.id}`}
               type="button"
               onClick={() => onSelectTab(tab.id)}
-              className={`flex-1 max-w-[90px] flex flex-col items-center justify-center py-1 transition-colors relative cursor-pointer ${
-                isActive ? 'text-purple-600 font-bold' : 'text-neutral-500 hover:text-neutral-800'
+              className={`flex-1 max-w-[90px] flex flex-col items-center justify-center py-1 transition-all relative cursor-pointer ${
+                isActive
+                  ? isDark
+                    ? 'text-purple-300 font-bold drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]'
+                    : 'text-purple-600 font-bold'
+                  : isDark
+                  ? 'text-slate-400 hover:text-purple-200'
+                  : 'text-neutral-500 hover:text-neutral-800'
               }`}
             >
               <div className="relative">

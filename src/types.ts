@@ -212,6 +212,7 @@ export interface UserSettings {
   allowParticipantChat?: boolean;
   allowParticipantRename?: boolean;
   allowParticipantUnmute?: boolean;
+  themeMode?: 'dark' | 'light';
 }
 
 export interface SocialUser {
@@ -239,6 +240,10 @@ export interface UserProfile {
   likes: string | number;
   followingUserIds?: string[];
   followerUserIds?: string[];
+  birthday?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  country?: string;
+  connectedSocials?: Record<string, string>;
 }
 
 export interface ChatSubtitleLine {
@@ -330,6 +335,8 @@ export interface DateNote {
 
 export type TabType = 'home' | 'shorts' | 'meetings' | 'posts' | 'chat' | 'settings' | 'profile';
 
+export type SocialProvider = 'google' | 'apple' | 'facebook' | 'x' | 'tiktok' | 'email';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -337,9 +344,12 @@ export interface AuthUser {
   handle: string;
   avatar: string;
   bio?: string;
-  provider: 'google' | 'email';
+  provider: SocialProvider;
   isEmailVerified: boolean;
   createdAt: string;
+  birthday?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  country?: string;
 }
 
 export interface AuthSession {

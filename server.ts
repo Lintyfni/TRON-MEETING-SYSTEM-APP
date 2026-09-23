@@ -183,9 +183,12 @@ async function startServer() {
     handle: string;
     avatar: string;
     bio?: string;
-    provider: 'google' | 'email';
+    provider: 'google' | 'apple' | 'facebook' | 'x' | 'tiktok' | 'email';
     isEmailVerified: boolean;
     createdAt: string;
+    birthday?: string;
+    gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+    country?: string;
   }
 
   const authUsers: Map<string, AuthUserData> = new Map();
@@ -317,6 +320,166 @@ async function startServer() {
       message: 'Connected with Google successfully',
       token,
       user,
+    });
+  });
+
+  // Universal Social App Authorized Connect (Google, Apple, Facebook, X, TikTok)
+  app.post('/api/auth/social-connect', (req: Request, res: Response) => {
+    const { provider, email, name, avatar, socialId } = req.body;
+    const allowedProviders = ['google', 'apple', 'facebook', 'x', 'tiktok'];
+    const prov = (provider || '').toLowerCase();
+
+    if (!allowedProviders.includes(prov)) {
+      return res.status(400).json({ error: `Unsupported provider: ${provider}` });
+    }
+
+    const cleanEmail = (email && typeof email === 'string' && email.includes('@'))
+      ? email.trim().toLowerCase()
+      : `${prov}_${socialId || Date.now()}@coom.internal`;
+
+    let user = authUsers.get(cleanEmail);
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      const emailPrefix = cleanEmail.split('@')[0];
+      const displayName = name?.trim() || `${prov.toUpperCase()} Member`;
+      const userHandle = `@${emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, '')}`;
+      const defaultAvatars: Record<string, string> = {
+        google: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
+        apple: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+        facebook: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
+        x: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face',
+        tiktok: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face',
+      };
+
+      user = {
+        id: `${prov}_${socialId || Date.now()}`,
+        email: cleanEmail,
+        name: displayName,
+        handle: userHandle,
+        avatar: avatar || defaultAvatars[prov] || defaultAvatars.google,
+        bio: `Connected with ${prov.toUpperCase()} on CooM`,
+        provider: prov as any,
+        isEmailVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      authUsers.set(cleanEmail, user);
+    } else {
+      if (name) user.name = name.trim();
+      if (avatar) user.avatar = avatar;
+      user.isEmailVerified = true;
+    }
+
+    const token = `coom_${prov}_${Buffer.from(`${cleanEmail}:${Date.now()}`).toString('base64')}`;
+    activeSessions.set(token, user);
+
+    // Needs onboarding if username/handle, birthday, gender, or country are not set yet
+    const needsOnboarding = isNewUser || !user.birthday || !user.gender || !user.country;
+
+    console.log(`[CooM Auth] 🚀 Authorized connection via ${prov} for ${cleanEmail} (needsOnboarding: ${needsOnboarding})`);
+    return res.json({
+      success: true,
+      message: `Authorized with ${prov} successfully`,
+      token,
+      user,
+      needsOnboarding,
+    });
+  });
+
+  // Complete User Onboarding Profile (@username, birthday, gender, country)
+  app.post('/api/auth/complete-profile', (req: Request, res: Response) => {
+    const { token, handle, birthday, gender, country, name, bio } = req.body;
+    if (!token) {
+      return res.status(401).json({ error: 'Session token is required' });
+    }
+
+    let user = activeSessions.get(token);
+    if (!user) {
+      // Find from any session or fallback
+      for (const [k, u] of activeSessions.entries()) {
+        if (k === token) {
+          user = u;
+          break;
+        }
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Session not found. Please log in again.' });
+    }
+
+    // Format handle with @ prefix
+    if (handle) {
+      const cleanHandle = handle.trim().startsWith('@') ? handle.trim() : `@${handle.trim()}`;
+      user.handle = cleanHandle;
+    }
+    if (birthday) user.birthday = birthday;
+    if (gender) user.gender = gender;
+    if (country) user.country = country;
+    if (name) user.name = name.trim();
+    if (bio) user.bio = bio.trim();
+
+    // Update in authUsers map
+    authUsers.set(user.email, user);
+    activeSessions.set(token, user);
+
+    console.log(`[CooM Auth] Profile completed for ${user.handle} (${user.country}, ${user.gender}, ${user.birthday})`);
+    return res.json({
+      success: true,
+      message: 'Profile completed successfully',
+      user,
+      token,
+    });
+  });
+
+  // Login with Credentials (Email or Username + Password) matching the screenshot
+  app.post('/api/auth/login-credentials', (req: Request, res: Response) => {
+    const { identifier, password } = req.body;
+    if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
+      return res.status(400).json({ error: 'Email or Username is required' });
+    }
+
+    const cleanId = identifier.trim().toLowerCase();
+    let matchedUser: AuthUserData | undefined;
+
+    // Match by email or handle
+    for (const u of authUsers.values()) {
+      if (u.email.toLowerCase() === cleanId || u.handle.toLowerCase() === cleanId || u.handle.toLowerCase() === `@${cleanId}`) {
+        matchedUser = u;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      // Create user if logging in for the first time
+      const email = cleanId.includes('@') ? cleanId : `${cleanId.replace(/[^a-z0-9_]/g, '')}@coom.app`;
+      const name = cleanId.replace(/[@._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'CooM User';
+      const handle = cleanId.startsWith('@') ? cleanId : `@${cleanId.replace(/[^a-z0-9_]/g, '')}`;
+      matchedUser = {
+        id: `user_${Date.now()}`,
+        email,
+        name,
+        handle,
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanId}`,
+        bio: 'CooM Member',
+        provider: 'email',
+        isEmailVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      authUsers.set(email, matchedUser);
+    }
+
+    const token = `coom_cred_${Buffer.from(`${matchedUser.email}:${Date.now()}`).toString('base64')}`;
+    activeSessions.set(token, matchedUser);
+
+    console.log(`[CooM Auth] Logged in via credentials: ${matchedUser.handle} (${matchedUser.email})`);
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: matchedUser,
+      needsOnboarding: !matchedUser.birthday || !matchedUser.gender || !matchedUser.country,
     });
   });
 

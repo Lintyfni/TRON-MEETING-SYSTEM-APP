@@ -62,13 +62,8 @@ export default function App() {
     return null;
   });
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    try {
-      return Boolean(localStorage.getItem('coom_auth_token'));
-    } catch {
-      return false;
-    }
-  });
+  // Start with login page first as requested ("log in page အရင်စပြပါ")
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Starts with 'home' screen as requested by user ("app စစချင်း ဝင်တဲ့ Screen တခုထည့်ပါ")
   const [currentTab, setCurrentTab] = useState<TabType>('home');
@@ -1386,12 +1381,18 @@ export default function App() {
     );
   }
 
+  const isDarkMode = settings.themeMode !== 'light';
+
   return (
     <div className="w-full min-h-[100dvh] h-[100dvh] bg-neutral-950 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white overflow-hidden p-0">
       {/* Auto Screen Matching Viewport for Phone, Tablet & Desktop */}
       <div
         id="app-viewport-container"
-        className="relative w-full h-[100dvh] bg-white flex flex-col overflow-hidden max-w-full 2xl:max-w-7xl shadow-none 2xl:shadow-2xl 2xl:border-x 2xl:border-neutral-200"
+        className={`relative w-full h-[100dvh] flex flex-col overflow-hidden max-w-full 2xl:max-w-7xl shadow-none 2xl:shadow-2xl 2xl:border-x transition-colors duration-300 ${
+          isDarkMode
+            ? 'bg-[#06020c] text-white 2xl:border-purple-900/30'
+            : 'bg-white text-neutral-900 2xl:border-neutral-200'
+        }`}
       >
         {/* Active Screen Tab View */}
         <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col">
@@ -1412,6 +1413,8 @@ export default function App() {
               onSelectUser={handleSelectUserFromSearch}
               onSendDirectChatMessage={handleSendDirectChatMessage}
               onNavigateToChatWithUser={(userName) => setCurrentTab('chat')}
+              themeMode={settings.themeMode || 'dark'}
+              onToggleTheme={() => handleUpdateSettings({ themeMode: isDarkMode ? 'light' : 'dark' })}
             />
           )}
 
@@ -1495,6 +1498,7 @@ export default function App() {
                 onDeclineJoinRequest={handleDeclineJoinRequest}
                 onLeaveGroup={handleLeaveGroup}
                 onOpenGroupChat={handleOpenGroupChat}
+                themeMode={settings.themeMode || 'dark'}
               />
             )}
 
@@ -1523,6 +1527,7 @@ export default function App() {
                   setActiveGroupId(groupId);
                   setCurrentTab('posts');
                 }}
+                themeMode={settings.themeMode || 'dark'}
               />
             )}
 
@@ -1553,6 +1558,7 @@ export default function App() {
                 initialTab={profileActiveTab}
                 onBackToHome={handleBackToHome}
                 onJumpToMeeting={handleJoinMeeting}
+                themeMode={settings.themeMode || 'dark'}
               />
             )}
 
@@ -1577,6 +1583,7 @@ export default function App() {
             }}
             unreadChatsCount={chats.filter((c) => c.sender !== 'Me').length}
             userAvatar={userProfile.avatar}
+            themeMode={settings.themeMode || 'dark'}
           />
         </div>
       </div>

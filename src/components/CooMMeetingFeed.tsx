@@ -141,23 +141,30 @@ export const CooMMeetingFeed: React.FC<CooMMeetingFeedProps> = ({
   };
 
   const activeRoom = rooms[activeIndex] || rooms[0];
+  const isDark = settings?.themeMode !== 'light';
 
   return (
     <div
       id="coom-meeting-feed"
-      className="relative w-full h-full bg-white flex flex-col overflow-hidden"
+      className={`relative w-full h-full flex flex-col overflow-hidden transition-colors ${
+        isDark ? 'bg-[#06020c] text-white' : 'bg-white text-neutral-900'
+      }`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Vertical Feed Content */}
       <div className="flex-1 w-full h-full relative">
         {!activeRoom ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-white">
-            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mb-4 text-purple-600 shadow-xs">
-              <Video className="w-8 h-8 text-purple-600" />
+          <div className={`w-full h-full flex flex-col items-center justify-center p-6 text-center ${
+            isDark ? 'bg-[#06020c] text-white' : 'bg-white text-neutral-900'
+          }`}>
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 text-purple-400 shadow-xs border ${
+              isDark ? 'bg-purple-950/60 border-purple-500/30' : 'bg-purple-50 border-purple-100'
+            }`}>
+              <Video className="w-8 h-8 text-purple-400" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-neutral-900 mb-1">No Active Meeting</h3>
-            <p className="text-xs text-neutral-500 max-w-xs mb-6 leading-relaxed">
+            <h3 className="text-base sm:text-lg font-bold mb-1">No Active Meeting</h3>
+            <p className={`text-xs max-w-xs mb-6 leading-relaxed ${isDark ? 'text-purple-300/70' : 'text-neutral-500'}`}>
               Start a new live meeting or join a room using a Meeting Token.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">

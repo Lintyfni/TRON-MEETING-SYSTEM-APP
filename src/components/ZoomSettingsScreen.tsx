@@ -27,7 +27,9 @@ import {
   MessageSquare,
   Edit3,
   Smile,
-  LogOut
+  LogOut,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 interface ZoomSettingsScreenProps {
@@ -88,56 +90,129 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
   const currentLanguage =
     settings.subtitleLanguage || settings.whisperLanguage || 'Myanmar (MM)';
 
+  const isDark = settings.themeMode !== 'light';
+
   return (
     <div
       id="zoom-settings-screen"
-      className="relative w-full h-full bg-neutral-50 text-neutral-900 flex flex-col overflow-hidden"
+      className={`relative w-full h-full flex flex-col overflow-hidden transition-colors duration-300 ${
+        isDark ? 'bg-[#06020c] text-white' : 'bg-neutral-50 text-neutral-900'
+      }`}
     >
       {/* App Bar */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-neutral-200 px-4 py-3">
+      <div
+        className={`sticky top-0 z-20 backdrop-blur-md border-b px-4 py-3 transition-colors ${
+          isDark
+            ? 'bg-[#090414]/95 border-purple-500/20 text-white'
+            : 'bg-white/95 border-neutral-200 text-neutral-900'
+        }`}
+      >
         <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex items-center justify-between">
-          <h1 className="font-bold text-base text-neutral-900">Settings</h1>
-          <span className="text-[11px] text-purple-700 font-bold font-mono bg-purple-50 border border-purple-200/60 px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-2">
+            <h1 className="font-bold text-base">Settings</h1>
+            <span className="text-[10px] text-purple-300 bg-purple-950/60 border border-purple-500/30 px-2 py-0.5 rounded-full font-bold">
+              {isDark ? 'Nebula Dark' : 'Light Mode'}
+            </span>
+          </div>
+          <span className="text-[11px] text-purple-400 font-bold font-mono bg-purple-950/50 border border-purple-500/40 px-2 py-0.5 rounded-full">
             CooM v2.5.0
           </span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-24 bg-white">
-        <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full divide-y divide-neutral-200">
+      <div className={`flex-1 overflow-y-auto pb-24 transition-colors ${isDark ? 'bg-[#06020c]' : 'bg-white'}`}>
+        <div className={`max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full divide-y ${isDark ? 'divide-purple-950/40' : 'divide-neutral-200'}`}>
         {/* 1. Profile Banner (Synchronized with User Profile) */}
         <div
           id="settings-profile-banner"
-          className="p-4 flex items-center justify-between hover:bg-neutral-50 transition bg-white"
+          className={`p-4 flex items-center justify-between transition ${
+            isDark ? 'bg-[#0e0720] hover:bg-[#140b2e] text-white' : 'bg-white hover:bg-neutral-50 text-neutral-900'
+          }`}
         >
           <div className="flex items-center gap-3">
             {userProfile?.avatar ? (
               <img
                 src={userProfile.avatar}
                 alt={userProfile.name}
-                className="w-13 h-13 rounded-full object-cover border-2 border-purple-200 shadow-sm"
+                className="w-13 h-13 rounded-full object-cover border-2 border-purple-400/80 shadow-md"
               />
             ) : (
-              <div className="w-13 h-13 rounded-full bg-purple-100 border border-purple-200 text-purple-700 flex items-center justify-center font-bold text-lg shadow-sm">
-                <User className="w-6 h-6 text-purple-600" />
+              <div className="w-13 h-13 rounded-full bg-purple-950 border border-purple-500/40 text-purple-300 flex items-center justify-center font-bold text-lg shadow-sm">
+                <User className="w-6 h-6 text-purple-400" />
               </div>
             )}
             <div>
-              <h2 className="font-bold text-base text-neutral-900">{userProfile?.name || 'Aung Myint'}</h2>
-              <p className="text-xs text-neutral-500">
+              <h2 className="font-bold text-base">{userProfile?.name || 'Aung Myint'}</h2>
+              <p className={`text-xs ${isDark ? 'text-purple-300/80' : 'text-neutral-500'}`}>
                 {userProfile?.handle || '@aungmyint'} · Standard Account
               </p>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] text-emerald-600 font-medium">Ready & Connected</span>
+                <span className="text-[10px] text-emerald-400 font-medium">Ready & Connected</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 2. MEETING SETTINGS */}
-        <div className="py-2 bg-white">
-          <SectionTitle title="MEETING SETTINGS" />
+        {/* 2. APP THEME & APPEARANCE (Requested by user: exact screenshot nebula color vs light theme) */}
+        <div className={`p-4 transition-colors ${isDark ? 'bg-[#0b0518]' : 'bg-white'}`}>
+          <SectionTitle title="APP THEME & APPEARANCE (အရောင်အသွေး သတ်မှတ်ချက်)" isDark={isDark} />
+          <div className="grid grid-cols-2 gap-3 mt-2.5">
+            {/* CooM Nebula Dark Theme (Screenshot theme) */}
+            <button
+              type="button"
+              id="btn-setting-theme-dark"
+              onClick={() => onUpdateSettings({ themeMode: 'dark' })}
+              className={`p-3.5 rounded-2xl border text-left transition relative cursor-pointer ${
+                isDark
+                  ? 'bg-gradient-to-br from-[#1b1035] to-[#120724] border-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.35)]'
+                  : 'bg-neutral-900 border-neutral-700 text-white hover:border-purple-400'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-fuchsia-600 via-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                {isDark && (
+                  <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-bold text-white">CooM Nebula Dark</p>
+              <p className="text-[10px] text-purple-300/80 mt-0.5">ခုပုံစံ အရောင် (Electric Violet)</p>
+            </button>
+
+            {/* Clean Light Theme */}
+            <button
+              type="button"
+              id="btn-setting-theme-light"
+              onClick={() => onUpdateSettings({ themeMode: 'light' })}
+              className={`p-3.5 rounded-2xl border text-left transition relative cursor-pointer ${
+                !isDark
+                  ? 'bg-purple-50 border-purple-600 text-purple-900 shadow-sm'
+                  : 'bg-[#18112e] border-white/10 text-slate-300 hover:border-purple-400/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-neutral-800 shadow-sm">
+                  <Sun className="w-4 h-4 text-amber-500" />
+                </div>
+                {!isDark && (
+                  <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </span>
+                )}
+              </div>
+              <p className={`text-xs font-bold ${!isDark ? 'text-purple-950' : 'text-slate-200'}`}>Clean Light</p>
+              <p className={`text-[10px] ${!isDark ? 'text-purple-700' : 'text-slate-400'} mt-0.5`}>မူလ အဖြူရောင် ဒီဇိုင်း</p>
+            </button>
+          </div>
+        </div>
+
+        {/* 3. MEETING SETTINGS */}
+        <div className={`py-2 transition-colors ${isDark ? 'bg-[#06020c]' : 'bg-white'}`}>
+          <SectionTitle title="MEETING SETTINGS" isDark={isDark} />
 
           <SwitchItem
             id="setting-auto-mute"
@@ -734,9 +809,11 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
   );
 };
 
-const SectionTitle: React.FC<{ title: string }> = ({ title }) => (
+const SectionTitle: React.FC<{ title: string; isDark?: boolean }> = ({ title, isDark }) => (
   <div className="px-4 pt-3 pb-1">
-    <span className="text-[11px] font-bold tracking-wider text-purple-700">{title}</span>
+    <span className={`text-[11px] font-bold tracking-wider ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>
+      {title}
+    </span>
   </div>
 );
 
@@ -747,6 +824,7 @@ interface SwitchItemProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   icon?: React.ReactNode;
+  isDark?: boolean;
 }
 
 const SwitchItem: React.FC<SwitchItemProps> = ({
@@ -756,17 +834,20 @@ const SwitchItem: React.FC<SwitchItemProps> = ({
   checked,
   onChange,
   icon,
+  isDark,
 }) => (
   <div
     id={id}
     onClick={() => onChange(!checked)}
-    className="px-4 py-3 flex items-center justify-between hover:bg-neutral-50 transition cursor-pointer"
+    className={`px-4 py-3 flex items-center justify-between transition cursor-pointer ${
+      isDark ? 'hover:bg-purple-950/40 text-white' : 'hover:bg-neutral-50 text-neutral-900'
+    }`}
   >
     <div className="flex items-center gap-3 pr-4">
       {icon}
       <div>
-        <p className="text-sm font-medium text-neutral-900 leading-snug">{title}</p>
-        {subtitle && <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>}
+        <p className={`text-sm font-medium leading-snug ${isDark ? 'text-white' : 'text-neutral-900'}`}>{title}</p>
+        {subtitle && <p className={`text-xs mt-0.5 ${isDark ? 'text-purple-300/70' : 'text-neutral-500'}`}>{subtitle}</p>}
       </div>
     </div>
     <Switch id={`toggle-${id}`} checked={checked} onChange={onChange} />

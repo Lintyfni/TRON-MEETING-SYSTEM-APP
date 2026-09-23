@@ -41,6 +41,7 @@ export const initialSettings: UserSettings = {
   allowParticipantChat: true,
   allowParticipantRename: true,
   allowParticipantUnmute: true,
+  themeMode: 'dark',
 };
 
 export const languageOptions = [

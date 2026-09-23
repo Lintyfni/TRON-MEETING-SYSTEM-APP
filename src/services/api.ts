@@ -556,6 +556,74 @@ export const api = {
     }
   },
 
+  async connectSocial(params: {
+    provider: 'google' | 'apple' | 'facebook' | 'x' | 'tiktok';
+    email?: string;
+    name?: string;
+    avatar?: string;
+    socialId?: string;
+  }): Promise<{ success: boolean; token?: string; user?: any; needsOnboarding?: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/social-connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || `Authorization with ${params.provider} failed` };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || `Network error during ${params.provider} connect` };
+    }
+  },
+
+  async completeProfile(params: {
+    token: string;
+    handle: string;
+    birthday: string;
+    gender: string;
+    country: string;
+    name?: string;
+    bio?: string;
+  }): Promise<{ success: boolean; user?: any; token?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/complete-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Failed to complete profile' };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error saving profile' };
+    }
+  },
+
+  async loginCredentials(params: {
+    identifier: string;
+    password?: string;
+  }): Promise<{ success: boolean; token?: string; user?: any; needsOnboarding?: boolean; error?: string }> {
+    try {
+      const res = await fetch('/api/auth/login-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Login failed' };
+      }
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error during login' };
+    }
+  },
+
   async getCurrentUser(token: string): Promise<{ success: boolean; user?: any }> {
     try {
       const res = await fetch('/api/auth/me', {
