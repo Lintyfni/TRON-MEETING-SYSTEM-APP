@@ -333,14 +333,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
     <div
       id="coom-profile-screen"
       className={`relative w-full h-full flex flex-col overflow-hidden transition-colors duration-300 ${
-        isDark ? 'bg-[#0a0416] text-white' : 'bg-neutral-50 text-neutral-900'
+        isDark ? 'bg-[#08080c] text-white' : 'bg-neutral-50 text-neutral-900'
       }`}
     >
       {/* Toast Feedback */}
       {toastMessage && (
         <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-xs font-medium shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 border ${
           isDark
-            ? 'bg-[#150a30]/95 border-purple-500/40 text-purple-200'
+            ? 'bg-[#131319]/95 border-purple-500/40 text-slate-200'
             : 'bg-white/95 border-purple-200 text-neutral-900'
         }`}>
           {toastMessage}
@@ -358,7 +358,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
       {/* 1. TOP BAR */}
       <div className={`sticky top-0 z-20 backdrop-blur-md border-b px-4 py-3 transition-colors ${
-        isDark ? 'bg-[#0e061e]/95 border-purple-900/40' : 'bg-white/95 border-neutral-200'
+        isDark ? 'bg-[#0d0d12]/95 border-purple-900/40' : 'bg-white/95 border-neutral-200'
       }`}>
         <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex items-center justify-between">
           <div className={`flex items-center gap-2 font-bold text-sm truncate max-w-[220px] ${
@@ -377,7 +377,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 }}
                 className={`p-1 -ml-1 rounded-lg transition cursor-pointer flex items-center gap-1 ${
                   isDark
-                    ? 'text-purple-300 hover:text-white hover:bg-purple-900/30'
+                    ? 'text-slate-200 hover:text-white hover:bg-purple-900/30'
                     : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
                 }`}
                 title="Back"
@@ -398,7 +398,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={onClearViewedUser}
                 className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
                   isDark
-                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-300 border-purple-500/40'
+                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border-purple-500/40'
                     : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200'
                 }`}
                 title="Switch to My Profile"
@@ -416,7 +416,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               }}
               className={`p-1.5 rounded-full transition cursor-pointer ${
                 isDark
-                  ? 'hover:bg-purple-900/30 text-purple-300 hover:text-white'
+                  ? 'hover:bg-purple-900/30 text-slate-200 hover:text-white'
                   : 'hover:bg-neutral-100 text-neutral-500 hover:text-neutral-900'
               }`}
               title="Share Profile"
@@ -428,13 +428,13 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
       </div>
 
       {/* SCROLLABLE PROFILE CONTAINER */}
-      <div className={`flex-1 overflow-y-auto pb-24 ${isDark ? 'bg-[#0a0416]' : 'bg-white'}`}>
+      <div className={`flex-1 overflow-y-auto pb-24 ${isDark ? 'bg-[#08080c]' : 'bg-white'}`}>
         <div className={`max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full divide-y ${
           isDark ? 'divide-purple-900/30' : 'divide-neutral-200'
         }`}>
           {/* 2. PROFILE HEADER & EDIT BIO */}
         <div className={`p-4 flex flex-col items-center text-center ${
-          isDark ? 'bg-[#0e061e]' : 'bg-white'
+          isDark ? 'bg-[#0d0d12]' : 'bg-white'
         }`}>
           {/* Avatar */}
           <div
@@ -475,7 +475,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             <UserCheck className="w-4 h-4 text-purple-500" />
           </h2>
           <p className={`text-xs mt-0.5 font-mono ${
-            isDark ? 'text-purple-300/70' : 'text-neutral-500'
+            isDark ? 'text-slate-300' : 'text-neutral-500'
           }`}>{activeHandle}</p>
 
           {/* Stats Row */}
@@ -491,12 +491,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               title="Click to view following"
             >
               <span className={`font-bold text-sm block transition ${
-                isDark ? 'text-white group-hover:text-purple-400' : 'text-neutral-900 group-hover:text-purple-600'
+                isDark ? 'text-white group-hover:text-white' : 'text-neutral-900 group-hover:text-white'
               }`}>
                 {activeFollowing}
               </span>
               <span className={`text-[11px] transition flex items-center justify-center gap-0.5 ${
-                isDark ? 'text-purple-300/70 group-hover:text-purple-400' : 'text-neutral-500 group-hover:text-purple-600'
+                isDark ? 'text-slate-300 group-hover:text-white' : 'text-neutral-500 group-hover:text-white'
               }`}>
                 Following
               </span>
@@ -515,12 +515,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               title="Click to view followers"
             >
               <span className={`font-bold text-sm block transition ${
-                isDark ? 'text-white group-hover:text-purple-400' : 'text-neutral-900 group-hover:text-purple-600'
+                isDark ? 'text-white group-hover:text-white' : 'text-neutral-900 group-hover:text-white'
               }`}>
                 {activeFollowers}
               </span>
               <span className={`text-[11px] transition flex items-center justify-center gap-0.5 ${
-                isDark ? 'text-purple-300/70 group-hover:text-purple-400' : 'text-neutral-500 group-hover:text-purple-600'
+                isDark ? 'text-slate-300 group-hover:text-white' : 'text-neutral-500 group-hover:text-white'
               }`}>
                 Followers
               </span>
@@ -530,7 +530,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
             <div>
               <span className={`font-bold text-sm block ${isDark ? 'text-white' : 'text-neutral-900'}`}>{activeLikes}</span>
-              <span className={`text-[11px] ${isDark ? 'text-purple-300/70' : 'text-neutral-500'}`}>Likes</span>
+              <span className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-500'}`}>Likes</span>
             </div>
           </div>
 
@@ -555,7 +555,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
                   activeSocialUser?.isFollowedByMe
                     ? isDark
-                      ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-200 border border-purple-500/40'
+                      ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border border-purple-500/40'
                       : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300'
                     : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
                 }`}
@@ -582,12 +582,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 }}
                 className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer border ${
                   isDark
-                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-200 border-purple-500/40'
+                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border-purple-500/40'
                     : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
                 }`}
                 title="Mention in Post"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
+                <MessageSquare className="w-3.5 h-3.5 text-slate-300" />
                 <span>Mention</span>
               </button>
 
@@ -597,12 +597,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   onClick={onClearViewedUser}
                   className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer border ${
                     isDark
-                      ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-200 border-purple-500/40'
+                      ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border-purple-500/40'
                       : 'bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-700'
                   }`}
                   title="Return to My Profile"
                 >
-                  <User className={`w-3.5 h-3.5 ${isDark ? 'text-purple-300' : 'text-neutral-600'}`} />
+                  <User className={`w-3.5 h-3.5 ${isDark ? 'text-slate-200' : 'text-neutral-600'}`} />
                 </button>
               )}
             </div>
@@ -633,12 +633,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 }}
                 className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer border ${
                   isDark
-                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-200 border-purple-500/40'
+                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border-purple-500/40'
                     : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
                 }`}
                 title="Follow colleagues and manage network"
               >
-                <Users className="w-3.5 h-3.5 text-purple-400" />
+                <Users className="w-3.5 h-3.5 text-slate-300" />
                 <span>Follows</span>
               </button>
 
@@ -647,12 +647,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={() => fileInputRef.current?.click()}
                 className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition active:scale-95 cursor-pointer border ${
                   isDark
-                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-purple-200 border-purple-500/40'
+                    ? 'bg-purple-950/70 hover:bg-purple-900/70 text-slate-200 border-purple-500/40'
                     : 'bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-700 hover:text-neutral-900'
                 }`}
                 title="Upload Profile Picture"
               >
-                <Camera className="w-3.5 h-3.5 text-purple-400" />
+                <Camera className="w-3.5 h-3.5 text-slate-300" />
                 <span>Photo</span>
               </button>
             </div>
@@ -661,7 +661,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           {/* Bio Display */}
           <div className={`w-full max-w-sm rounded-xl p-2.5 text-xs text-left leading-relaxed border ${
             isDark
-              ? 'bg-[#150a30] border-purple-900/40 text-purple-200'
+              ? 'bg-[#131319] border-purple-900/40 text-slate-200'
               : 'bg-neutral-50 border-neutral-200 text-neutral-700'
           }`}>
             <p className="line-clamp-3">{activeBio}</p>
@@ -671,11 +671,11 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           {isViewingOtherUser ? (
             <div className={`w-full max-w-sm mt-3 p-2.5 rounded-xl text-[11px] flex items-center justify-between font-medium border ${
               isDark
-                ? 'bg-purple-950/60 border-purple-500/30 text-purple-200'
+                ? 'bg-purple-950/60 border-purple-500/30 text-slate-200'
                 : 'bg-purple-50/90 border-purple-200 text-purple-800'
             }`}>
               <span className="flex items-center gap-1.5 truncate">
-                <AtSign className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <AtSign className="w-3.5 h-3.5 text-slate-300 shrink-0" />
                 <span className="truncate">Public Profile: <strong>{activeHandle}</strong></span>
               </span>
               {onClearViewedUser && (
@@ -683,7 +683,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   type="button"
                   onClick={onClearViewedUser}
                   className={`text-[11px] font-bold underline shrink-0 ml-2 cursor-pointer ${
-                    isDark ? 'text-purple-300 hover:text-white' : 'text-purple-700'
+                    isDark ? 'text-slate-200 hover:text-white' : 'text-purple-700'
                   }`}
                 >
                   My Profile
@@ -694,7 +694,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             <div className="w-full max-w-sm mt-3">
               <div className={`flex items-center gap-1 p-1 rounded-2xl text-xs border ${
                 isDark
-                  ? 'bg-[#150a30] border-purple-900/40'
+                  ? 'bg-[#131319] border-purple-900/40'
                   : 'bg-neutral-100/90 border-neutral-200'
               }`}>
                 <button
@@ -704,10 +704,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   className={`flex-1 py-1.5 px-2.5 rounded-xl font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 ${
                     !isVisitorMode
                       ? isDark
-                        ? 'bg-[#220e48] text-purple-200 shadow-xs border border-purple-500/30'
+                        ? 'bg-[#220e48] text-slate-200 shadow-xs border border-purple-500/30'
                         : 'bg-white text-purple-700 shadow-xs'
                       : isDark
-                        ? 'text-purple-400/60 hover:text-white'
+                        ? 'text-slate-400 hover:text-white'
                         : 'text-neutral-500 hover:text-neutral-800'
                   }`}
                 >
@@ -722,7 +722,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     isVisitorMode
                       ? 'bg-purple-600 text-white shadow-xs'
                       : isDark
-                        ? 'text-purple-400/60 hover:text-white'
+                        ? 'text-slate-400 hover:text-white'
                         : 'text-neutral-500 hover:text-neutral-800'
                   }`}
                 >
@@ -733,19 +733,19 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               {isVisitorMode ? (
                 <div className={`mt-2 p-2 rounded-xl text-[11px] flex items-center gap-1.5 font-medium animate-in fade-in border ${
                   isDark
-                    ? 'bg-purple-950/40 border-purple-900/40 text-purple-300'
+                    ? 'bg-purple-950/40 border-purple-900/40 text-slate-200'
                     : 'bg-purple-50 border-purple-200 text-purple-700'
                 }`}>
-                  <Globe className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+                  <Globe className="w-3.5 h-3.5 shrink-0 text-slate-300" />
                   <span>Public: Showing public items only. Private recordings and private posts are hidden.</span>
                 </div>
               ) : (
                 <div className={`mt-2 p-2 rounded-xl text-[11px] flex items-center gap-1.5 font-medium animate-in fade-in border ${
                   isDark
-                    ? 'bg-[#150a30]/80 border-purple-900/30 text-purple-300/80'
+                    ? 'bg-[#131319]/80 border-purple-900/30 text-slate-200'
                     : 'bg-neutral-100/80 border-neutral-200 text-neutral-600'
                 }`}>
-                  <Lock className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+                  <Lock className="w-3.5 h-3.5 shrink-0 text-slate-300" />
                   <span>Private: Showing all items including your private notes &amp; recordings.</span>
                 </div>
               )}
@@ -755,7 +755,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* 3. PROFILE TABS ROW: Recordings, Posts, Favourites, Note History, Chat History */}
         <div className={`sticky top-[53px] z-10 backdrop-blur-md border-b flex items-center justify-around px-1 overflow-x-auto transition-colors ${
-          isDark ? 'bg-[#0e061e]/95 border-purple-900/40' : 'bg-white/95 border-neutral-200'
+          isDark ? 'bg-[#0d0d12]/95 border-purple-900/40' : 'bg-white/95 border-neutral-200'
         }`}>
           {/* Tab 1: Recordings */}
           <button
@@ -764,9 +764,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('recordings')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'recordings'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Recorded Meetings"
@@ -782,9 +782,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('posts')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'posts'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Posts & Reposts"
@@ -800,9 +800,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('favorites')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'favorites'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Favourites"
@@ -818,9 +818,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('notes')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'notes'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Note History"
@@ -836,9 +836,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('chats')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'chats'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Chat History"
@@ -854,9 +854,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             onClick={() => setActiveTab('bookmarks')}
             className={`flex-1 py-3 px-2 flex flex-col items-center justify-center border-b-2 transition cursor-pointer shrink-0 ${
               activeTab === 'bookmarks'
-                ? 'border-purple-500 text-purple-400 font-bold'
+                ? 'border-purple-500 text-slate-300 font-bold'
                 : isDark
-                  ? 'border-transparent text-purple-300/60 hover:text-white'
+                  ? 'border-transparent text-slate-300 hover:text-white'
                   : 'border-transparent text-neutral-500 hover:text-neutral-800'
             }`}
             title="Bookmarks (Saved Short Videos & Items)"
@@ -871,17 +871,17 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
         {/* TAB 1: RECORDINGS (POST STYLE WITH LIKE / REPOST / COMMENT) */}
         {activeTab === 'recordings' && (
           <div className={`p-3 min-h-[300px] flex flex-col gap-3 ${
-            isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'
+            isDark ? 'bg-[#08080c]' : 'bg-neutral-50'
           }`}>
             {/* Layout switch: Post Feed style vs Grid */}
             <div className="flex items-center justify-between px-1">
               <span className={`text-xs font-bold ${
-                isDark ? 'text-purple-200' : 'text-neutral-700'
+                isDark ? 'text-slate-200' : 'text-neutral-700'
               }`}>
                 {isVisitorMode ? 'Public Recordings' : 'Meeting Recordings'} ({displayedRecordings.length})
               </span>
               <div className={`flex items-center gap-1 border rounded-lg p-0.5 shadow-2xs ${
-                isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-white border-neutral-200'
+                isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-white border-neutral-200'
               }`}>
                 <button
                   type="button"
@@ -889,10 +889,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   className={`p-1 rounded-md text-xs transition cursor-pointer ${
                     recordingLayout === 'posts'
                       ? isDark
-                        ? 'bg-purple-900/70 text-purple-200 font-bold'
+                        ? 'bg-purple-900/70 text-slate-200 font-bold'
                         : 'bg-purple-100 text-purple-700 font-bold'
                       : isDark
-                        ? 'text-purple-300/60 hover:text-white'
+                        ? 'text-slate-300 hover:text-white'
                         : 'text-neutral-500 hover:text-neutral-800'
                   }`}
                   title="Post Feed View (Post ပုံစံ)"
@@ -905,10 +905,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   className={`p-1 rounded-md text-xs transition cursor-pointer ${
                     recordingLayout === 'grid'
                       ? isDark
-                        ? 'bg-purple-900/70 text-purple-200 font-bold'
+                        ? 'bg-purple-900/70 text-slate-200 font-bold'
                         : 'bg-purple-100 text-purple-700 font-bold'
                       : isDark
-                        ? 'text-purple-300/60 hover:text-white'
+                        ? 'text-slate-300 hover:text-white'
                         : 'text-neutral-500 hover:text-neutral-800'
                   }`}
                   title="Grid View"
@@ -921,10 +921,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             {displayedRecordings.length === 0 ? (
               <div className="py-16 text-center space-y-2">
                 <Grid className={`w-10 h-10 mx-auto ${isDark ? 'text-purple-900/50' : 'text-neutral-300'}`} />
-                <p className={`text-xs font-medium ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>
+                <p className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>
                   {isVisitorMode ? 'No public recordings available.' : 'No meetings recorded yet.'}
                 </p>
-                <p className={`text-[11px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>
+                <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>
                   {isVisitorMode
                     ? 'This user has not shared any public recordings.'
                     : "Tap 'Record' on any active meeting screen to capture a session!"}
@@ -944,14 +944,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       id={`rec-card-${rec.id}`}
                       className={`rounded-2xl border p-3.5 shadow-xs flex flex-col gap-2.5 transition ${
                         isDark
-                          ? 'bg-[#0e061e] border-purple-900/40 hover:border-purple-500/50'
+                          ? 'bg-[#0d0d12] border-purple-900/40 hover:border-purple-500/50'
                           : 'bg-white border-neutral-200 hover:border-purple-300'
                       }`}
                     >
                       {/* Repost Header if applicable */}
                       {isReposted && (
                         <div className={`flex items-center gap-1.5 text-xs font-semibold pl-1 ${
-                          isDark ? 'text-purple-300/70' : 'text-neutral-500'
+                          isDark ? 'text-slate-300' : 'text-neutral-500'
                         }`}>
                           <Repeat className="w-3.5 h-3.5 text-emerald-500" />
                           <span>
@@ -977,30 +977,30 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               }`}>
                                 {userProfile.name}
                               </span>
-                              <span className={`text-[10px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>· {rec.date}</span>
+                              <span className={`text-[10px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>· {rec.date}</span>
                               {/* Visibility Badge */}
                               {rec.visibility === 'private' ? (
                                 <span className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-md border ${
                                   isDark
-                                    ? 'bg-purple-950/60 text-purple-300 border-purple-800/40'
+                                    ? 'bg-purple-950/60 text-slate-200 border-purple-800/40'
                                     : 'bg-neutral-100 text-neutral-600 border-neutral-200'
                                 }`}>
-                                  <Lock className="w-2.5 h-2.5 text-purple-400" />
+                                  <Lock className="w-2.5 h-2.5 text-slate-300" />
                                   Private
                                 </span>
                               ) : (
                                 <span className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-md border ${
                                   isDark
-                                    ? 'bg-purple-900/40 text-purple-300 border-purple-600/40'
+                                    ? 'bg-purple-900/40 text-slate-200 border-purple-600/40'
                                     : 'bg-purple-50 text-purple-700 border-purple-200'
                                 }`}>
-                                  <Globe className="w-2.5 h-2.5 text-purple-400" />
+                                  <Globe className="w-2.5 h-2.5 text-slate-300" />
                                   Public
                                 </span>
                               )}
                             </div>
                             <p className={`text-[11px] font-semibold truncate ${
-                              isDark ? 'text-purple-100' : 'text-neutral-800'
+                              isDark ? 'text-slate-100' : 'text-neutral-800'
                             }`}>
                               {rec.title}
                             </p>
@@ -1013,7 +1013,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           onClick={() => onJumpToMeeting?.(rec.meetingToken)}
                           className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold border transition shrink-0 cursor-pointer ${
                             isDark
-                              ? 'bg-purple-950/70 border-purple-700/50 text-purple-300 hover:bg-purple-900/70'
+                              ? 'bg-purple-950/70 border-purple-700/50 text-slate-200 hover:bg-purple-900/70'
                               : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
                           }`}
                         >
@@ -1038,7 +1038,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                         </div>
                         <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white">
                           <span className="flex items-center gap-1 font-medium bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-xs">
-                            <Eye className="w-3.5 h-3.5 text-purple-300" />
+                            <Eye className="w-3.5 h-3.5 text-slate-200" />
                             {rec.views} views
                           </span>
                           <span className="font-mono bg-black/60 px-2 py-0.5 rounded-md backdrop-blur-xs text-[10px]">
@@ -1049,7 +1049,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
                       {/* X-style Action Row: Like, Repost, Comment, Share */}
                       <div className={`flex items-center justify-between pt-1 border-t text-xs px-2 ${
-                        isDark ? 'border-purple-900/30 text-purple-300/70' : 'border-neutral-100 text-neutral-500'
+                        isDark ? 'border-purple-900/30 text-slate-300' : 'border-neutral-100 text-neutral-500'
                       }`}>
                         {/* Comments Button */}
                         <button
@@ -1059,11 +1059,11 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                             setExpandedRecComments((prev) => (prev === rec.id ? null : rec.id))
                           }
                           className={`flex items-center gap-1.5 transition cursor-pointer ${
-                            isRecCommentsOpen ? 'text-purple-400 font-bold' : 'hover:text-purple-400'
+                            isRecCommentsOpen ? 'text-slate-300 font-bold' : 'hover:text-slate-100'
                           }`}
                           title="Comments"
                         >
-                          <MessageSquare className="w-4 h-4 text-purple-400" />
+                          <MessageSquare className="w-4 h-4 text-slate-300" />
                           <span>{commentsCount}</span>
                         </button>
 
@@ -1106,7 +1106,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                             className={`w-4 h-4 ${
                               rec.isLiked || rec.isFavorited
                                 ? 'fill-rose-500 text-rose-500'
-                                : isDark ? 'text-purple-400/50' : 'text-neutral-400'
+                                : isDark ? 'text-slate-400' : 'text-neutral-400'
                             }`}
                           />
                           <span>{rec.likes || 0}</span>
@@ -1119,7 +1119,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                             navigator.clipboard?.writeText(window.location.href);
                             showToast('🔗 Recording link copied!');
                           }}
-                          className="flex items-center gap-1 hover:text-purple-400 transition cursor-pointer"
+                          className="flex items-center gap-1 hover:text-slate-100 transition cursor-pointer"
                           title="Share"
                         >
                           <Share2 className="w-4 h-4" />
@@ -1130,11 +1130,11 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       {isRecCommentsOpen && (
                         <div className={`mt-2 p-3 rounded-xl border flex flex-col gap-2.5 animate-in fade-in-50 duration-150 ${
                           isDark
-                            ? 'bg-[#150a30] border-purple-900/40'
+                            ? 'bg-[#131319] border-purple-900/40'
                             : 'bg-neutral-50 border-neutral-200'
                         }`}>
                           <span className={`text-[11px] font-bold ${
-                            isDark ? 'text-purple-200' : 'text-neutral-700'
+                            isDark ? 'text-slate-200' : 'text-neutral-700'
                           }`}>
                             Recording Comments &amp; Feedback
                           </span>
@@ -1146,7 +1146,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                   key={cmt.id}
                                   className={`rounded-xl p-2 border text-xs shadow-2xs flex flex-col gap-1 ${
                                     isDark
-                                      ? 'bg-[#0e061e] border-purple-900/40'
+                                      ? 'bg-[#0d0d12] border-purple-900/40'
                                       : 'bg-white border-neutral-200'
                                   }`}
                                 >
@@ -1159,14 +1159,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                         isDark ? 'text-white' : 'text-neutral-800'
                                       }`}>{cmt.author}</span>
                                       <span className={`text-[10px] ${
-                                        isDark ? 'text-purple-300/60' : 'text-neutral-400'
+                                        isDark ? 'text-slate-300' : 'text-neutral-400'
                                       }`}>· {cmt.timestamp}</span>
                                     </div>
                                     <button
                                       type="button"
                                       onClick={() => onToggleRecordingCommentLike?.(rec.id, cmt.id)}
                                       className={`flex items-center gap-1 text-[11px] ${
-                                        cmt.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-purple-400/50 hover:text-rose-500' : 'text-neutral-400 hover:text-rose-600'
+                                        cmt.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-slate-400 hover:text-rose-500' : 'text-neutral-400 hover:text-rose-600'
                                       }`}
                                     >
                                       <Heart className={`w-3 h-3 ${cmt.isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
@@ -1174,14 +1174,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                     </button>
                                   </div>
                                   <p className={`text-[11px] leading-relaxed pl-6 ${
-                                    isDark ? 'text-purple-200' : 'text-neutral-700'
+                                    isDark ? 'text-slate-200' : 'text-neutral-700'
                                   }`}>{cmt.content}</p>
                                 </div>
                               ))}
                             </div>
                           ) : (
                             <p className={`text-[11px] italic ${
-                              isDark ? 'text-purple-300/50' : 'text-neutral-400'
+                              isDark ? 'text-slate-400' : 'text-neutral-400'
                             }`}>No comments yet. Write the first feedback!</p>
                           )}
 
@@ -1202,7 +1202,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               }}
                               className={`flex-1 border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none ${
                                 isDark
-                                  ? 'bg-[#0e061e] border-purple-900/40 text-white placeholder:text-purple-400/40 focus:border-purple-500'
+                                  ? 'bg-[#0d0d12] border-purple-900/40 text-white placeholder:text-slate-400 focus:border-purple-500'
                                   : 'bg-white border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:border-purple-600'
                               }`}
                             />
@@ -1231,7 +1231,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     onClick={() => setActivePlaybackRecording(rec)}
                     className={`relative aspect-[3/4] rounded-xl overflow-hidden group cursor-pointer border transition shadow-xs ${
                       isDark
-                        ? 'bg-[#150a30] border-purple-900/40 hover:border-purple-500'
+                        ? 'bg-[#131319] border-purple-900/40 hover:border-purple-500'
                         : 'bg-neutral-100 border-neutral-200 hover:border-purple-400'
                     }`}
                   >
@@ -1241,13 +1241,13 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30 flex items-center gap-1">
-                      {rec.visibility === 'private' ? <Lock className="w-2.5 h-2.5 text-yellow-300" /> : <Globe className="w-2.5 h-2.5 text-purple-300" />}
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-slate-200 border border-purple-500/30 flex items-center gap-1">
+                      {rec.visibility === 'private' ? <Lock className="w-2.5 h-2.5 text-yellow-300" /> : <Globe className="w-2.5 h-2.5 text-slate-200" />}
                       <span>{rec.meetingToken}</span>
                     </div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
                       <span className="flex items-center gap-1 font-medium">
-                        <Play className="w-3 h-3 fill-purple-400 text-purple-400" />
+                        <Play className="w-3 h-3 fill-purple-400 text-slate-300" />
                         {rec.views}
                       </span>
                       <span className="font-mono text-neutral-300 text-[9px]">{rec.duration}</span>
@@ -1262,11 +1262,11 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
         {/* TAB 2: POSTS & REPOSTS (X style profile view as requested by user) */}
         {activeTab === 'posts' && (
           <div className={`p-3 min-h-[300px] flex flex-col gap-3 ${
-            isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'
+            isDark ? 'bg-[#08080c]' : 'bg-neutral-50'
           }`}>
             <div className="flex items-center justify-between px-1">
               <span className={`text-xs font-bold ${
-                isDark ? 'text-purple-200' : 'text-neutral-700'
+                isDark ? 'text-slate-200' : 'text-neutral-700'
               }`}>
                 {isVisitorMode ? 'Public Posts' : 'My Posts & Reposts'} ({displayedPosts.length})
               </span>
@@ -1275,10 +1275,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             {displayedPosts.length === 0 ? (
               <div className="py-16 text-center space-y-2">
                 <Layers className={`w-10 h-10 mx-auto ${isDark ? 'text-purple-900/50' : 'text-neutral-300'}`} />
-                <p className={`text-xs font-medium ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>
+                <p className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>
                   {isVisitorMode ? 'No public posts available.' : 'No posts published yet.'}
                 </p>
-                <p className={`text-[11px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>
+                <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>
                   {isVisitorMode
                     ? 'This user has no public posts visible to visitors.'
                     : 'Publish notes or highlights from the Posts feed to see them here!'}
@@ -1297,14 +1297,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       id={`profile-post-${post.id}`}
                       className={`rounded-2xl border p-3.5 shadow-xs flex flex-col gap-2 transition ${
                         isDark
-                          ? 'bg-[#0e061e] border-purple-900/40 hover:border-purple-500/50'
+                          ? 'bg-[#0d0d12] border-purple-900/40 hover:border-purple-500/50'
                           : 'bg-white border-neutral-200 hover:border-purple-300'
                       }`}
                     >
                       {/* Repost Header if user reposted it */}
                       {isReposted && (
                         <div className={`flex items-center gap-1.5 text-xs font-semibold pl-1 ${
-                          isDark ? 'text-purple-300/70' : 'text-neutral-500'
+                          isDark ? 'text-slate-300' : 'text-neutral-500'
                         }`}>
                           <Repeat className="w-3.5 h-3.5 text-emerald-500" />
                           <span>
@@ -1330,29 +1330,29 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               }`}>
                                 {post.author}
                               </span>
-                              <span className={`text-[10px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>· {post.timestamp}</span>
+                              <span className={`text-[10px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>· {post.timestamp}</span>
                               {/* Visibility Badge */}
                               {post.visibility === 'private' ? (
                                 <span className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-md border ${
                                   isDark
-                                    ? 'bg-purple-950/60 text-purple-300 border-purple-800/40'
+                                    ? 'bg-purple-950/60 text-slate-200 border-purple-800/40'
                                     : 'bg-neutral-100 text-neutral-600 border-neutral-200'
                                 }`}>
-                                  <Lock className="w-2.5 h-2.5 text-purple-400" />
+                                  <Lock className="w-2.5 h-2.5 text-slate-300" />
                                   Private
                                 </span>
                               ) : (
                                 <span className={`flex items-center gap-0.5 text-[9px] font-semibold px-1.5 py-0.2 rounded-md border ${
                                   isDark
-                                    ? 'bg-purple-900/40 text-purple-300 border-purple-600/40'
+                                    ? 'bg-purple-900/40 text-slate-200 border-purple-600/40'
                                     : 'bg-purple-50 text-purple-700 border-purple-200'
                                 }`}>
-                                  <Globe className="w-2.5 h-2.5 text-purple-400" />
+                                  <Globe className="w-2.5 h-2.5 text-slate-300" />
                                   Public
                                 </span>
                               )}
                             </div>
-                            <span className={`text-[10px] ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+                            <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-neutral-500'}`}>
                               @{post.author.replace(/\s+/g, '').toLowerCase()}
                             </span>
                           </div>
@@ -1363,7 +1363,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           onClick={() => onJumpToMeeting?.(post.meetingToken)}
                           className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold border transition shrink-0 cursor-pointer ${
                             isDark
-                              ? 'bg-purple-950/70 border-purple-700/50 text-purple-300 hover:bg-purple-900/70'
+                              ? 'bg-purple-950/70 border-purple-700/50 text-slate-200 hover:bg-purple-900/70'
                               : 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100'
                           }`}
                         >
@@ -1373,7 +1373,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
                       {/* Content */}
                       <p className={`text-xs leading-relaxed whitespace-pre-line pl-1 ${
-                        isDark ? 'text-purple-100' : 'text-neutral-800'
+                        isDark ? 'text-slate-100' : 'text-neutral-800'
                       }`}>
                         {post.content}
                       </p>
@@ -1406,7 +1406,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
                       {/* X Action Buttons */}
                       <div className={`flex items-center justify-between pt-1 border-t text-xs px-2 ${
-                        isDark ? 'border-purple-900/30 text-purple-300/70' : 'border-neutral-100 text-neutral-500'
+                        isDark ? 'border-purple-900/30 text-slate-300' : 'border-neutral-100 text-neutral-500'
                       }`}>
                         {/* Comments Button */}
                         <button
@@ -1415,10 +1415,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                             setExpandedPostComments((prev) => (prev === post.id ? null : post.id))
                           }
                           className={`flex items-center gap-1.5 transition cursor-pointer ${
-                            isPostCommentsOpen ? 'text-purple-400 font-bold' : 'hover:text-purple-400'
+                            isPostCommentsOpen ? 'text-slate-300 font-bold' : 'hover:text-slate-100'
                           }`}
                         >
-                          <MessageSquare className="w-4 h-4 text-purple-400" />
+                          <MessageSquare className="w-4 h-4 text-slate-300" />
                           <span>{commentsCount}</span>
                         </button>
 
@@ -1449,7 +1449,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                         >
                           <Heart
                             className={`w-4 h-4 ${
-                              post.isLiked ? 'fill-rose-500 text-rose-500' : isDark ? 'text-purple-400/50' : 'text-neutral-400'
+                              post.isLiked ? 'fill-rose-500 text-rose-500' : isDark ? 'text-slate-400' : 'text-neutral-400'
                             }`}
                           />
                           <span>{post.likes || 0}</span>
@@ -1462,7 +1462,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                             navigator.clipboard?.writeText(window.location.href);
                             showToast('🔗 Post link copied!');
                           }}
-                          className="flex items-center gap-1 hover:text-purple-400 transition cursor-pointer"
+                          className="flex items-center gap-1 hover:text-slate-100 transition cursor-pointer"
                         >
                           <Share2 className="w-4 h-4" />
                         </button>
@@ -1471,10 +1471,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       {/* Interactive Comments Drawer for Post */}
                       {isPostCommentsOpen && (
                         <div className={`mt-2 p-3 rounded-xl border flex flex-col gap-2 animate-in fade-in-50 duration-150 ${
-                          isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+                          isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
                         }`}>
                           <span className={`text-[11px] font-bold ${
-                            isDark ? 'text-purple-200' : 'text-neutral-700'
+                            isDark ? 'text-slate-200' : 'text-neutral-700'
                           }`}>Comments</span>
 
                           {post.comments && post.comments.length > 0 ? (
@@ -1483,7 +1483,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                 <div
                                   key={cmt.id}
                                   className={`rounded-xl p-2 border text-xs shadow-2xs flex flex-col gap-1 ${
-                                    isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+                                    isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
                                   }`}
                                 >
                                   <div className="flex items-center justify-between">
@@ -1495,14 +1495,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                         isDark ? 'text-white' : 'text-neutral-800'
                                       }`}>{cmt.author}</span>
                                       <span className={`text-[10px] ${
-                                        isDark ? 'text-purple-300/60' : 'text-neutral-400'
+                                        isDark ? 'text-slate-300' : 'text-neutral-400'
                                       }`}>· {cmt.timestamp}</span>
                                     </div>
                                     <button
                                       type="button"
                                       onClick={() => onTogglePostCommentLike?.(post.id, cmt.id)}
                                       className={`flex items-center gap-1 text-[11px] ${
-                                        cmt.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-purple-400/50 hover:text-rose-500' : 'text-neutral-400 hover:text-rose-600'
+                                        cmt.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-slate-400 hover:text-rose-500' : 'text-neutral-400 hover:text-rose-600'
                                       }`}
                                     >
                                       <Heart className={`w-3 h-3 ${cmt.isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
@@ -1510,14 +1510,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                     </button>
                                   </div>
                                   <p className={`text-[11px] leading-relaxed pl-6 ${
-                                    isDark ? 'text-purple-200' : 'text-neutral-700'
+                                    isDark ? 'text-slate-200' : 'text-neutral-700'
                                   }`}>{cmt.content}</p>
                                 </div>
                               ))}
                             </div>
                           ) : (
                             <p className={`text-[11px] italic ${
-                              isDark ? 'text-purple-300/50' : 'text-neutral-400'
+                              isDark ? 'text-slate-400' : 'text-neutral-400'
                             }`}>No replies yet.</p>
                           )}
 
@@ -1537,7 +1537,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               }}
                               className={`flex-1 border rounded-xl px-2.5 py-1.5 text-xs focus:outline-none ${
                                 isDark
-                                  ? 'bg-[#0e061e] border-purple-900/40 text-white placeholder:text-purple-400/40 focus:border-purple-500'
+                                  ? 'bg-[#0d0d12] border-purple-900/40 text-white placeholder:text-slate-400 focus:border-purple-500'
                                   : 'bg-white border-neutral-300 text-neutral-800 placeholder:text-neutral-400 focus:border-purple-600'
                               }`}
                             />
@@ -1562,12 +1562,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* TAB 2: FAVOURITES */}
         {activeTab === 'favorites' && (
-          <div className={`p-3 min-h-[300px] ${isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'}`}>
+          <div className={`p-3 min-h-[300px] ${isDark ? 'bg-[#08080c]' : 'bg-neutral-50'}`}>
             {favoriteRecordings.length === 0 ? (
               <div className="py-16 text-center space-y-2">
                 <Heart className={`w-10 h-10 mx-auto ${isDark ? 'text-purple-900/50' : 'text-neutral-300'}`} />
-                <p className={`text-xs font-medium ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>No favourite meetings saved.</p>
-                <p className={`text-[11px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>
+                <p className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>No favourite meetings saved.</p>
+                <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>
                   Tap the heart icon on any recording to save it to your favourites.
                 </p>
               </div>
@@ -1579,7 +1579,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     onClick={() => setActivePlaybackRecording(rec)}
                     className={`relative aspect-[3/4] rounded-xl overflow-hidden group cursor-pointer border transition shadow-xs ${
                       isDark
-                        ? 'bg-[#150a30] border-purple-900/40 hover:border-purple-500'
+                        ? 'bg-[#131319] border-purple-900/40 hover:border-purple-500'
                         : 'bg-neutral-100 border-neutral-200 hover:border-purple-400'
                     }`}
                   >
@@ -1589,12 +1589,12 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-purple-300 border border-purple-500/30">
+                    <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-md text-[9px] font-mono text-slate-200 border border-purple-500/30">
                       {rec.meetingToken}
                     </div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
                       <span className="flex items-center gap-1 font-medium">
-                        <Heart className="w-3 h-3 fill-purple-400 text-purple-400" />
+                        <Heart className="w-3 h-3 fill-purple-400 text-slate-300" />
                         {rec.likes}
                       </span>
                       <span className="font-mono text-neutral-300 text-[9px]">{rec.duration}</span>
@@ -1608,15 +1608,15 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* TAB 3: NOTE HISTORY (All or Meeting Filter with click-to-view detail) */}
         {activeTab === 'notes' && (
-          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'}`}>
+          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#08080c]' : 'bg-neutral-50'}`}>
             {/* Meeting Filter Dropdown */}
             <div className={`p-2.5 rounded-xl border shadow-xs flex items-center justify-between gap-2 ${
-              isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+              isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
             }`}>
               <label className={`text-xs font-medium flex items-center gap-1.5 ${
-                isDark ? 'text-purple-300' : 'text-neutral-600'
+                isDark ? 'text-slate-200' : 'text-neutral-600'
               }`}>
-                <Filter className="w-3.5 h-3.5 text-purple-400" />
+                <Filter className="w-3.5 h-3.5 text-slate-300" />
                 <span>Filter:</span>
               </label>
               <div className="relative flex-1 max-w-[220px]">
@@ -1626,7 +1626,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   onChange={(e) => setSelectedNoteMeetingFilter(e.target.value)}
                   className={`w-full border rounded-lg px-2.5 py-1 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-purple-500 appearance-none pr-6 cursor-pointer truncate ${
                     isDark
-                      ? 'bg-[#150a30] border-purple-900/40 text-purple-200'
+                      ? 'bg-[#131319] border-purple-900/40 text-slate-200'
                       : 'bg-neutral-50 border-neutral-200 text-neutral-800'
                   }`}
                 >
@@ -1641,7 +1641,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   })}
                 </select>
                 <ChevronDown className={`w-3 h-3 absolute right-2 top-2 pointer-events-none ${
-                  isDark ? 'text-purple-400' : 'text-neutral-500'
+                  isDark ? 'text-slate-300' : 'text-neutral-500'
                 }`} />
               </div>
             </div>
@@ -1650,8 +1650,8 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             {filteredNotes.length === 0 ? (
               <div className="py-16 text-center space-y-2">
                 <FileText className={`w-10 h-10 mx-auto ${isDark ? 'text-purple-900/50' : 'text-neutral-300'}`} />
-                <p className={`text-xs font-medium ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>No notes available.</p>
-                <p className={`text-[11px] ${isDark ? 'text-purple-300/60' : 'text-neutral-400'}`}>
+                <p className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>No notes available.</p>
+                <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-400'}`}>
                   Write notes directly inside meeting rooms.
                 </p>
               </div>
@@ -1663,7 +1663,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     onClick={() => setSelectedNoteDetail(note)}
                     className={`border rounded-xl p-3 space-y-2 shadow-xs transition cursor-pointer group ${
                       isDark
-                        ? 'bg-[#0e061e] border-purple-900/40 hover:border-purple-500/50'
+                        ? 'bg-[#0d0d12] border-purple-900/40 hover:border-purple-500/50'
                         : 'bg-white border-neutral-200 hover:border-purple-300'
                     }`}
                   >
@@ -1672,30 +1672,30 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       <div className="flex items-center gap-2">
                         <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded border ${
                           isDark
-                            ? 'bg-purple-950/70 text-purple-300 border-purple-700/50'
+                            ? 'bg-purple-950/70 text-slate-200 border-purple-700/50'
                             : 'bg-purple-50 text-purple-700 border-purple-200'
                         }`}>
                           {note.meetingToken}
                         </span>
                         <span className={`text-[11px] font-medium truncate max-w-[180px] ${
-                          isDark ? 'text-purple-300/70' : 'text-neutral-500'
+                          isDark ? 'text-slate-300' : 'text-neutral-500'
                         }`}>
                           {note.meetingTitle}
                         </span>
                       </div>
-                      <span className={`text-[10px] shrink-0 ${isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>{note.timestamp}</span>
+                      <span className={`text-[10px] shrink-0 ${isDark ? 'text-slate-400' : 'text-neutral-400'}`}>{note.timestamp}</span>
                     </div>
 
                     {/* Note Title */}
                     <div className="flex items-center justify-between">
                       <h4 className={`text-xs font-bold transition ${
-                        isDark ? 'text-white group-hover:text-purple-300' : 'text-neutral-900 group-hover:text-purple-700'
+                        isDark ? 'text-white group-hover:text-white' : 'text-neutral-900 group-hover:text-white'
                       }`}>
                         {note.title}
                       </h4>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
                         isDark
-                          ? 'bg-[#150a30] text-purple-300 border-purple-800/40'
+                          ? 'bg-[#131319] text-slate-200 border-purple-800/40'
                           : 'bg-neutral-100 text-neutral-600 border-neutral-200'
                       }`}>
                         {note.category}
@@ -1704,7 +1704,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
                     {/* Preview snippet */}
                     <p className={`text-[11px] line-clamp-2 leading-relaxed ${
-                      isDark ? 'text-purple-200/80' : 'text-neutral-600'
+                      isDark ? 'text-slate-200' : 'text-neutral-600'
                     }`}>
                       {note.content || (note.keyPoints || []).join(' • ')}
                     </p>
@@ -1712,8 +1712,8 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     {/* Footer click hint */}
                     <div className={`flex items-center justify-between pt-1 border-t text-[10px] transition ${
                       isDark
-                        ? 'border-purple-900/30 text-purple-400/60 group-hover:text-purple-300'
-                        : 'border-neutral-100 text-neutral-400 group-hover:text-purple-600'
+                        ? 'border-purple-900/30 text-slate-400 group-hover:text-white'
+                        : 'border-neutral-100 text-neutral-400 group-hover:text-white'
                     }`}>
                       <span>Click to view details</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -1727,16 +1727,16 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* TAB 4: CHAT HISTORY (All or Meeting Filter with click-to-view detail) */}
         {activeTab === 'chats' && (
-          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'}`}>
+          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#08080c]' : 'bg-neutral-50'}`}>
             {/* Top Controls: Meeting Filter & Language Selector */}
             <div className={`p-2.5 rounded-xl border shadow-xs space-y-2 ${
-              isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+              isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
             }`}>
               <div className="flex items-center justify-between gap-2">
                 <label className={`text-xs font-medium flex items-center gap-1.5 ${
-                  isDark ? 'text-purple-300' : 'text-neutral-600'
+                  isDark ? 'text-slate-200' : 'text-neutral-600'
                 }`}>
-                  <Filter className="w-3.5 h-3.5 text-purple-400" />
+                  <Filter className="w-3.5 h-3.5 text-slate-300" />
                   <span>Filter:</span>
                 </label>
                 <div className="relative flex-1 max-w-[220px]">
@@ -1746,7 +1746,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     onChange={(e) => setSelectedChatMeetingFilter(e.target.value)}
                     className={`w-full border rounded-lg px-2.5 py-1 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-purple-500 appearance-none pr-6 cursor-pointer truncate ${
                       isDark
-                        ? 'bg-[#150a30] border-purple-900/40 text-purple-200'
+                        ? 'bg-[#131319] border-purple-900/40 text-slate-200'
                         : 'bg-neutral-50 border-neutral-200 text-neutral-800'
                     }`}
                   >
@@ -1758,7 +1758,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     ))}
                   </select>
                   <ChevronDown className={`w-3 h-3 absolute right-2 top-2 pointer-events-none ${
-                    isDark ? 'text-purple-400' : 'text-neutral-500'
+                    isDark ? 'text-slate-300' : 'text-neutral-500'
                   }`} />
                 </div>
               </div>
@@ -1768,9 +1768,9 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 isDark ? 'border-purple-900/30' : 'border-neutral-100'
               }`}>
                 <label className={`text-xs font-medium flex items-center gap-1.5 ${
-                  isDark ? 'text-purple-300' : 'text-neutral-600'
+                  isDark ? 'text-slate-200' : 'text-neutral-600'
                 }`}>
-                  <MessageSquareCode className="w-3.5 h-3.5 text-purple-400" />
+                  <MessageSquareCode className="w-3.5 h-3.5 text-slate-300" />
                   <span>Language:</span>
                 </label>
                 <div className="relative">
@@ -1783,7 +1783,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     }}
                     className={`border rounded-lg px-2.5 py-1 text-xs font-medium focus:outline-none appearance-none pr-6 cursor-pointer ${
                       isDark
-                        ? 'bg-[#150a30] border-purple-900/40 text-purple-200'
+                        ? 'bg-[#131319] border-purple-900/40 text-slate-200'
                         : 'bg-neutral-50 border-neutral-200 text-neutral-800'
                     }`}
                   >
@@ -1794,7 +1794,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     ))}
                   </select>
                   <ChevronDown className={`w-3 h-3 absolute right-2 top-2 pointer-events-none ${
-                    isDark ? 'text-purple-400' : 'text-neutral-500'
+                    isDark ? 'text-slate-300' : 'text-neutral-500'
                   }`} />
                 </div>
               </div>
@@ -1804,7 +1804,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
             {filteredChatRecordings.length === 0 ? (
               <div className="py-16 text-center space-y-2">
                 <MessageSquareCode className={`w-10 h-10 mx-auto ${isDark ? 'text-purple-900/50' : 'text-neutral-300'}`} />
-                <p className={`text-xs font-medium ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>No chat history recorded.</p>
+                <p className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>No chat history recorded.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1812,7 +1812,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   <div
                     key={rec.id}
                     className={`border rounded-xl overflow-hidden shadow-xs ${
-                      isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+                      isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
                     }`}
                   >
                     {/* Meeting Session Header */}
@@ -1820,14 +1820,14 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       onClick={() => setSelectedChatDetailRecording(rec)}
                       className={`p-3 border-b flex items-center justify-between cursor-pointer transition ${
                         isDark
-                          ? 'bg-[#150a30] border-purple-900/40 hover:bg-[#1c0e40]'
+                          ? 'bg-[#131319] border-purple-900/40 hover:bg-[#1c1c26]'
                           : 'bg-neutral-50 border-neutral-200 hover:bg-neutral-100'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded border ${
                           isDark
-                            ? 'bg-purple-950/70 text-purple-300 border-purple-700/50'
+                            ? 'bg-purple-950/70 text-slate-200 border-purple-700/50'
                             : 'bg-purple-50 text-purple-700 border-purple-200'
                         }`}>
                           {rec.meetingToken}
@@ -1838,7 +1838,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           {rec.title}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-purple-400 font-semibold">
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-300 font-semibold">
                         <span>View ({rec.subtitles?.length || 0})</span>
                         <ChevronRight className="w-3.5 h-3.5" />
                       </div>
@@ -1871,17 +1871,17 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                                   sub.isMe
                                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs'
                                     : isDark
-                                      ? 'bg-[#150a30] border border-purple-900/40 text-purple-100 rounded-tl-xs'
+                                      ? 'bg-[#131319] border border-purple-900/40 text-slate-100 rounded-tl-xs'
                                       : 'bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-tl-xs'
                                 }`}
                               >
                                 <div className="flex items-center justify-between gap-2 mb-1">
                                   <span className={`font-bold text-[11px] ${
-                                    sub.isMe ? 'text-white' : isDark ? 'text-purple-300' : 'text-neutral-700'
+                                    sub.isMe ? 'text-white' : isDark ? 'text-slate-200' : 'text-neutral-700'
                                   }`}>
                                     {sub.speaker}
                                   </span>
-                                  <span className={`text-[9px] font-mono ${sub.isMe ? 'text-purple-100' : isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>{sub.time}</span>
+                                  <span className={`text-[9px] font-mono ${sub.isMe ? 'text-slate-100' : isDark ? 'text-slate-400' : 'text-neutral-400'}`}>{sub.time}</span>
                                 </div>
                                 <p className="leading-relaxed">{translatedText}</p>
                               </div>
@@ -1889,7 +1889,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           );
                         })
                       ) : (
-                        <p className={`text-xs text-center py-2 ${isDark ? 'text-purple-400/50' : 'text-neutral-400'}`}>No messages recorded</p>
+                        <p className={`text-xs text-center py-2 ${isDark ? 'text-slate-400' : 'text-neutral-400'}`}>No messages recorded</p>
                       )}
 
                       {rec.subtitles && rec.subtitles.length > 3 && (
@@ -1897,7 +1897,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           type="button"
                           onClick={() => setSelectedChatDetailRecording(rec)}
                           className={`w-full py-1.5 text-center text-[11px] font-medium hover:underline cursor-pointer ${
-                            isDark ? 'text-purple-300 hover:text-white' : 'text-purple-600'
+                            isDark ? 'text-slate-200 hover:text-white' : 'text-purple-600'
                           }`}
                         >
                           View all {rec.subtitles.length} messages...
@@ -1913,29 +1913,29 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* TAB 6: BOOKMARKS (Saved Short Videos & Live Meeting Items) */}
         {activeTab === 'bookmarks' && (
-          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#0a0416]' : 'bg-neutral-50'}`}>
+          <div className={`p-3 space-y-3 min-h-[300px] ${isDark ? 'bg-[#08080c]' : 'bg-neutral-50'}`}>
             {/* Header info */}
             <div className={`p-3 rounded-xl border shadow-xs flex items-center justify-between ${
-              isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+              isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
                   isDark
-                    ? 'bg-purple-950/70 border-purple-800/50 text-purple-300'
+                    ? 'bg-purple-950/70 border-purple-800/50 text-slate-200'
                     : 'bg-purple-50 border-purple-200 text-purple-700'
                 }`}>
-                  <Bookmark className="w-4 h-4 fill-purple-400 text-purple-400" />
+                  <Bookmark className="w-4 h-4 fill-purple-400 text-slate-300" />
                 </div>
                 <div>
                   <h3 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-neutral-800'}`}>Saved Bookmarks</h3>
-                  <p className={`text-[11px] ${isDark ? 'text-purple-300/70' : 'text-neutral-500'}`}>
+                  <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-neutral-500'}`}>
                     Short videos and items you saved from the Shorts Feed &amp; Meetings
                   </p>
                 </div>
               </div>
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full border shrink-0 ${
                 isDark
-                  ? 'bg-purple-950/70 text-purple-300 border-purple-700/50'
+                  ? 'bg-purple-950/70 text-slate-200 border-purple-700/50'
                   : 'bg-purple-50 text-purple-700 border-purple-200'
               }`}>
                 {shorts.filter((s) => s.isBookmarked).length} saved
@@ -1952,7 +1952,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                       key={short.id}
                       className={`border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col group text-left ${
                         isDark
-                          ? 'bg-[#0e061e] border-purple-900/40 hover:border-purple-500/50'
+                          ? 'bg-[#0d0d12] border-purple-900/40 hover:border-purple-500/50'
                           : 'bg-white border-neutral-200'
                       }`}
                     >
@@ -1969,8 +1969,8 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                           30s Short
                         </div>
-                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-purple-300 font-semibold text-[10px] flex items-center gap-1">
-                          <Bookmark className="w-3 h-3 fill-purple-400 text-purple-400" />
+                        <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-slate-200 font-semibold text-[10px] flex items-center gap-1">
+                          <Bookmark className="w-3 h-3 fill-purple-400 text-slate-300" />
                           Saved
                         </div>
 
@@ -2000,23 +2000,23 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               {short.author}
                             </span>
                             <span className={`text-[10px] font-mono ${
-                              isDark ? 'text-purple-400/60' : 'text-neutral-400'
+                              isDark ? 'text-slate-400' : 'text-neutral-400'
                             }`}>
                               {short.handle}
                             </span>
                           </div>
                           <p className={`text-xs font-medium line-clamp-2 mt-1.5 leading-snug ${
-                            isDark ? 'text-purple-100' : 'text-neutral-700'
+                            isDark ? 'text-slate-100' : 'text-neutral-700'
                           }`}>
                             {short.title}
                           </p>
                         </div>
 
                         <div className={`flex items-center justify-between pt-2 border-t text-[11px] ${
-                          isDark ? 'border-purple-900/30 text-purple-300/70' : 'border-neutral-100 text-neutral-500'
+                          isDark ? 'border-purple-900/30 text-slate-300' : 'border-neutral-100 text-neutral-500'
                         }`}>
                           <span className={`font-mono font-semibold ${
-                            isDark ? 'text-purple-300' : 'text-purple-700'
+                            isDark ? 'text-slate-200' : 'text-purple-700'
                           }`}>
                             {short.meetingToken}
                           </span>
@@ -2037,15 +2037,15 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               </div>
             ) : (
               <div className={`rounded-2xl border p-8 text-center space-y-2 ${
-                isDark ? 'bg-[#0e061e] border-purple-900/40' : 'bg-white border-neutral-200'
+                isDark ? 'bg-[#0d0d12] border-purple-900/40' : 'bg-white border-neutral-200'
               }`}>
                 <div className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center border ${
-                  isDark ? 'bg-purple-950/70 border-purple-800/50 text-purple-300' : 'bg-purple-50 border-purple-200 text-purple-700'
+                  isDark ? 'bg-purple-950/70 border-purple-800/50 text-slate-200' : 'bg-purple-50 border-purple-200 text-purple-700'
                 }`}>
                   <Bookmark className="w-6 h-6" />
                 </div>
                 <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-neutral-800'}`}>No Bookmarks Saved Yet</h4>
-                <p className={`text-xs max-w-xs mx-auto ${isDark ? 'text-purple-300/60' : 'text-neutral-500'}`}>
+                <p className={`text-xs max-w-xs mx-auto ${isDark ? 'text-slate-300' : 'text-neutral-500'}`}>
                   Go to the Shorts Feed (between Home and Meetings) and tap the Bookmark icon to save 30s videos and meeting discussions here!
                 </p>
               </div>
@@ -2055,7 +2055,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
         {/* CooM Copyright Notice */}
         <div className={`py-8 text-center text-xs font-medium select-none ${
-          isDark ? 'text-purple-400/40' : 'text-neutral-400'
+          isDark ? 'text-slate-400' : 'text-neutral-400'
         }`}>
           © 2026 CooM. All rights reserved.
         </div>
@@ -2072,22 +2072,22 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           <div
             id="note-detail-modal-container"
             className={`w-full max-w-md border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 ${
-              isDark ? 'bg-[#0e061e] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
+              isDark ? 'bg-[#0d0d12] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className={`p-3.5 border-b flex items-center justify-between ${
-              isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
             }`}>
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                  isDark ? 'bg-purple-950/70 text-purple-300 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
+                  isDark ? 'bg-purple-950/70 text-slate-200 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
                 }`}>
                   {selectedNoteDetail.meetingToken}
                 </span>
                 <span className={`text-xs truncate max-w-[180px] font-medium ${
-                  isDark ? 'text-purple-200' : 'text-neutral-700'
+                  isDark ? 'text-slate-200' : 'text-neutral-700'
                 }`}>
                   {selectedNoteDetail.meetingTitle}
                 </span>
@@ -2097,7 +2097,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={() => setSelectedNoteDetail(null)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer ${
                   isDark
-                    ? 'bg-[#1f0d46] hover:bg-[#2c1363] text-purple-300 hover:text-white'
+                    ? 'bg-[#1e1e28] hover:bg-[#2c1363] text-slate-200 hover:text-white'
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -2110,40 +2110,40 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               <div>
                 <div className="flex items-center justify-between">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${
-                    isDark ? 'bg-purple-950/70 text-purple-300 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
+                    isDark ? 'bg-purple-950/70 text-slate-200 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
                   }`}>
                     {selectedNoteDetail.category}
                   </span>
-                  <span className={`text-[10px] ${isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>{selectedNoteDetail.timestamp}</span>
+                  <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-neutral-400'}`}>{selectedNoteDetail.timestamp}</span>
                 </div>
                 <h3 className={`text-base font-bold mt-1.5 ${isDark ? 'text-white' : 'text-neutral-900'}`}>{selectedNoteDetail.title}</h3>
               </div>
 
               {/* Note Content / Key Points */}
               <div className={`border rounded-xl p-3 space-y-2 ${
-                isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+                isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
               }`}>
                 <h5 className={`text-xs font-bold flex items-center gap-1.5 ${
-                  isDark ? 'text-purple-300' : 'text-purple-700'
+                  isDark ? 'text-slate-200' : 'text-purple-700'
                 }`}>
-                  <FileText className="w-3.5 h-3.5 text-purple-400" />
+                  <FileText className="w-3.5 h-3.5 text-slate-300" />
                   <span>Note Content &amp; Points:</span>
                 </h5>
 
                 {selectedNoteDetail.keyPoints && selectedNoteDetail.keyPoints.length > 0 ? (
                   <ul className={`space-y-1.5 text-xs leading-relaxed pl-1 ${
-                    isDark ? 'text-purple-100' : 'text-neutral-800'
+                    isDark ? 'text-slate-100' : 'text-neutral-800'
                   }`}>
                     {selectedNoteDetail.keyPoints.map((pt, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-purple-400 mt-0.5">•</span>
+                        <span className="text-slate-300 mt-0.5">•</span>
                         <span>{pt}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
                   <p className={`text-xs whitespace-pre-wrap leading-relaxed ${
-                    isDark ? 'text-purple-100' : 'text-neutral-800'
+                    isDark ? 'text-slate-100' : 'text-neutral-800'
                   }`}>
                     {selectedNoteDetail.content}
                   </p>
@@ -2153,7 +2153,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
             {/* Footer Actions */}
             <div className={`p-3 border-t flex items-center justify-between gap-2 ${
-              isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
             }`}>
               <button
                 type="button"
@@ -2165,7 +2165,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 }
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                   isDark
-                    ? 'bg-[#1f0d46] hover:bg-[#2c1363] text-purple-200 hover:text-white'
+                    ? 'bg-[#1e1e28] hover:bg-[#2c1363] text-slate-200 hover:text-white'
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900'
                 }`}
               >
@@ -2205,22 +2205,22 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           <div
             id="chat-detail-modal-container"
             className={`w-full max-w-md border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in-95 ${
-              isDark ? 'bg-[#0e061e] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
+              isDark ? 'bg-[#0d0d12] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className={`p-3.5 border-b flex items-center justify-between ${
-              isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
             }`}>
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                  isDark ? 'bg-purple-950/70 text-purple-300 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
+                  isDark ? 'bg-purple-950/70 text-slate-200 border-purple-700/50' : 'bg-purple-50 text-purple-700 border-purple-200'
                 }`}>
                   {selectedChatDetailRecording.meetingToken}
                 </span>
                 <span className={`text-xs truncate max-w-[180px] font-medium ${
-                  isDark ? 'text-purple-200' : 'text-neutral-700'
+                  isDark ? 'text-slate-200' : 'text-neutral-700'
                 }`}>
                   {selectedChatDetailRecording.title}
                 </span>
@@ -2230,7 +2230,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={() => setSelectedChatDetailRecording(null)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer ${
                   isDark
-                    ? 'bg-[#1f0d46] hover:bg-[#2c1363] text-purple-300 hover:text-white'
+                    ? 'bg-[#1e1e28] hover:bg-[#2c1363] text-slate-200 hover:text-white'
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -2267,17 +2267,17 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                           sub.isMe
                             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs'
                             : isDark
-                              ? 'bg-[#150a30] border border-purple-900/40 text-purple-100 rounded-tl-xs'
+                              ? 'bg-[#131319] border border-purple-900/40 text-slate-100 rounded-tl-xs'
                               : 'bg-neutral-100 border border-neutral-200 text-neutral-800 rounded-tl-xs'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <span className={`text-xs font-bold ${
-                            sub.isMe ? 'text-white' : isDark ? 'text-purple-300' : 'text-neutral-800'
+                            sub.isMe ? 'text-white' : isDark ? 'text-slate-200' : 'text-neutral-800'
                           }`}>
                             {sub.speaker}
                           </span>
-                          <span className={`text-[10px] font-mono ${sub.isMe ? 'text-purple-100' : isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>{sub.time}</span>
+                          <span className={`text-[10px] font-mono ${sub.isMe ? 'text-slate-100' : isDark ? 'text-slate-400' : 'text-neutral-400'}`}>{sub.time}</span>
                         </div>
 
                         <p className="text-xs leading-relaxed font-sans">
@@ -2296,7 +2296,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                               }
                             }}
                             className={`flex items-center gap-1 text-[10px] font-medium transition cursor-pointer ${
-                              sub.isMe ? 'text-purple-100 hover:text-white' : isDark ? 'text-purple-300 hover:text-white' : 'text-purple-600 hover:text-purple-700'
+                              sub.isMe ? 'text-slate-100 hover:text-white' : isDark ? 'text-slate-200 hover:text-white' : 'text-purple-600 hover:text-purple-700'
                             }`}
                           >
                             {isPlayingAudio ? (
@@ -2317,19 +2317,19 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   );
                 })
               ) : (
-                <p className={`text-xs text-center py-10 ${isDark ? 'text-purple-400/50' : 'text-neutral-400'}`}>No messages in this chat history.</p>
+                <p className={`text-xs text-center py-10 ${isDark ? 'text-slate-400' : 'text-neutral-400'}`}>No messages in this chat history.</p>
               )}
             </div>
 
             <div className={`p-3 border-t flex items-center justify-end ${
-              isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
             }`}>
               <button
                 type="button"
                 onClick={() => setSelectedChatDetailRecording(null)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   isDark
-                    ? 'bg-[#1f0d46] hover:bg-[#2c1363] text-purple-200 hover:text-white'
+                    ? 'bg-[#1e1e28] hover:bg-[#2c1363] text-slate-200 hover:text-white'
                     : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
                 }`}
               >
@@ -2350,7 +2350,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           <div
             id="edit-profile-modal-container"
             className={`w-full max-w-sm border rounded-2xl p-5 shadow-2xl animate-in zoom-in-95 ${
-              isDark ? 'bg-[#0e061e] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
+              isDark ? 'bg-[#0d0d12] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -2358,7 +2358,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               isDark ? 'border-purple-900/40' : 'border-neutral-200'
             }`}>
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-purple-400" />
+                <Edit3 className="w-4 h-4 text-slate-300" />
                 <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>Edit CooM Profile</h3>
               </div>
               <button
@@ -2366,7 +2366,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={() => setIsEditProfileOpen(false)}
                 className={`p-1 rounded-full transition cursor-pointer ${
                   isDark
-                    ? 'text-purple-400 hover:text-white hover:bg-purple-950/60'
+                    ? 'text-slate-300 hover:text-white hover:bg-purple-950/60'
                     : 'text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100'
                 }`}
               >
@@ -2386,20 +2386,20 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     onClick={() => fileInputRef.current?.click()}
                     className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                       isDark
-                        ? 'bg-[#150a30] hover:bg-[#1f0d46] border-purple-900/40 text-purple-200 hover:text-white'
+                        ? 'bg-[#131319] hover:bg-[#1e1e28] border-purple-900/40 text-slate-200 hover:text-white'
                         : 'bg-neutral-100 hover:bg-neutral-200 border-neutral-200 text-neutral-700 hover:text-neutral-900'
                     }`}
                   >
-                    <Camera className="w-3.5 h-3.5 text-purple-400" />
+                    <Camera className="w-3.5 h-3.5 text-slate-300" />
                     <span>Upload New Photo</span>
                   </button>
-                  <p className={`text-[10px] ${isDark ? 'text-purple-400/50' : 'text-neutral-400'}`}>Supports PNG, JPG, or WebP</p>
+                  <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-neutral-400'}`}>Supports PNG, JPG, or WebP</p>
                 </div>
               </div>
 
               {/* Display Name */}
               <div>
-                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>Display Name</label>
+                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>Display Name</label>
                 <input
                   type="text"
                   required
@@ -2407,7 +2407,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   onChange={(e) => setEditName(e.target.value)}
                   className={`w-full border rounded-xl px-3 py-2 text-xs outline-none ${
                     isDark
-                      ? 'bg-[#150a30] border-purple-900/40 text-white focus:border-purple-500'
+                      ? 'bg-[#131319] border-purple-900/40 text-white focus:border-purple-500'
                       : 'bg-neutral-50 border-neutral-200 text-neutral-900 focus:border-purple-500'
                   }`}
                 />
@@ -2415,7 +2415,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
               {/* Username Handle */}
               <div>
-                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>Handle</label>
+                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>Handle</label>
                 <input
                   type="text"
                   required
@@ -2423,7 +2423,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   onChange={(e) => setEditHandle(e.target.value)}
                   className={`w-full border rounded-xl px-3 py-2 text-xs outline-none font-mono ${
                     isDark
-                      ? 'bg-[#150a30] border-purple-900/40 text-white focus:border-purple-500'
+                      ? 'bg-[#131319] border-purple-900/40 text-white focus:border-purple-500'
                       : 'bg-neutral-50 border-neutral-200 text-neutral-900 focus:border-purple-500'
                   }`}
                 />
@@ -2431,7 +2431,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
               {/* Bio Field */}
               <div>
-                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>Bio</label>
+                <label className={`block text-xs mb-1 font-medium ${isDark ? 'text-slate-200' : 'text-neutral-600'}`}>Bio</label>
                 <textarea
                   rows={3}
                   value={editBio}
@@ -2439,7 +2439,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   placeholder="Introduce yourself, meeting roles, or topics you host..."
                   className={`w-full border rounded-xl p-2.5 text-xs outline-none resize-none leading-relaxed ${
                     isDark
-                      ? 'bg-[#150a30] border-purple-900/40 text-white placeholder:text-purple-400/40 focus:border-purple-500'
+                      ? 'bg-[#131319] border-purple-900/40 text-white placeholder:text-slate-400 focus:border-purple-500'
                       : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder:text-neutral-400 focus:border-purple-500'
                   }`}
                 />
@@ -2452,7 +2452,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   onClick={() => setIsEditProfileOpen(false)}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
                     isDark
-                      ? 'text-purple-300 hover:text-white bg-[#150a30] hover:bg-[#1f0d46]'
+                      ? 'text-slate-200 hover:text-white bg-[#131319] hover:bg-[#1e1e28]'
                       : 'text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200'
                   }`}
                 >
@@ -2481,16 +2481,16 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
           <div
             id="video-playback-modal-container"
             className={`w-full max-w-sm border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] ${
-              isDark ? 'bg-[#0e061e] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
+              isDark ? 'bg-[#0d0d12] border-purple-900/50 text-white' : 'bg-white border-neutral-200 text-neutral-900'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Playback Header */}
             <div className={`p-3 border-b flex items-center justify-between ${
-              isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
             }`}>
               <div className="flex items-center gap-1.5 truncate">
-                <span className={`font-mono text-xs font-bold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                <span className={`font-mono text-xs font-bold ${isDark ? 'text-slate-200' : 'text-purple-700'}`}>
                   {activePlaybackRecording.meetingToken}
                 </span>
                 <span className={isDark ? 'text-purple-500' : 'text-neutral-400'}>·</span>
@@ -2503,7 +2503,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                 onClick={() => setActivePlaybackRecording(null)}
                 className={`p-1 rounded-full transition cursor-pointer ${
                   isDark
-                    ? 'text-purple-400 hover:text-white hover:bg-purple-950/60'
+                    ? 'text-slate-300 hover:text-white hover:bg-purple-950/60'
                     : 'text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100'
                 }`}
               >
@@ -2549,7 +2549,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
             {/* Playback Content Details & Actions */}
             <div className={`p-3.5 space-y-3 overflow-y-auto max-h-[300px] ${
-              isDark ? 'bg-[#0e061e]' : 'bg-white'
+              isDark ? 'bg-[#0d0d12]' : 'bg-white'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -2559,10 +2559,10 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition cursor-pointer ${
                       activePlaybackRecording.isFavorited
                         ? isDark
-                          ? 'bg-purple-950/70 text-purple-300 border-purple-700/50 font-semibold'
+                          ? 'bg-purple-950/70 text-slate-200 border-purple-700/50 font-semibold'
                           : 'bg-purple-50 text-purple-700 border-purple-200 font-semibold'
                         : isDark
-                          ? 'bg-[#150a30] text-purple-300 border-purple-900/40 hover:text-white'
+                          ? 'bg-[#131319] text-slate-200 border-purple-900/40 hover:text-white'
                           : 'bg-neutral-100 text-neutral-600 border-neutral-200 hover:text-neutral-900'
                     }`}
                   >
@@ -2571,7 +2571,7 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
                   </button>
 
                   <span className={`text-[11px] flex items-center gap-1 font-mono ${
-                    isDark ? 'text-purple-300/70' : 'text-neutral-500'
+                    isDark ? 'text-slate-300' : 'text-neutral-500'
                   }`}>
                     <Eye className="w-3.5 h-3.5" /> {activePlaybackRecording.views} views
                   </span>
@@ -2593,11 +2593,11 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
 
               {/* Participants */}
               <div className="space-y-1">
-                <p className={`text-[10px] font-semibold ${isDark ? 'text-purple-300/80' : 'text-neutral-500'}`}>Participants:</p>
+                <p className={`text-[10px] font-semibold ${isDark ? 'text-slate-200' : 'text-neutral-500'}`}>Participants:</p>
                 <div className="flex wrap gap-1">
                   {activePlaybackRecording.participants.map((p, i) => (
                     <span key={i} className={`text-[10px] px-2 py-0.5 rounded-md border font-medium ${
-                      isDark ? 'bg-[#150a30] border-purple-900/40 text-purple-200' : 'bg-neutral-100 border-neutral-200 text-neutral-700'
+                      isDark ? 'bg-[#131319] border-purple-900/40 text-slate-200' : 'bg-neutral-100 border-neutral-200 text-neutral-700'
                     }`}>
                       {p}
                     </span>
@@ -2608,15 +2608,15 @@ export const CooMProfileScreen: React.FC<CooMProfileScreenProps> = ({
               {/* Notes Recap */}
               {activePlaybackRecording.notes && activePlaybackRecording.notes.length > 0 && (
                 <div className={`border rounded-xl p-2.5 space-y-1 ${
-                  isDark ? 'bg-[#150a30] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
+                  isDark ? 'bg-[#131319] border-purple-900/40' : 'bg-neutral-50 border-neutral-200'
                 }`}>
                   <p className={`text-[10px] font-bold flex items-center gap-1 ${
-                    isDark ? 'text-purple-300' : 'text-purple-700'
+                    isDark ? 'text-slate-200' : 'text-purple-700'
                   }`}>
-                    <FileText className="w-3 h-3 text-purple-400" /> Meeting Notes Recap:
+                    <FileText className="w-3 h-3 text-slate-300" /> Meeting Notes Recap:
                   </p>
                   <ul className={`text-[11px] space-y-1 pl-3 list-disc ${
-                    isDark ? 'text-purple-200' : 'text-neutral-700'
+                    isDark ? 'text-slate-200' : 'text-neutral-700'
                   }`}>
                     {activePlaybackRecording.notes.map((note, i) => (
                       <li key={i}>{note}</li>

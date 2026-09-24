@@ -32,6 +32,7 @@ import {
   Lock,
   Globe,
   FileVideo,
+  Plus,
 } from 'lucide-react';
 
 interface ShortsFeedScreenProps {
@@ -45,6 +46,7 @@ interface ShortsFeedScreenProps {
   onAddShortComment: (shortId: string, commentText: string) => void;
   onCreateShort: (newShort: Omit<ShortVideoItem, 'id' | 'likes' | 'isLiked' | 'reposts' | 'isReposted' | 'commentsCount' | 'comments' | 'isBookmarked' | 'timestamp'>) => void;
   onResetSampleShorts?: () => void;
+  themeMode?: 'dark' | 'light';
   onAddPost?: (
     token: string,
     content: string,
@@ -74,8 +76,10 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   onAddShortComment,
   onCreateShort,
   onResetSampleShorts,
+  themeMode = 'dark',
   onAddPost,
 }) => {
+  const isDark = themeMode !== 'light';
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -510,8 +514,10 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         </div>
       )}
 
-      {/* Top Floating Header (Matching White Background & Clean Light Theme) */}
-      <div className="sticky top-0 left-0 right-0 z-30 px-4 py-2.5 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-2xs">
+      {/* Top Floating Header */}
+      <div className={`sticky top-0 left-0 right-0 z-30 px-4 py-2.5 backdrop-blur-md border-b shadow-2xs ${
+        isDark ? 'bg-black/95 border-neutral-800 text-white' : 'bg-white/95 border-neutral-200 text-neutral-900'
+      }`}>
         <div className="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-base font-black tracking-tight flex items-center gap-1.5">
@@ -930,75 +936,84 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-8 text-center text-neutral-600 bg-white rounded-2xl border border-neutral-200 shadow-sm max-w-sm">
-            <Video className="w-12 h-12 mx-auto text-neutral-400 mb-3" />
-            <p className="text-sm font-bold text-neutral-900">No short videos yet</p>
-            <p className="text-xs text-neutral-500 mt-1">Be the first to upload a 30s short clip!</p>
-            {onResetSampleShorts && (
-              <button
-                type="button"
-                onClick={onResetSampleShorts}
-                className="mt-4 px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs cursor-pointer"
-              >
-                Load Sample Video Clips
-              </button>
-            )}
+          <div className={`p-8 text-center rounded-2xl border shadow-sm max-w-sm ${
+            isDark ? 'bg-[#0a0a0d] border-neutral-800 text-white' : 'bg-white border-neutral-200 text-neutral-900'
+          }`}>
+            <Video className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-purple-400' : 'text-neutral-400'}`} />
+            <p className="text-sm font-bold">No short videos yet</p>
+            <p className={`text-xs mt-1 ${isDark ? 'text-neutral-400' : 'text-neutral-500'}`}>
+              Be the first to upload a 30s short video clip!
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="mt-4 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5 mx-auto active:scale-95 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Upload Short Clip</span>
+            </button>
           </div>
         )}
       </div>
 
-      {/* COMMENT SHEET DRAWER (Clean Light Theme) */}
+      {/* COMMENT SHEET DRAWER */}
       {isCommentDrawerOpen && activeShort && (
         <div
           id="shorts-comment-backdrop"
-          className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xs flex flex-col justify-end items-center animate-in fade-in duration-150"
+          className="absolute inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex flex-col justify-end items-center animate-in fade-in duration-150"
           onClick={() => setIsCommentDrawerOpen(false)}
         >
           <div
             id="shorts-comment-sheet"
-            className="w-full max-w-lg lg:max-w-xl h-2/3 bg-white border-t sm:border-x border-neutral-200 rounded-t-3xl flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200"
+            className={`w-full max-w-lg lg:max-w-xl h-2/3 border-t sm:border-x rounded-t-3xl flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200 ${
+              isDark ? 'bg-[#131B2E] border-slate-800 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Sheet Header */}
-            <div className="px-4 py-3 border-b border-neutral-200 flex items-center justify-between shrink-0 bg-neutral-50">
-              <span className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                <MessageCircle className="w-4 h-4 text-purple-600" />
+            <div className={`px-4 py-3 border-b flex items-center justify-between shrink-0 ${
+              isDark ? 'bg-[#0B0F19] border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                <MessageCircle className="w-4 h-4 text-indigo-400" />
                 Comments ({activeShort.comments?.length || 0})
               </span>
               <button
                 type="button"
                 onClick={() => setIsCommentDrawerOpen(false)}
-                className="w-7 h-7 rounded-full bg-neutral-200/80 hover:bg-neutral-300 text-neutral-600 hover:text-neutral-900 flex items-center justify-center transition cursor-pointer"
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer ${
+                  isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white' : 'bg-slate-200/80 hover:bg-slate-300 text-slate-600 hover:text-slate-900'
+                }`}
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Comments List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-white">
+            <div className={`flex-1 overflow-y-auto p-4 space-y-3.5 ${isDark ? 'bg-[#131B2E]' : 'bg-white'}`}>
               {activeShort.comments && activeShort.comments.length > 0 ? (
                 activeShort.comments.map((comment) => (
                   <div key={comment.id} className="flex gap-2.5 text-left">
                     <img
                       src={comment.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face'}
                       alt={comment.author}
-                      className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-neutral-200"
+                      className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-700"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-bold text-neutral-900 truncate">
+                        <span className={`text-xs font-bold truncate ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                           {comment.author}
                         </span>
-                        <span className="text-[10px] text-neutral-400">{comment.timestamp}</span>
+                        <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>{comment.timestamp}</span>
                       </div>
-                      <p className="text-xs text-neutral-700 mt-0.5 leading-relaxed">
+                      <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                         {comment.content}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="py-12 text-center text-neutral-400 text-xs">
+                <div className={`py-12 text-center text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   No comments yet. Start the discussion!
                 </div>
               )}
@@ -1007,19 +1022,25 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
             {/* Comment Input Bar */}
             <form
               onSubmit={handleSendComment}
-              className="p-3 border-t border-neutral-200 bg-neutral-50 flex items-center gap-2 shrink-0"
+              className={`p-3 border-t flex items-center gap-2 shrink-0 ${
+                isDark ? 'bg-[#0B0F19] border-slate-800' : 'bg-slate-50 border-slate-200'
+              }`}
             >
               <input
                 type="text"
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
                 placeholder="Add a comment..."
-                className="flex-1 bg-white text-neutral-900 placeholder-neutral-400 text-xs rounded-full px-3.5 py-2 border border-neutral-300 focus:border-purple-600 outline-hidden shadow-2xs"
+                className={`flex-1 text-xs rounded-full px-3.5 py-2 border outline-hidden shadow-2xs ${
+                  isDark
+                    ? 'bg-[#1E293B] border-slate-700 text-slate-100 placeholder-slate-400 focus:border-indigo-500'
+                    : 'bg-white text-slate-900 placeholder-slate-400 border-slate-300 focus:border-indigo-600'
+                }`}
               />
               <button
                 type="submit"
                 disabled={!newCommentText.trim()}
-                className="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
+                className="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white flex items-center justify-center transition cursor-pointer shrink-0 shadow-xs"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -1028,29 +1049,31 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         </div>
       )}
 
-      {/* CREATE / UPLOAD 30S SHORT MODAL (Clean Light Theme) */}
+      {/* CREATE / UPLOAD 30S SHORT MODAL */}
       {isCreateModalOpen && (
         <div
           id="create-short-backdrop"
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 animate-in fade-in duration-150"
           onClick={() => {
             if (!isRecordingWebcam) setIsCreateModalOpen(false);
           }}
         >
           <div
             id="create-short-modal"
-            className="w-full max-w-sm max-h-[92vh] overflow-y-auto bg-white border border-neutral-200 rounded-3xl p-4 flex flex-col gap-3 shadow-2xl text-left animate-in zoom-in-95 duration-150"
+            className={`w-full max-w-sm max-h-[92vh] overflow-y-auto rounded-3xl p-4 flex flex-col gap-3 shadow-2xl text-left animate-in zoom-in-95 duration-150 border ${
+              isDark ? 'bg-[#131B2E] border-slate-700/80 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+            <div className={`flex items-center justify-between pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-md">
+                <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-md">
                   <Upload className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-neutral-900">Upload 30s Short Clip</h3>
-                  <p className="text-[10px] text-neutral-500">Post standalone or link to Live Meeting</p>
+                  <h3 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Upload 30s Short Clip</h3>
+                  <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Post standalone or link to Live Meeting</p>
                 </div>
               </div>
               <button
@@ -1059,14 +1082,18 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   stopWebcamRecording();
                   setIsCreateModalOpen(false);
                 }}
-                className="w-6 h-6 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition cursor-pointer"
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition cursor-pointer ${
+                  isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900'
+                }`}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Video Preview or Source Selection */}
-            <div className="relative w-full h-40 bg-neutral-900 rounded-2xl overflow-hidden border border-neutral-200 flex items-center justify-center">
+            <div className={`relative w-full h-40 rounded-2xl overflow-hidden border flex items-center justify-center ${
+              isDark ? 'bg-[#0B0F19] border-slate-700' : 'bg-slate-900 border-slate-200'
+            }`}>
               {isRecordingWebcam ? (
                 <div className="relative w-full h-full">
                   <video
@@ -1076,20 +1103,20 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                     playsInline
                     muted
                   />
-                  <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                  <div className="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     REC 00:{recordingSeconds < 10 ? `0${recordingSeconds}` : recordingSeconds} / 00:30
                   </div>
                   <button
                     type="button"
                     onClick={stopWebcamRecording}
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg transition cursor-pointer"
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg transition cursor-pointer"
                   >
                     Done Recording
                   </button>
                 </div>
               ) : uploadedVideoUrl ? (
-                <div className="relative w-full h-full bg-neutral-900 flex items-center justify-center">
+                <div className="relative w-full h-full bg-slate-950 flex items-center justify-center">
                   {uploadedThumbnail && (
                     <img
                       src={uploadedThumbnail}
@@ -1107,8 +1134,8 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                     playsInline
                   />
                   {isExtractingThumbnail && (
-                    <div className="absolute inset-0 z-2 bg-black/50 backdrop-blur-xs flex items-center justify-center gap-1.5 text-white text-[11px] font-semibold">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-300 animate-spin" />
+                    <div className="absolute inset-0 z-2 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center gap-1.5 text-white text-[11px] font-semibold">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-spin" />
                       <span>Optimizing preview...</span>
                     </div>
                   )}
@@ -1121,13 +1148,13 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                       setUploadedVideoUrl(null);
                       setUploadedThumbnail(null);
                     }}
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 z-3 bg-white/95 text-neutral-900 text-[10px] font-semibold px-3 py-1 rounded-full hover:bg-white transition cursor-pointer border border-neutral-300 shadow-md active:scale-95"
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 z-3 bg-slate-900/90 hover:bg-slate-900 text-white text-[10px] font-semibold px-3 py-1 rounded-full transition cursor-pointer border border-slate-700 shadow-md active:scale-95"
                   >
                     Change Video
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-2 p-3 text-center w-full bg-neutral-50 text-neutral-800">
+                <div className={`flex flex-col items-center gap-2 p-3 text-center w-full ${isDark ? 'bg-[#0B0F19] text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -1135,14 +1162,16 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                     accept="video/*"
                     className="hidden"
                   />
-                  <div className="w-10 h-10 rounded-full bg-purple-100 border border-purple-200 text-purple-600 flex items-center justify-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    isDark ? 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400' : 'bg-indigo-50 border border-indigo-100 text-indigo-600'
+                  }`}>
                     <Video className="w-5 h-5" />
                   </div>
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
+                      className="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1"
                     >
                       <Upload className="w-3 h-3" />
                       Select Video
@@ -1150,7 +1179,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                     <button
                       type="button"
                       onClick={startWebcamRecording}
-                      className="bg-white hover:bg-neutral-100 text-neutral-700 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-neutral-300 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                      className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1 shadow-2xs ${
+                        isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                      }`}
                     >
                       <Camera className="w-3 h-3" />
                       Camera (30s)
@@ -1161,7 +1192,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                         setUploadedVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
                         showToast('Sample 30s video selected!');
                       }}
-                      className="bg-white hover:bg-neutral-100 text-neutral-700 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-neutral-300 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                      className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1 shadow-2xs ${
+                        isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+                      }`}
                     >
                       <FileVideo className="w-3 h-3" />
                       Sample
@@ -1173,7 +1206,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
 
             {/* Caption Input */}
             <div>
-              <label className="text-[10px] font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+              <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Short Caption
               </label>
               <textarea
@@ -1181,24 +1214,32 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                 onChange={(e) => setShortCaption(e.target.value)}
                 placeholder="What is this 30s clip about? (e.g. Quick tech demo or live discussion...)"
                 rows={2}
-                className="w-full bg-neutral-50 text-neutral-900 text-xs rounded-xl p-2.5 border border-neutral-300 focus:border-purple-600 outline-hidden placeholder-neutral-400 resize-none shadow-2xs"
+                className={`w-full text-xs rounded-xl p-2.5 border outline-hidden resize-none shadow-2xs ${
+                  isDark
+                    ? 'bg-[#1E293B] border-slate-700 text-slate-100 placeholder-slate-400 focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-indigo-600'
+                }`}
               />
             </div>
 
             {/* Linked Live Meeting Room Selector */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-[10px] font-bold text-neutral-700 uppercase tracking-wider">
+                <label className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   Linked Live Meeting Room
                 </label>
-                <span className="text-[9px] text-neutral-500">
+                <span className={`text-[9px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {selectedMeetingToken !== 'none' ? '🔴 Join button will glow' : 'Dimmed (No Meet)'}
                 </span>
               </div>
               <select
                 value={selectedMeetingToken}
                 onChange={(e) => setSelectedMeetingToken(e.target.value)}
-                className="w-full bg-neutral-50 text-neutral-900 text-xs rounded-xl p-2.5 border border-neutral-300 focus:border-purple-600 outline-hidden cursor-pointer shadow-2xs"
+                className={`w-full text-xs rounded-xl p-2.5 border outline-hidden cursor-pointer shadow-2xs ${
+                  isDark
+                    ? 'bg-[#1E293B] border-slate-700 text-slate-100 focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-indigo-600'
+                }`}
               >
                 <option value="none">🚫 No Meeting (Standalone Video - Join button dimmed)</option>
                 {rooms.map((room) => (
@@ -1207,7 +1248,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   </option>
                 ))}
               </select>
-              <p className="text-[9px] text-neutral-500 mt-1 leading-normal">
+              <p className={`text-[9px] mt-1 leading-normal ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {selectedMeetingToken === 'none'
                   ? 'Meeting မရှိလဲ video တင်နိုင်ပါသည်။ ဘေးတန်း Join button သည် အရောင်မှိန်နေမည်ဖြစ်ပါသည်။'
                   : `ဒီ short ကို ကြည့်သူများ Join button ကို နှိပ်ပြီး ${selectedMeetingToken} သို့ တိုက်ရိုက်ဝင်ရောက်နိုင်မည်။`}
@@ -1216,7 +1257,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
 
             {/* Privacy / Visibility Selector */}
             <div>
-              <label className="text-[10px] font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+              <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Privacy / Visibility
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -1225,11 +1266,15 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   onClick={() => setShortVisibility('public')}
                   className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     shortVisibility === 'public'
-                      ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-xs'
-                      : 'bg-neutral-50 border-neutral-300 text-neutral-600 hover:text-neutral-900'
+                      ? isDark
+                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300 shadow-xs'
+                        : 'bg-indigo-50 border-indigo-500 text-indigo-700 shadow-xs'
+                      : isDark
+                      ? 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                      : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Globe className="w-3.5 h-3.5 text-purple-600" />
+                  <Globe className={`w-3.5 h-3.5 ${shortVisibility === 'public' ? 'text-indigo-400' : ''}`} />
                   <span>Public (အားလုံး)</span>
                 </button>
                 <button
@@ -1237,11 +1282,15 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   onClick={() => setShortVisibility('private')}
                   className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     shortVisibility === 'private'
-                      ? 'bg-amber-50 border-amber-500 text-amber-800 shadow-xs'
-                      : 'bg-neutral-50 border-neutral-300 text-neutral-600 hover:text-neutral-900'
+                      ? isDark
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-xs'
+                        : 'bg-amber-50 border-amber-500 text-amber-800 shadow-xs'
+                      : isDark
+                      ? 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                      : 'bg-slate-50 border-slate-300 text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                  <Lock className={`w-3.5 h-3.5 ${shortVisibility === 'private' ? 'text-amber-400' : ''}`} />
                   <span>Private (ကိုယ်တိုင်သာ)</span>
                 </button>
               </div>
@@ -1249,7 +1298,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
 
             {/* Tags Input */}
             <div>
-              <label className="text-[10px] font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+              <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                 Tags
               </label>
               <input
@@ -1257,7 +1306,11 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                 value={shortTags}
                 onChange={(e) => setShortTags(e.target.value)}
                 placeholder="#AI #WebRTC #Tech"
-                className="w-full bg-neutral-50 text-neutral-900 text-xs rounded-xl px-2.5 py-1.5 border border-neutral-300 focus:border-purple-600 outline-hidden placeholder-neutral-400 shadow-2xs"
+                className={`w-full text-xs rounded-xl px-2.5 py-1.5 border outline-hidden shadow-2xs ${
+                  isDark
+                    ? 'bg-[#1E293B] border-slate-700 text-slate-100 placeholder-slate-400 focus:border-indigo-500'
+                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-600'
+                }`}
               />
             </div>
 
@@ -1269,14 +1322,16 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
                   stopWebcamRecording();
                   setIsCreateModalOpen(false);
                 }}
-                className="flex-1 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-xs font-semibold text-neutral-700 transition cursor-pointer"
+                className={`flex-1 py-2 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                  isDark ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                }`}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handlePublishShort}
-                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-xs font-bold text-white shadow-md shadow-purple-300 transition cursor-pointer"
+                className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition cursor-pointer"
               >
                 Publish 30s Short
               </button>

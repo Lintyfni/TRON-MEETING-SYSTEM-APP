@@ -249,7 +249,7 @@ export const MeetingChatModal: React.FC<MeetingChatModalProps> = ({
                 </>
               ) : (
                 <>
-                  <MessageSquare className="w-10 h-10 stroke-1 text-purple-300 mb-2" />
+                  <MessageSquare className="w-10 h-10 stroke-1 text-slate-200 mb-2" />
                   <span className="font-semibold text-neutral-800 text-sm">
                     No messages in {selectedToken} yet.
                   </span>

@@ -46,29 +46,53 @@
   animation: floatEmoji 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Custom subtle scrollbar */
+/* Custom soothing scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.3);
-  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(192, 38, 211, 0.5);
+  background: rgba(99, 102, 241, 0.45);
+}
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Soothing Theme Tokens */
+  --coom-dark-bg: #0B0F19;
+  --coom-dark-surface: #131B2E;
+  --coom-dark-surface-hover: #1A253D;
+  --coom-dark-border: rgba(148, 163, 184, 0.12);
+  --coom-dark-text-primary: #F1F5F9;
+  --coom-dark-text-secondary: #94A3B8;
+  
+  --coom-light-bg: #F8FAFC;
+  --coom-light-surface: #FFFFFF;
+  --coom-light-surface-hover: #F1F5F9;
+  --coom-light-border: #E2E8F0;
+  --coom-light-text-primary: #0F172A;
+  --coom-light-text-secondary: #64748B;
+  
+  --coom-accent-primary: #6366F1;
+  --coom-accent-gradient: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #0EA5E9 100%);
 }
 
 .coom-nebula-theme {
-  --coom-bg-deep: #06020c;
-  --coom-bg-surface: #0f0720;
-  --coom-bg-card: #150b2c;
-  --coom-border: rgba(168, 85, 247, 0.25);
-  --coom-text-primary: #ffffff;
-  --coom-text-secondary: #c084fc;
+  --coom-bg-deep: #0B0F19;
+  --coom-bg-surface: #131B2E;
+  --coom-bg-card: #18233B;
+  --coom-border: rgba(99, 102, 241, 0.2);
+  --coom-text-primary: #F1F5F9;
+  --coom-text-secondary: #94A3B8;
 }
 
 html, body, #root {

@@ -265,118 +265,63 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
   return (
     <div
       id="coom-auth-screen"
-      className="relative w-full h-[100dvh] min-h-[100dvh] bg-[#05020a] text-white flex items-center justify-center overflow-x-hidden overflow-y-auto selection:bg-purple-600 selection:text-white p-3 sm:p-6"
+      className="relative w-full h-[100dvh] min-h-[100dvh] bg-[#0B0F19] text-slate-100 flex items-center justify-center overflow-x-hidden overflow-y-auto selection:bg-indigo-500/30 selection:text-indigo-200 p-3 sm:p-6"
     >
       {/* ============================================================ */}
-      {/* 1. LUXURIOUS ELECTRIC PURPLE & MAGENTA NEBULA BACKGROUND      */}
-      {/*    (Exact match to the flowing violet ribbon wave screenshot)  */}
+      {/* 1. SOOTHING MIDNIGHT SLATE & SOFT INDIGO AMBIENT GLOW       */}
       {/* ============================================================ */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {/* Deep space base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#06020c] via-[#090317] to-[#040108]" />
+        {/* Deep calm base */}
+        <div className="absolute inset-0 bg-[#0B0F19]" />
 
-        {/* Diagonal Glowing Violet Ribbon Wave 1 (Bottom Left to Top Right) */}
+        {/* Soft, calm ambient indigo aura */}
         <div
-          className="absolute -left-[30%] bottom-0 w-[140%] h-[90%] opacity-85 blur-[45px] pointer-events-none transform -rotate-12"
+          className="absolute -top-[20%] -left-[10%] w-[70%] h-[60%] opacity-40 blur-[100px] pointer-events-none"
           style={{
-            background:
-              'radial-gradient(ellipse at 30% 60%, rgba(192, 38, 211, 0.45), rgba(147, 51, 234, 0.35) 45%, rgba(88, 28, 135, 0.15) 75%, transparent 90%)',
+            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0) 70%)',
+          }}
+        />
+        <div
+          className="absolute -bottom-[20%] -right-[10%] w-[70%] h-[60%] opacity-35 blur-[100px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.18) 0%, rgba(15, 23, 42, 0) 70%)',
           }}
         />
 
-        {/* Sharp Luminous Light Streak Bands (Neon Magenta / Electric Violet) */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-60 mix-blend-screen pointer-events-none"
-          preserveAspectRatio="none"
-          viewBox="0 0 1000 1000"
-        >
-          <defs>
-            <linearGradient id="neonGlow1" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#d946ef" stopOpacity="0" />
-              <stop offset="35%" stopColor="#c026d3" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#ffffff" stopOpacity="0.9" />
-              <stop offset="65%" stopColor="#9333ea" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#4c1d95" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="neonGlow2" x1="0%" y1="90%" x2="100%" y2="20%">
-              <stop offset="0%" stopColor="#a855f7" stopOpacity="0" />
-              <stop offset="40%" stopColor="#e879f9" stopOpacity="0.5" />
-              <stop offset="55%" stopColor="#ffffff" stopOpacity="0.8" />
-              <stop offset="70%" stopColor="#7e22ce" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#3b0764" stopOpacity="0" />
-            </linearGradient>
-            <filter id="glowBlur" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="14" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Sweeping ribbon curves matching the attached screenshot */}
-          <path
-            d="M -150 950 C 250 820, 500 500, 1150 180"
-            fill="none"
-            stroke="url(#neonGlow1)"
-            strokeWidth="38"
-            filter="url(#glowBlur)"
-          />
-          <path
-            d="M -100 880 C 300 780, 550 460, 1100 120"
-            fill="none"
-            stroke="url(#neonGlow2)"
-            strokeWidth="18"
-            filter="url(#glowBlur)"
-          />
-          <path
-            d="M -200 1020 C 200 900, 450 560, 1200 240"
-            fill="none"
-            stroke="rgba(240, 171, 252, 0.4)"
-            strokeWidth="6"
-            filter="url(#glowBlur)"
-          />
-        </svg>
-
-        {/* Fine Stardust Particle Field (Dot Grid) */}
+        {/* Subtle grid pattern */}
         <div
-          className="absolute inset-0 opacity-20 pointer-events-none"
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
           style={{
-            backgroundImage: 'radial-gradient(rgba(232, 121, 249, 0.6) 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(rgba(241, 245, 249, 0.8) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
           }}
         />
-
-        {/* Ambient Top Vignette */}
-        <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-black/80 to-transparent pointer-events-none" />
       </div>
 
       {/* Floating Status Toast */}
       {toastMessage && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-white/95 text-neutral-900 text-xs sm:text-sm font-semibold shadow-[0_10px_30px_rgba(168,85,247,0.4)] flex items-center gap-2 backdrop-blur-md animate-in fade-in slide-in-from-top-3 border border-purple-300">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-[#131B2E] text-slate-100 text-xs sm:text-sm font-semibold shadow-xl flex items-center gap-2 backdrop-blur-md animate-in fade-in slide-in-from-top-3 border border-indigo-500/40">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* ============================================================ */}
       {/* 2. AUTHENTIC PHONE-FRAME / LOGIN CARD CONTAINER              */}
-      {/*    (Exact layout and styling of the attached image)          */}
       {/* ============================================================ */}
       <div
         id="coom-login-card"
-        className="relative z-10 w-full max-w-[390px] sm:max-w-[420px] mx-auto flex flex-col items-center justify-between py-6 sm:py-8 px-5 sm:px-7 rounded-[44px] sm:rounded-[48px] bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_80px_rgba(147,51,234,0.25)] min-h-[640px]"
+        className="relative z-10 w-full max-w-[390px] sm:max-w-[420px] mx-auto flex flex-col items-center justify-between py-6 sm:py-8 px-5 sm:px-7 rounded-[36px] sm:rounded-[40px] bg-[#131B2E]/90 backdrop-blur-xl border border-slate-700/70 shadow-[0_20px_60px_rgba(0,0,0,0.6)] min-h-[640px]"
       >
-        {/* TOP CENTER EMBLEM: Black squircle with radiant purple backlight & CooM */}
+        {/* TOP CENTER EMBLEM: Soft glowing emblem with CooM */}
         <div className="flex flex-col items-center justify-center pt-2 sm:pt-4 mb-6">
           <div className="relative group cursor-pointer">
-            {/* Ambient Electric Violet Back-Glow */}
-            <div className="absolute -inset-6 rounded-full bg-gradient-to-tr from-fuchsia-600 via-purple-600 to-indigo-600 blur-2xl opacity-75 group-hover:opacity-100 transition duration-700 animate-pulse" />
+            {/* Ambient Soft Glow */}
+            <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl opacity-75 group-hover:opacity-100 transition duration-500" />
 
-            {/* Black Squircle Badge */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] sm:rounded-[32px] bg-[#0c0817]/90 border border-white/15 shadow-2xl flex items-center justify-center backdrop-blur-xl">
-              {/* Bold Metallic Silver-White CooM Brand Wordmark */}
-              <span className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-b from-white via-slate-100 to-slate-300 bg-clip-text text-transparent drop-shadow-[0_4px_16px_rgba(255,255,255,0.4)]">
+            {/* Squircle Badge */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] sm:rounded-[32px] bg-gradient-to-b from-[#1A253D] to-[#131B2E] border border-slate-700 shadow-xl flex items-center justify-center backdrop-blur-xl">
+              <span className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-b from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-sm">
                 CooM
               </span>
             </div>
@@ -389,7 +334,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         <form onSubmit={handleCredentialLogin} className="w-full space-y-3.5 my-auto">
           {/* Input 1: Email or Username */}
           <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-300 transition">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition">
               <User className="w-5 h-5 stroke-[1.75]" />
             </div>
             <input
@@ -398,13 +343,13 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               placeholder="Email or Username"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full h-13 pl-12 pr-4 rounded-2xl bg-[#1c152d]/65 hover:bg-[#231b38]/75 focus:bg-[#261d3d]/90 border border-white/10 focus:border-purple-400 text-white placeholder-slate-400 text-sm outline-none transition backdrop-blur-md shadow-inner"
+              className="w-full h-13 pl-12 pr-4 rounded-2xl bg-[#1A253D] hover:bg-[#1E2B47] focus:bg-[#1E2B47] border border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-sm outline-none transition shadow-xs"
             />
           </div>
 
           {/* Input 2: Password with Eye Toggle */}
           <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-300 transition">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition">
               <Lock className="w-5 h-5 stroke-[1.75]" />
             </div>
             <input
@@ -413,7 +358,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-13 pl-12 pr-12 rounded-2xl bg-[#1c152d]/65 hover:bg-[#231b38]/75 focus:bg-[#261d3d]/90 border border-white/10 focus:border-purple-400 text-white placeholder-slate-400 text-sm outline-none transition backdrop-blur-md shadow-inner"
+              className="w-full h-13 pl-12 pr-12 rounded-2xl bg-[#1A253D] hover:bg-[#1E2B47] focus:bg-[#1E2B47] border border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-sm outline-none transition shadow-xs"
             />
             <button
               type="button"
@@ -433,7 +378,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                 setForgotEmail(identifier.includes('@') ? identifier : '');
                 setIsForgotModalOpen(true);
               }}
-              className="text-xs text-purple-200/80 hover:text-white transition font-medium cursor-pointer"
+              className="text-xs text-indigo-400 hover:text-indigo-300 transition font-medium cursor-pointer"
             >
               Forgot Password?
             </button>
@@ -446,16 +391,16 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
             </div>
           )}
 
-          {/* Primary Action Button: Brushed Metallic Silver "Log In" Pill */}
+          {/* Primary Action Button */}
           <div className="pt-2">
             <button
               type="submit"
               id="btn-login-submit"
               disabled={isSubmitting}
-              className="relative w-full h-12 sm:h-13 rounded-full bg-gradient-to-r from-slate-300 via-white to-slate-200 hover:from-white hover:to-slate-100 text-neutral-950 font-black text-base sm:text-[17px] tracking-wide flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] shadow-[0_0_30px_rgba(168,85,247,0.45)] cursor-pointer disabled:opacity-50"
+              className="relative w-full h-12 sm:h-13 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-indigo-500/25 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
-                <RefreshCw className="w-5 h-5 animate-spin text-neutral-900" />
+                <RefreshCw className="w-5 h-5 animate-spin text-white" />
               ) : (
                 <span>Log In</span>
               )}
@@ -471,9 +416,9 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                 setAuthMode(authMode === 'login' ? 'signup' : 'login');
                 handleOpenSocialAuth('email');
               }}
-              className="text-xs text-purple-200/80 hover:text-white transition font-medium"
+              className="text-xs text-slate-400 hover:text-slate-200 transition font-medium"
             >
-              Don&apos;t have an account? <strong className="text-white underline font-bold">Sign Up</strong>
+              Don&apos;t have an account? <strong className="text-indigo-400 hover:text-indigo-300 underline font-bold ml-1">Sign Up</strong>
             </button>
           </div>
         </form>
@@ -481,8 +426,8 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         {/* ============================================================ */}
         {/* 4. SOCIAL APPS AUTHORIZED CONNECT ROW (Google, Apple, FB, X, TikTok) */}
         {/* ============================================================ */}
-        <div className="w-full pt-6 border-t border-white/10 mt-auto">
-          <p className="text-[11px] text-center text-purple-200/60 uppercase tracking-widest font-semibold mb-3">
+        <div className="w-full pt-6 border-t border-slate-700/80 mt-auto">
+          <p className="text-[11px] text-center text-slate-400 uppercase tracking-widest font-semibold mb-3">
             Or connect with social apps
           </p>
 
@@ -493,7 +438,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-google"
               onClick={() => handleOpenSocialAuth('google')}
               title="Connect with Google"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1b142d]/80 hover:bg-[#2b1f4a] border border-white/20 hover:border-purple-400/80 text-white font-black text-lg flex items-center justify-center transition-all transform active:scale-95 shadow-md cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-black text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition font-serif font-bold">G</span>
             </button>
@@ -504,7 +449,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-apple"
               onClick={() => handleOpenSocialAuth('apple')}
               title="Connect with Apple"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1b142d]/80 hover:bg-[#2b1f4a] border border-white/20 hover:border-purple-400/80 text-white text-lg flex items-center justify-center transition-all transform active:scale-95 shadow-md cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-xl"></span>
             </button>
@@ -515,7 +460,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-facebook"
               onClick={() => handleOpenSocialAuth('facebook')}
               title="Connect with Facebook"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1b142d]/80 hover:bg-[#2b1f4a] border border-white/20 hover:border-purple-400/80 text-white font-bold text-lg flex items-center justify-center transition-all transform active:scale-95 shadow-md cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition font-serif">f</span>
             </button>
@@ -526,7 +471,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-x"
               onClick={() => handleOpenSocialAuth('x')}
               title="Connect with X"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1b142d]/80 hover:bg-[#2b1f4a] border border-white/20 hover:border-purple-400/80 text-white font-bold text-lg flex items-center justify-center transition-all transform active:scale-95 shadow-md cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-base">𝕏</span>
             </button>
@@ -537,7 +482,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-tiktok"
               onClick={() => handleOpenSocialAuth('tiktok')}
               title="Connect with TikTok"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1b142d]/80 hover:bg-[#2b1f4a] border border-white/20 hover:border-purple-400/80 text-white font-bold text-lg flex items-center justify-center transition-all transform active:scale-95 shadow-md cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-lg">♪</span>
             </button>
@@ -545,7 +490,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         </div>
 
         {/* Footer Copyright */}
-        <div className="text-[10px] text-purple-300/40 text-center pt-4">
+        <div className="text-[10px] text-slate-500 text-center pt-4 select-none">
           © 2026 CooM Inc. All rights reserved.
         </div>
       </div>
@@ -556,38 +501,38 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
       {activeSocialAuth && (
         <div
           id="social-auth-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 animate-in fade-in"
           onClick={() => setActiveSocialAuth(null)}
         >
           <div
-            className="w-full max-w-sm rounded-[32px] bg-[#120a24] border border-purple-500/40 p-6 text-white shadow-[0_20px_70px_rgba(168,85,247,0.35)] space-y-5"
+            className="w-full max-w-sm rounded-3xl bg-[#131B2E] border border-slate-700/80 p-6 text-slate-100 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-purple-500/20">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-700/80">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-lg">
+                <div className="w-9 h-9 rounded-xl bg-indigo-950/70 border border-indigo-500/30 flex items-center justify-center font-bold text-lg text-indigo-300">
                   {activeSocialAuth.icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-white">{activeSocialAuth.name}</h3>
-                  <p className="text-[10px] text-purple-300">Authorized OAuth Connection</p>
+                  <h3 className="font-bold text-base text-slate-100">{activeSocialAuth.name}</h3>
+                  <p className="text-[10px] text-indigo-400">Authorized Connection</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveSocialAuth(null)}
-                className="p-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition"
+                className="p-1 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition"
               >
                 <CloseIcon className="w-5 h-5" />
               </button>
             </div>
 
             {/* Content & Permissions */}
-            <div className="space-y-3 text-xs text-purple-100/90 leading-relaxed">
+            <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
               <p>{activeSocialAuth.description}</p>
-              <div className="p-3 rounded-2xl bg-purple-950/40 border border-purple-500/20 space-y-2">
-                <div className="text-[11px] font-bold text-purple-200">Permissions requested by CooM:</div>
+              <div className="p-3 rounded-2xl bg-[#1A253D] border border-slate-700/80 space-y-2">
+                <div className="text-[11px] font-bold text-slate-200">Permissions requested by CooM:</div>
                 <div className="flex items-center gap-2 text-slate-300">
                   <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>Public profile information &amp; Avatar</span>
@@ -610,7 +555,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                 id="btn-confirm-social-auth"
                 disabled={isSubmitting}
                 onClick={handleConfirmSocialAuth}
-                className="w-full h-11 rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 hover:brightness-110 text-white font-bold text-sm flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer shadow-lg shadow-purple-900/40"
+                className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer shadow-md shadow-indigo-600/30"
               >
                 {isSubmitting ? (
                   <RefreshCw className="w-4 h-4 animate-spin text-white" />
@@ -624,7 +569,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveSocialAuth(null)}
-                className="w-full h-9 rounded-full hover:bg-white/5 text-xs text-slate-400 hover:text-white transition"
+                className="w-full h-9 rounded-xl hover:bg-slate-800 text-xs text-slate-400 hover:text-white transition"
               >
                 Cancel
               </button>
@@ -635,40 +580,36 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
 
       {/* ============================================================ */}
       {/* 6. MANDATORY ONBOARDING DROPDOWNS MODAL                      */}
-      {/*    (@username, Birthday, Gender, Country dropdowns)           */}
-      {/*    "authorised connect ရတာနဲ့ @username / birthday /         */}
-      {/*     male&female / country and စတဲ့ ဟာတွေ drop / down နဲ့      */}
-      {/*     ရွေးခိုင်းပီး စသုံးနိုင်အောင်လုပ်ပါ"                            */}
       {/* ============================================================ */}
       {isOnboardingOpen && (
         <div
           id="onboarding-profile-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in"
         >
           <div
-            className="w-full max-w-md rounded-[36px] bg-[#0f0720] border border-purple-500/50 p-6 sm:p-7 text-white shadow-[0_20px_90px_rgba(168,85,247,0.45)] space-y-5 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md rounded-3xl bg-[#131B2E] border border-slate-700/80 p-6 sm:p-7 text-slate-100 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 pb-3 border-b border-purple-500/20">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-fuchsia-600 flex items-center justify-center text-white shadow-lg">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-700/80">
+              <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-md">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-white">Setup Your CooM Profile</h3>
-                <p className="text-xs text-purple-300">အကောင့်သတ်မှတ်ချက်များ ဖြည့်စွက်ပါ</p>
+                <h3 className="font-extrabold text-lg text-slate-100">Setup Your CooM Profile</h3>
+                <p className="text-xs text-indigo-400">အကောင့်သတ်မှတ်ချက်များ ဖြည့်စွက်ပါ</p>
               </div>
             </div>
 
             <form onSubmit={handleCompleteProfileSubmit} className="space-y-4">
               {/* 1. @username Handle */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-200 flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
                   <span>Username / Handle</span>
                   <span className="text-[10px] text-emerald-400 font-mono">Available ✓</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 font-bold font-mono">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 font-bold font-mono">
                     @
                   </span>
                   <input
@@ -678,7 +619,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                     value={usernameInput}
                     onChange={(e) => setUsernameInput(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
                     placeholder="your_handle"
-                    className="w-full h-11 pl-9 pr-4 rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-sm outline-none transition font-mono"
+                    className="w-full h-11 pl-9 pr-4 rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-sm outline-none transition font-mono"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400">
@@ -688,12 +629,12 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
 
               {/* 2. Birthday Dropdowns (Day / Month / Year) */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-200 flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-200 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                    <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                     <span>Birthday (မွေးသက္ကရာဇ်)</span>
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-200">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950/70 border border-indigo-500/30 text-indigo-300">
                     Age: {calculatedAge}
                   </span>
                 </label>
@@ -703,18 +644,18 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                     <select
                       value={birthDay}
                       onChange={(e) => setBirthDay(e.target.value)}
-                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-xs sm:text-sm outline-none transition cursor-pointer"
+                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-xs sm:text-sm outline-none transition cursor-pointer"
                     >
                       {Array.from({ length: 31 }, (_, i) => {
                         const val = (i + 1).toString().padStart(2, '0');
                         return (
-                          <option key={val} value={val} className="bg-[#120a24] text-white">
+                          <option key={val} value={val} className="bg-[#131B2E] text-slate-100">
                             Day {val}
                           </option>
                         );
                       })}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
 
                   {/* Month Dropdown */}
@@ -722,7 +663,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                     <select
                       value={birthMonth}
                       onChange={(e) => setBirthMonth(e.target.value)}
-                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-xs sm:text-sm outline-none transition cursor-pointer"
+                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-xs sm:text-sm outline-none transition cursor-pointer"
                     >
                       {[
                         { val: '01', name: 'Jan' },
@@ -738,12 +679,12 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                         { val: '11', name: 'Nov' },
                         { val: '12', name: 'Dec' },
                       ].map((m) => (
-                        <option key={m.val} value={m.val} className="bg-[#120a24] text-white">
+                        <option key={m.val} value={m.val} className="bg-[#131B2E] text-slate-100">
                           {m.name}
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
 
                   {/* Year Dropdown */}
@@ -751,67 +692,67 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                     <select
                       value={birthYear}
                       onChange={(e) => setBirthYear(e.target.value)}
-                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-xs sm:text-sm outline-none transition cursor-pointer"
+                      className="w-full h-11 px-3 appearance-none rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-xs sm:text-sm outline-none transition cursor-pointer"
                     >
                       {Array.from({ length: 70 }, (_, i) => {
                         const y = (2015 - i).toString();
                         return (
-                          <option key={y} value={y} className="bg-[#120a24] text-white">
+                          <option key={y} value={y} className="bg-[#131B2E] text-slate-100">
                             {y}
                           </option>
                         );
                       })}
                     </select>
-                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
-              {/* 3. Gender Dropdown (male & female) */}
+              {/* 3. Gender Dropdown */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-200">Gender (ကျား/မ)</label>
+                <label className="text-xs font-bold text-slate-200">Gender (ကျား/မ)</label>
                 <div className="relative">
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value as any)}
-                    className="w-full h-11 px-4 appearance-none rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-sm outline-none transition cursor-pointer"
+                    className="w-full h-11 px-4 appearance-none rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-sm outline-none transition cursor-pointer"
                   >
-                    <option value="male" className="bg-[#120a24] text-white">
+                    <option value="male" className="bg-[#131B2E] text-slate-100">
                       Male (ကျား)
                     </option>
-                    <option value="female" className="bg-[#120a24] text-white">
+                    <option value="female" className="bg-[#131B2E] text-slate-100">
                       Female (မ)
                     </option>
-                    <option value="other" className="bg-[#120a24] text-white">
+                    <option value="other" className="bg-[#131B2E] text-slate-100">
                       Non-Binary (အခြား)
                     </option>
-                    <option value="prefer_not_to_say" className="bg-[#120a24] text-white">
+                    <option value="prefer_not_to_say" className="bg-[#131B2E] text-slate-100">
                       Prefer not to say (ဖော်ပြလိုခြင်းမရှိပါ)
                     </option>
                   </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
               </div>
 
               {/* 4. Country Dropdown with Flags */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-purple-400" />
+                <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Country / Region (နိုင်ငံ)</span>
                 </label>
                 <div className="relative">
                   <select
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full h-11 px-4 appearance-none rounded-xl bg-[#1b1233] border border-purple-500/40 focus:border-purple-400 text-white text-sm outline-none transition cursor-pointer"
+                    className="w-full h-11 px-4 appearance-none rounded-xl bg-[#1A253D] border border-slate-700 focus:border-indigo-400 text-slate-100 text-sm outline-none transition cursor-pointer"
                   >
                     {countriesList.map((c) => (
-                      <option key={c.code} value={c.name} className="bg-[#120a24] text-white">
+                      <option key={c.code} value={c.name} className="bg-[#131B2E] text-slate-100">
                         {c.flag} {c.name}
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
               </div>
 
@@ -827,14 +768,14 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                   type="submit"
                   id="btn-complete-onboarding-submit"
                   disabled={isSubmitting}
-                  className="w-full h-12 rounded-full bg-gradient-to-r from-slate-200 via-white to-slate-200 hover:from-white hover:to-slate-100 text-neutral-950 font-black text-sm sm:text-base flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer shadow-[0_0_25px_rgba(168,85,247,0.4)] disabled:opacity-50"
+                  className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer shadow-md shadow-indigo-600/30 disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <RefreshCw className="w-5 h-5 animate-spin text-neutral-900" />
+                    <RefreshCw className="w-5 h-5 animate-spin text-white" />
                   ) : (
                     <>
                       <span>Complete &amp; Launch CooM</span>
-                      <ArrowRight className="w-4 h-4 text-neutral-900" />
+                      <ArrowRight className="w-4 h-4 text-white" />
                     </>
                   )}
                 </button>
@@ -854,15 +795,15 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
           onClick={() => setIsForgotModalOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-[32px] bg-[#120a24] border border-purple-500/40 p-6 text-white shadow-2xl space-y-4"
+            className="w-full max-w-sm rounded-3xl bg-[#131B2E] border border-slate-700/80 p-6 text-slate-100 shadow-2xl space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-2 border-b border-purple-500/20">
-              <h3 className="font-bold text-base text-white">Reset Password</h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-700/80">
+              <h3 className="font-bold text-base text-slate-100">Reset Password</h3>
               <button
                 type="button"
                 onClick={() => setIsForgotModalOpen(false)}
-                className="p-1 rounded-full hover:bg-white/10 text-slate-400 hover:text-white"
+                className="p-1 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white"
               >
                 <CloseIcon className="w-5 h-5" />
               </button>
@@ -878,7 +819,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsForgotModalOpen(false)}
-                  className="w-full h-10 rounded-full bg-white text-neutral-950 font-bold text-xs"
+                  className="w-full h-10 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-500 transition"
                 >
                   Close
                 </button>
@@ -893,7 +834,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                   placeholder="name@example.com"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-[#1c152d] border border-purple-500/30 text-white text-sm outline-none"
+                  className="w-full h-11 px-4 rounded-xl bg-[#1A253D] border border-slate-700 text-slate-100 text-sm outline-none focus:border-indigo-400"
                 />
                 <button
                   type="button"
@@ -902,7 +843,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
                       setForgotSent(true);
                     }
                   }}
-                  className="w-full h-11 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm"
+                  className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition shadow-md shadow-indigo-600/30"
                 >
                   Send Reset Link
                 </button>

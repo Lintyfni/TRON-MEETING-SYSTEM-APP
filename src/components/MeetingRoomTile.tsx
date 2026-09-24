@@ -2544,6 +2544,7 @@ export const MeetingRoomTile: React.FC<MeetingRoomTileProps> = ({
         hostName={room.host}
         comments={roomComments}
         currentUser={userProfile}
+        themeMode={settings.themeMode}
         onAddComment={(token, text, replyId, replyUser) => {
           if (onAddComment) onAddComment(token, text, replyId, replyUser);
         }}

@@ -67,8 +67,8 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
       id="main-bottom-navigation"
       className={`shrink-0 w-full px-1 sm:px-4 py-1.5 z-40 select-none shadow-xs transition-colors duration-300 ${
         isDark
-          ? 'bg-[#090414]/95 border-t border-purple-500/20 backdrop-blur-xl text-slate-400'
-          : 'bg-white border-t border-neutral-200 text-neutral-500'
+          ? 'bg-[#0B0F19]/92 border-t border-slate-800/80 backdrop-blur-xl text-slate-400'
+          : 'bg-white/95 border-t border-slate-200/90 backdrop-blur-xl text-slate-500 shadow-[0_-2px_10px_rgba(0,0,0,0.03)]'
       }`}
     >
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-around w-full">
@@ -83,17 +83,17 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               className={`flex-1 max-w-[90px] flex flex-col items-center justify-center py-1 transition-all relative cursor-pointer ${
                 isActive
                   ? isDark
-                    ? 'text-purple-300 font-bold drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]'
-                    : 'text-purple-600 font-bold'
+                    ? 'text-indigo-400 font-semibold drop-shadow-[0_0_10px_rgba(99,102,241,0.4)]'
+                    : 'text-indigo-600 font-semibold'
                   : isDark
-                  ? 'text-slate-400 hover:text-purple-200'
-                  : 'text-neutral-500 hover:text-neutral-800'
+                  ? 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <div className="relative">
                 {tab.icon}
                 {tab.id === 'chat' && unreadChatsCount > 0 && (
-                  <span className="absolute -top-1 -right-2 px-1 rounded-full bg-purple-600 text-white text-[9px] font-bold">
+                  <span className="absolute -top-1 -right-2 px-1 rounded-full bg-indigo-600 text-white text-[9px] font-bold shadow-xs">
                     {unreadChatsCount}
                   </span>
                 )}

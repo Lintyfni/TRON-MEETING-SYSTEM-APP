@@ -16,11 +16,11 @@ export const initialUserProfile: UserProfile = {
   handle: '@aungmyint',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
   bio: 'WebRTC Live Audio/Video Meeting System',
-  following: 2,
-  followers: 1,
+  following: 0,
+  followers: 0,
   likes: 0,
-  followingUserIds: ['u1', 'u3'],
-  followerUserIds: ['u2'],
+  followingUserIds: [],
+  followerUserIds: [],
 };
 
 export const initialSettings: UserSettings = {

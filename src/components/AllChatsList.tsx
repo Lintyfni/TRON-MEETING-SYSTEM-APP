@@ -131,17 +131,17 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
   const roomsCount = conversations.filter((c) => c.type === 'room').length;
 
   return (
-    <div className={`flex-1 flex flex-col h-full overflow-hidden items-center ${isDark ? 'bg-[#06020c]' : 'bg-neutral-50/50'}`}>
-      <div className={`w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 sm:border-x shadow-2xs overflow-hidden ${
-        isDark ? 'bg-[#090414] border-purple-900/30' : 'bg-white border-neutral-200/80'
+    <div className={`flex-1 flex flex-col h-full overflow-hidden items-center ${isDark ? 'bg-[#0B0F19]' : 'bg-slate-50'}`}>
+      <div className={`w-full max-w-3xl sm:max-w-4xl flex-1 flex flex-col min-h-0 sm:border-x shadow-xs overflow-hidden ${
+        isDark ? 'bg-[#0B0F19] border-slate-800' : 'bg-white border-slate-200'
       }`}>
       {/* Messenger-Style Search & Filter Header */}
-      <div className={`p-3 border-b space-y-2.5 shrink-0 shadow-2xs ${
-        isDark ? 'bg-[#0c051a] border-purple-900/30' : 'bg-white border-neutral-200/80'
+      <div className={`p-3 border-b space-y-2.5 shrink-0 shadow-xs ${
+        isDark ? 'bg-[#131B2E] border-slate-800' : 'bg-white border-slate-200'
       }`}>
         {/* Search Bar */}
         <div className="relative flex items-center">
-          <Search className="w-4 h-4 text-purple-400 absolute left-3 pointer-events-none" />
+          <Search className="w-4 h-4 text-indigo-400 absolute left-3 pointer-events-none" />
           <input
             type="text"
             id="input-all-chats-search"
@@ -150,15 +150,15 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
             placeholder="Search all group and room conversations..."
             className={`w-full text-xs pl-9 pr-8 py-2 rounded-xl border transition outline-none ${
               isDark
-                ? 'bg-[#15092a] hover:bg-[#1a0c35] focus:bg-[#1c0d3a] border-purple-500/25 text-white placeholder:text-purple-300/40 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30'
-                : 'bg-neutral-100 hover:bg-neutral-100/80 focus:bg-white text-neutral-900 border-neutral-200 placeholder:text-neutral-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20'
+                ? 'bg-[#1E293B] hover:bg-[#25334D] focus:bg-[#25334D] border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30'
+                : 'bg-slate-100 hover:bg-slate-100/80 focus:bg-white text-slate-900 border-slate-200 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20'
             }`}
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 text-neutral-400 hover:text-purple-300 p-0.5 cursor-pointer"
+              className="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -172,10 +172,10 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
             onClick={() => setActiveFilter('all')}
             className={`px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeFilter === 'all'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : isDark
-                ? 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-500/20'
-                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border border-neutral-200/60'
+                ? 'bg-[#1E293B] text-slate-400 hover:text-slate-200 hover:bg-[#25334D] border border-slate-700'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
             }`}
           >
             <span>All</span>
@@ -184,8 +184,8 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                 activeFilter === 'all'
                   ? 'bg-white/25 text-white'
                   : isDark
-                  ? 'bg-purple-900/60 text-purple-200'
-                  : 'bg-neutral-200 text-neutral-700'
+                  ? 'bg-[#0B0F19] text-slate-300'
+                  : 'bg-slate-200 text-slate-700'
               }`}
             >
               {conversations.length}
@@ -197,10 +197,10 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
             onClick={() => setActiveFilter('groups')}
             className={`px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeFilter === 'groups'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : isDark
-                ? 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-500/20'
-                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border border-neutral-200/60'
+                ? 'bg-[#1E293B] text-slate-400 hover:text-slate-200 hover:bg-[#25334D] border border-slate-700'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
             }`}
           >
             <Users className="w-3 h-3" />
@@ -210,8 +210,8 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                 activeFilter === 'groups'
                   ? 'bg-white/25 text-white'
                   : isDark
-                  ? 'bg-purple-900/60 text-purple-200'
-                  : 'bg-neutral-200 text-neutral-700'
+                  ? 'bg-[#0B0F19] text-slate-300'
+                  : 'bg-slate-200 text-slate-700'
               }`}
             >
               {groupsCount}
@@ -223,10 +223,10 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
             onClick={() => setActiveFilter('rooms')}
             className={`px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
               activeFilter === 'rooms'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : isDark
-                ? 'bg-purple-950/40 text-purple-300 hover:bg-purple-900/50 border border-purple-500/20'
-                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border border-neutral-200/60'
+                ? 'bg-[#1E293B] text-slate-400 hover:text-slate-200 hover:bg-[#25334D] border border-slate-700'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200/80'
             }`}
           >
             <MessageSquare className="w-3 h-3" />
@@ -236,8 +236,8 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                 activeFilter === 'rooms'
                   ? 'bg-white/25 text-white'
                   : isDark
-                  ? 'bg-purple-900/60 text-purple-200'
-                  : 'bg-neutral-200 text-neutral-700'
+                  ? 'bg-[#0B0F19] text-slate-300'
+                  : 'bg-slate-200 text-slate-700'
               }`}
             >
               {roomsCount}
@@ -247,16 +247,16 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
       </div>
 
       {/* CooM Messenger Style Conversations List (Line by Line) */}
-      <div className={`flex-1 overflow-y-auto p-2 sm:p-3 space-y-1 ${isDark ? 'bg-[#090414]' : 'bg-transparent'}`}>
+      <div className={`flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 ${isDark ? 'bg-[#0B0F19]' : 'bg-transparent'}`}>
         {filteredConversations.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-neutral-400">
+          <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-400">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
-              isDark ? 'bg-purple-950/50 text-purple-400 border border-purple-500/30' : 'bg-neutral-100 text-neutral-400'
+              isDark ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-slate-100 text-slate-400'
             }`}>
               <Search className="w-5 h-5" />
             </div>
-            <p className={`text-xs font-bold ${isDark ? 'text-white' : 'text-neutral-700'}`}>No chats found</p>
-            <p className={`text-[11px] mt-1 max-w-[220px] ${isDark ? 'text-purple-300/60' : 'text-neutral-500'}`}>
+            <p className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>No chats found</p>
+            <p className={`text-[11px] mt-1 max-w-[220px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               {searchQuery
                 ? `No conversation matches "${searchQuery}". Try different keywords.`
                 : 'No conversation available in this filter.'}
@@ -278,10 +278,10 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                     onOpenRoom(item.token);
                   }
                 }}
-                className={`w-full px-3 py-2.5 rounded-2xl flex items-center gap-3 transition cursor-pointer shadow-2xs text-left group select-none ${
+                className={`w-full px-3 py-2.5 rounded-2xl flex items-center gap-3 transition cursor-pointer shadow-xs text-left group select-none ${
                   isDark
-                    ? 'bg-[#120726] hover:bg-[#180a34] border border-purple-900/30 hover:border-purple-500/40 text-white'
-                    : 'bg-white hover:bg-purple-50/70 border border-neutral-200/60 hover:border-purple-200 text-neutral-900'
+                    ? 'bg-[#131B2E] hover:bg-[#1A243B] border border-slate-800 hover:border-slate-700 text-slate-100'
+                    : 'bg-white hover:bg-indigo-50/50 border border-slate-200 hover:border-indigo-200 text-slate-900'
                 }`}
               >
                 {/* Avatar with Type Badge */}
@@ -290,19 +290,19 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                     <img
                       src={item.avatar}
                       alt={item.title}
-                      className="w-11 h-11 rounded-2xl object-cover border border-purple-400/40 shadow-2xs group-hover:scale-105 transition-transform"
+                      className="w-11 h-11 rounded-2xl object-cover border border-slate-700 shadow-xs group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
+                    <div className="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                       <MessageSquare className="w-5 h-5" />
                     </div>
                   )}
 
                   {/* Micro Type Badge */}
                   <span
-                    className={`absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase text-white shadow-2xs border ${
-                      isDark ? 'border-[#120726]' : 'border-white'
-                    } ${isGroup ? 'bg-purple-600' : 'bg-indigo-600'}`}
+                    className={`absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full text-[8px] font-black uppercase text-white shadow-xs border ${
+                      isDark ? 'border-[#131B2E]' : 'border-white'
+                    } ${isGroup ? 'bg-indigo-600' : 'bg-slate-700'}`}
                   >
                     {isGroup ? 'Group' : 'Room'}
                   </span>
@@ -312,13 +312,13 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                 <div className="flex-1 min-w-0">
                   {/* Row 1: Title + Timestamp */}
                   <div className="flex items-center justify-between gap-1 mb-0.5">
-                    <span className={`text-xs font-bold truncate group-hover:text-purple-300 transition ${
-                      isDark ? 'text-white' : 'text-neutral-900'
+                    <span className={`text-xs font-bold truncate group-hover:text-indigo-400 transition ${
+                      isDark ? 'text-slate-100' : 'text-slate-900'
                     }`}>
                       {item.title}
                     </span>
                     <span className={`text-[10px] font-medium shrink-0 ml-1 ${
-                      isDark ? 'text-purple-300/50' : 'text-neutral-400'
+                      isDark ? 'text-slate-400' : 'text-slate-400'
                     }`}>
                       {item.time}
                     </span>
@@ -326,11 +326,11 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
 
                   {/* Row 2: Sender & Last Message Preview */}
                   <p className={`text-xs truncate flex items-center gap-1 ${
-                    isDark ? 'text-purple-200/70' : 'text-neutral-500'
+                    isDark ? 'text-slate-400' : 'text-slate-600'
                   }`}>
                     {item.lastSender && (
                       <span className={`font-semibold shrink-0 ${
-                        isDark ? 'text-purple-300' : 'text-neutral-700'
+                        isDark ? 'text-indigo-300' : 'text-slate-800'
                       }`}>
                         {item.lastSender === (currentUser?.name || 'Aung Myint') || item.lastSender === 'Me'
                           ? 'You'
@@ -343,7 +343,7 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
 
                   {/* Row 3: Meta (Participants count) */}
                   <div className={`flex items-center gap-1.5 mt-0.5 text-[10px] ${
-                    isDark ? 'text-purple-300/40' : 'text-neutral-400'
+                    isDark ? 'text-slate-400' : 'text-slate-400'
                   }`}>
                     <span>
                       {item.participantsCount} {isGroup ? 'members' : 'participants'}
@@ -351,7 +351,7 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                     {!isGroup && item.token && (
                       <>
                         <span>·</span>
-                        <span className={`font-mono font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>{item.token}</span>
+                        <span className={`font-mono font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{item.token}</span>
                       </>
                     )}
                   </div>
@@ -360,12 +360,12 @@ export const AllChatsList: React.FC<AllChatsListProps> = ({
                 {/* Right Arrow / Unread Pill */}
                 <div className="shrink-0 flex items-center gap-1.5">
                   {item.unreadCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black shadow-2xs animate-pulse">
+                    <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black shadow-xs animate-pulse">
                       {item.unreadCount} new
                     </span>
                   )}
                   <ChevronRight className={`w-4 h-4 transition-all ${
-                    isDark ? 'text-purple-400/40 group-hover:text-purple-300 group-hover:translate-x-0.5' : 'text-neutral-300 group-hover:text-purple-600 group-hover:translate-x-0.5'
+                    isDark ? 'text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5' : 'text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5'
                   }`} />
                 </div>
               </button>

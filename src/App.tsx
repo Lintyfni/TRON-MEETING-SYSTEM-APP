@@ -62,6 +62,20 @@ export default function App() {
     return null;
   });
 
+  // Clean legacy dummy/sample items on startup for fresh start as requested
+  if (typeof window !== 'undefined') {
+    try {
+      if (!localStorage.getItem('coom_fresh_clean_start_v4')) {
+        localStorage.removeItem('coom_groups_data');
+        localStorage.removeItem('coom_group_chats');
+        localStorage.removeItem('shorts_feed_data');
+        localStorage.removeItem('social_users_data');
+        localStorage.removeItem('user_profile_data');
+        localStorage.setItem('coom_fresh_clean_start_v4', 'true');
+      }
+    } catch {}
+  }
+
   // Start with login page first as requested ("log in page အရင်စပြပါ")
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -85,20 +99,20 @@ export default function App() {
       const saved = localStorage.getItem('coom_groups_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch {}
     return initialGroups;
   });
 
-  const [activeGroupId, setActiveGroupId] = useState<string>(initialGroups[0]?.id || 'grp_1');
+  const [activeGroupId, setActiveGroupId] = useState<string>(initialGroups[0]?.id || '');
 
   const [groupChats, setGroupChats] = useState<GroupChatMessage[]>(() => {
     try {
       const saved = localStorage.getItem('coom_group_chats');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch {}
     return initialGroupChats;
@@ -124,16 +138,10 @@ export default function App() {
       const saved = localStorage.getItem('shorts_feed_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasBrokenMixkit = parsed.some((s: ShortVideoItem) => s.videoUrl && s.videoUrl.includes('mixkit'));
-          if (!hasBrokenMixkit) {
-            return parsed;
-          }
+        if (Array.isArray(parsed)) {
+          return parsed;
         }
       }
-    } catch {}
-    try {
-      localStorage.setItem('shorts_feed_data', JSON.stringify(initialShorts));
     } catch {}
     return initialShorts;
   });
@@ -1384,14 +1392,16 @@ export default function App() {
   const isDarkMode = settings.themeMode !== 'light';
 
   return (
-    <div className="w-full min-h-[100dvh] h-[100dvh] bg-neutral-950 text-neutral-900 flex items-center justify-center font-sans antialiased selection:bg-purple-600 selection:text-white overflow-hidden p-0">
+    <div className={`w-full min-h-[100dvh] h-[100dvh] flex items-center justify-center font-sans antialiased selection:bg-indigo-500/30 selection:text-indigo-200 overflow-hidden p-0 transition-colors duration-300 ${
+      isDarkMode ? 'bg-[#070A12] text-slate-100' : 'bg-[#EDF2F7] text-slate-900'
+    }`}>
       {/* Auto Screen Matching Viewport for Phone, Tablet & Desktop */}
       <div
         id="app-viewport-container"
         className={`relative w-full h-[100dvh] flex flex-col overflow-hidden max-w-full 2xl:max-w-7xl shadow-none 2xl:shadow-2xl 2xl:border-x transition-colors duration-300 ${
           isDarkMode
-            ? 'bg-[#06020c] text-white 2xl:border-purple-900/30'
-            : 'bg-white text-neutral-900 2xl:border-neutral-200'
+            ? 'bg-[#0B0F19] text-slate-100 2xl:border-slate-800/80'
+            : 'bg-[#F8FAFC] text-slate-900 2xl:border-slate-200/80'
         }`}
       >
         {/* Active Screen Tab View */}
@@ -1430,12 +1440,7 @@ export default function App() {
               onAddShortComment={handleAddShortComment}
               onCreateShort={handleUploadShort}
               onAddPost={handleAddPost}
-              onResetSampleShorts={() => {
-                setShorts(initialShorts);
-                try {
-                  localStorage.setItem('shorts_feed_data', JSON.stringify(initialShorts));
-                } catch {}
-              }}
+              themeMode={settings.themeMode || 'dark'}
             />
           )}
 

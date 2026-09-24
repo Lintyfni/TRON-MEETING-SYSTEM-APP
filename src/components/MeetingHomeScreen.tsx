@@ -329,12 +329,12 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
     <div
       id="meeting-home-screen"
       className={`relative w-full h-full flex flex-col overflow-y-auto pb-1 select-none transition-colors duration-300 ${
-        isDark ? 'bg-[#06020c] text-white' : 'bg-white text-neutral-900'
+        isDark ? 'bg-[#0B0F19] text-slate-100' : 'bg-[#F8FAFC] text-slate-900'
       }`}
     >
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-neutral-900 text-white text-xs font-semibold shadow-xl animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-slate-900/95 border border-slate-700 text-white text-xs font-semibold shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
           {toastMessage}
         </div>
       )}
@@ -343,8 +343,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
       <div
         className={`px-3.5 py-2.5 sticky top-0 z-20 backdrop-blur-md border-b transition-colors ${
           isDark
-            ? 'bg-[#090414]/95 border-purple-500/20 text-white'
-            : 'bg-white/95 border-neutral-200 text-neutral-900'
+            ? 'bg-[#0B0F19]/90 border-slate-800/80 text-slate-100'
+            : 'bg-white/90 border-slate-200 text-slate-900 shadow-xs'
         }`}
       >
         <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex items-center justify-between gap-3">
@@ -353,7 +353,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             onClick={() => onNavigateToProfileTab('recordings')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
-            <div className="relative w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-fuchsia-600 to-purple-600 group-hover:scale-105 transition shadow-xs">
+            <div className="relative w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-indigo-600 to-sky-500 group-hover:scale-105 transition shadow-xs">
               <img
                 src={userProfile.avatar}
                 alt={userProfile.name}
@@ -363,20 +363,20 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             </div>
             <div className="text-left">
               <div className="flex items-center gap-1.5">
-                <span className={`font-bold text-xs sm:text-sm group-hover:text-purple-400 transition truncate max-w-[150px] ${
-                  isDark ? 'text-white' : 'text-neutral-900'
+                <span className={`font-bold text-xs sm:text-sm group-hover:text-indigo-400 transition truncate max-w-[150px] ${
+                  isDark ? 'text-slate-100' : 'text-slate-900'
                 }`}>
                   {userProfile.name}
                 </span>
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full tracking-wider ${
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tracking-wider border ${
                   isDark
-                    ? 'bg-purple-900/60 text-purple-300 border border-purple-500/40'
-                    : 'bg-purple-100 text-purple-700'
+                    ? 'bg-indigo-950/70 text-indigo-300 border-indigo-500/40'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                 }`}>
                   CooM
                 </span>
               </div>
-              <p className={`text-[10px] font-mono ${isDark ? 'text-purple-300/70' : 'text-neutral-500'}`}>
+              <p className={`text-[10px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {userProfile.handle}
               </p>
             </div>
@@ -388,24 +388,24 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               <button
                 type="button"
                 onClick={onToggleTheme}
-                title={isDark ? 'Switch to Light Theme' : 'Switch to CooM Nebula Theme'}
+                title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
                 className={`p-1.5 rounded-full transition cursor-pointer flex items-center justify-center ${
                   isDark
-                    ? 'bg-purple-950/70 border border-purple-500/40 text-purple-300 hover:text-white hover:bg-purple-900/80 shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                    : 'bg-neutral-100 border border-neutral-200 text-neutral-700 hover:bg-neutral-200'
+                    ? 'bg-slate-800/80 border border-slate-700/60 text-amber-400 hover:text-white hover:bg-slate-700/80 shadow-xs'
+                    : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
                 }`}
               >
-                {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-purple-700" />}
+                {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
               </button>
             )}
             <div className="flex flex-col items-end">
-              <span className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>
+              <span className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                 CooM Platform
               </span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
                 isDark
-                  ? 'bg-purple-950/60 border-purple-500/30 text-purple-200'
-                  : 'bg-neutral-100 border-neutral-200 text-neutral-800'
+                  ? 'bg-slate-900/80 border-slate-700/80 text-slate-300'
+                  : 'bg-slate-100 border-slate-200 text-slate-700'
               }`}>
                 Sep 9, 2026
               </span>
@@ -416,7 +416,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
       {/* MAIN CONTAINER */}
       <div className={`p-3 space-y-3 max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full transition-colors ${
-        isDark ? 'bg-[#06020c]' : 'bg-white'
+        isDark ? 'bg-[#0B0F19]' : 'bg-[#F8FAFC]'
       }`}>
         {/* ========================================================================= */}
         {/* HORIZONTAL ELONGATED SEARCH BAR FOR @USERNAME (Directly Above Meeting Actions) */}
@@ -426,18 +426,18 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             className={`w-full relative flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 shadow-xs ${
               isDark
                 ? isSearchFocused
-                  ? 'bg-[#150a2c] border-purple-400 ring-2 ring-purple-500/30 text-white'
-                  : 'bg-[#100722] border-purple-500/30 hover:border-purple-400 text-white'
+                  ? 'bg-[#1A253D] border-indigo-400 ring-2 ring-indigo-500/30 text-white'
+                  : 'bg-[#131B2E] border-slate-700/70 hover:border-slate-600 text-white'
                 : isSearchFocused
-                ? 'border-purple-500 ring-2 ring-purple-500/20 bg-white text-neutral-900'
-                : 'border-neutral-200 hover:border-neutral-300 bg-neutral-50/60 hover:bg-white text-neutral-900'
+                ? 'border-indigo-500 ring-2 ring-indigo-500/20 bg-white text-slate-900'
+                : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-900 shadow-2xs'
             }`}
           >
             {/* AtSign Icon Badge */}
             <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 font-bold text-[11px] font-mono select-none ${
               isDark
-                ? 'bg-purple-950 border-purple-500/50 text-purple-300'
-                : 'bg-purple-50 border-purple-200/80 text-purple-600'
+                ? 'bg-indigo-950/80 border-indigo-500/50 text-indigo-300'
+                : 'bg-indigo-50 border-indigo-200 text-indigo-600'
             }`}>
               @
             </div>
@@ -451,7 +451,9 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 onChange={(e) => setSearchUserQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 placeholder="@username search..."
-                className="w-full bg-transparent text-xs text-neutral-900 placeholder-neutral-400 focus:outline-hidden font-medium py-0.5"
+                className={`w-full bg-transparent text-xs focus:outline-hidden font-medium py-0.5 ${
+                  isDark ? 'text-slate-100 placeholder-slate-400' : 'text-slate-900 placeholder-slate-400'
+                }`}
                 autoComplete="off"
                 spellCheck="false"
               />
@@ -463,13 +465,15 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 id="btn-clear-username-search"
                 type="button"
                 onClick={() => setSearchUserQuery('')}
-                className="w-5 h-5 rounded-full text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 flex items-center justify-center transition cursor-pointer shrink-0"
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition cursor-pointer shrink-0 ${
+                  isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+                }`}
                 title="Clear"
               >
                 <X className="w-3 h-3" />
               </button>
             ) : (
-              <Search className="w-3.5 h-3.5 text-neutral-400 shrink-0 mr-0.5" />
+              <Search className={`w-3.5 h-3.5 shrink-0 mr-0.5 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
             )}
           </div>
 
@@ -479,16 +483,16 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="search-username-dropdown"
               className={`absolute top-full left-0 right-0 mt-2 rounded-2xl border shadow-2xl overflow-hidden z-50 max-h-84 flex flex-col animate-in fade-in slide-in-from-top-2 duration-150 ${
                 isDark
-                  ? 'bg-[#0f0724] border-purple-500/30 text-white shadow-[0_10px_35px_rgba(0,0,0,0.85)]'
-                  : 'bg-white border-neutral-200 text-neutral-900 shadow-2xl'
+                  ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.6)]'
+                  : 'bg-white border-slate-200 text-slate-900 shadow-2xl'
               }`}
             >
               {/* Header inside dropdown */}
               <div className={`px-3.5 py-2.5 border-b flex items-center justify-between text-xs ${
-                isDark ? 'bg-[#150a30] border-purple-500/20 text-purple-200' : 'bg-neutral-50/90 border-neutral-200 text-neutral-700'
+                isDark ? 'bg-[#1A253D] border-slate-700/60 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}>
                 <span className="font-bold flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-purple-400" />
+                  <Search className="w-3.5 h-3.5 text-indigo-400" />
                   {searchUserQuery.trim()
                     ? `Found Users for "${searchUserQuery}" (${filteredUsers.length})`
                     : `Registered Users & Profiles (${filteredUsers.length})`}
@@ -497,7 +501,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   type="button"
                   onClick={() => setIsSearchFocused(false)}
                   className={`p-1 rounded-md transition cursor-pointer ${
-                    isDark ? 'text-purple-300 hover:text-white hover:bg-purple-900/40' : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-200/50'
+                    isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/50'
                   }`}
                   title="Close dropdown"
                 >
@@ -507,7 +511,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
               {/* Users list */}
               <div className={`overflow-y-auto divide-y flex-1 p-1 max-h-72 ${
-                isDark ? 'divide-purple-900/30' : 'divide-neutral-100'
+                isDark ? 'divide-slate-800/80' : 'divide-slate-100'
               }`}>
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => {
@@ -518,7 +522,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       <div
                         key={user.id}
                         className={`w-full p-2.5 rounded-xl transition flex items-center justify-between text-left group ${
-                          isDark ? 'hover:bg-purple-950/50' : 'hover:bg-purple-50/60'
+                          isDark ? 'hover:bg-[#1A253D]' : 'hover:bg-slate-50'
                         }`}
                       >
                         <div
@@ -526,7 +530,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                           onClick={() => handleSelectUser(user)}
                         >
                           {/* Avatar with CooM Active Green Online Dot */}
-                          <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-2xs">
+                          <div className="relative w-10 h-10 rounded-full shrink-0 p-0.5 bg-gradient-to-tr from-indigo-500 to-sky-500 shadow-2xs">
                             <img
                               src={user.avatar}
                               alt={user.name}
@@ -545,12 +549,12 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                           <div className="min-w-0 flex-1 pr-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className={`font-bold text-xs truncate transition ${
-                                isDark ? 'text-white group-hover:text-purple-300' : 'text-neutral-900 group-hover:text-purple-700'
+                                isDark ? 'text-slate-100 group-hover:text-indigo-300' : 'text-slate-900 group-hover:text-indigo-600'
                               }`}>
                                 {user.name}
                               </span>
                               <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded-md font-semibold border ${
-                                isDark ? 'text-purple-300 bg-purple-950/70 border-purple-500/30' : 'text-purple-700 bg-purple-50 border-purple-200/60'
+                                isDark ? 'text-indigo-300 bg-indigo-950/70 border-indigo-500/30' : 'text-indigo-700 bg-indigo-50 border-indigo-200/60'
                               }`}>
                                 {user.handle}
                               </span>
@@ -571,15 +575,15 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                               {user.isFollowingMe && !isMutual && user.id !== 'usr_me' && (
                                 <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-medium border ${
                                   isDark
-                                    ? 'bg-purple-900/40 text-purple-300 border-purple-500/30'
-                                    : 'bg-purple-50 text-purple-700 border-purple-200'
+                                    ? 'bg-indigo-950/50 text-indigo-300 border-indigo-500/30'
+                                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                                 }`}>
                                   Follows you
                                 </span>
                               )}
 
                               {user.isFollowedByMe && !isMutual && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">
                                   Following
                                 </span>
                               )}
@@ -593,13 +597,13 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                                   <span>Active now {user.activeRoomToken ? `· In ${user.activeRoomToken}` : ''}</span>
                                 </span>
                               ) : (
-                                <span className={`text-[10px] ${isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>
+                                <span className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>
                                   {user.lastActive || 'Offline'}
                                 </span>
                               )}
-                              <span className={isDark ? 'text-purple-900' : 'text-neutral-300'}>·</span>
+                              <span className={isDark ? 'text-slate-700' : 'text-slate-300'}>·</span>
                               <p className={`text-[10px] truncate max-w-[140px] sm:max-w-xs ${
-                                isDark ? 'text-purple-300/70' : 'text-neutral-500'
+                                isDark ? 'text-slate-400' : 'text-slate-500'
                               }`}>
                                 {user.bio}
                               </p>
@@ -616,7 +620,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                                 setIsSearchFocused(false);
                                 setActiveDirectChatUser(user);
                               }}
-                              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1 transition active:scale-95 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] shadow-xs flex items-center gap-1 transition active:scale-95 cursor-pointer"
                               title={`Chat with ${user.name} (Direct message saved to Chat History)`}
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
@@ -629,8 +633,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                             onClick={() => handleSelectUser(user)}
                             className={`px-2 py-1 rounded-lg font-medium text-[11px] border transition cursor-pointer ${
                               isDark
-                                ? 'bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border-purple-500/30'
-                                : 'bg-neutral-100 hover:bg-purple-100 text-neutral-700 hover:text-purple-700 border-neutral-200'
+                                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                             }`}
                             title="View Profile"
                           >
@@ -643,14 +647,14 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 ) : (
                   <div className="py-7 px-4 text-center">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 border ${
-                      isDark ? 'bg-purple-950/70 text-purple-300 border-purple-500/30' : 'bg-purple-50 text-purple-600 border-purple-200'
+                      isDark ? 'bg-indigo-950/70 text-indigo-300 border-indigo-500/30' : 'bg-indigo-50 text-indigo-600 border-indigo-200'
                     }`}>
                       <AtSign className="w-5 h-5" />
                     </div>
-                    <p className={`text-xs font-semibold ${isDark ? 'text-purple-200' : 'text-neutral-800'}`}>
+                    <p className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                       No @username found matching "{searchUserQuery}"
                     </p>
-                    <p className={`text-[11px] mt-0.5 ${isDark ? 'text-purple-400/70' : 'text-neutral-500'}`}>
+                    <p className={`text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       Try searching for @kyawkyaw, @susu, @thirimay, @zawmin or @aungmyint
                     </p>
                   </div>
@@ -659,13 +663,13 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
               {/* Bottom footer: note about future account creation */}
               <div className={`px-3.5 py-2 border-t flex items-center justify-between text-[11px] ${
-                isDark ? 'bg-[#150a30] border-purple-500/20 text-purple-300' : 'bg-purple-50/60 border-purple-100 text-purple-700'
+                isDark ? 'bg-[#1A253D] border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-600'
               }`}>
                 <span className="flex items-center gap-1 font-medium truncate">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                   <span>Account Create / Sign In &amp; @username registration ready</span>
                 </span>
-                <span className={`font-mono text-[9px] font-bold shrink-0 ${isDark ? 'text-purple-400' : 'text-purple-500'}`}>
+                <span className={`font-mono text-[9px] font-semibold shrink-0 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                   User Directory
                 </span>
               </div>
@@ -675,8 +679,10 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
         {/* SECTION 1: PRIMARY ACTION BUTTONS (New, Join, Schedule, Share Room) */}
         <div>
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-2 flex items-center gap-1.5">
-            <Video className="w-3.5 h-3.5 text-purple-600" />
+          <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${
+            isDark ? 'text-slate-400' : 'text-slate-500'
+          }`}>
+            <Video className="w-3.5 h-3.5 text-indigo-500" />
             <span>Meeting Actions</span>
           </h3>
 
@@ -690,7 +696,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 setNewMeetingTitle(`${userProfile.name}'s Meeting`);
                 setIsNewMeetingModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 hover:from-orange-400 hover:to-amber-500 text-white flex flex-col items-center justify-center text-center shadow-md shadow-orange-500/20 border border-orange-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white flex flex-col items-center justify-center text-center shadow-md shadow-amber-500/20 border border-amber-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/30 active:scale-[0.98] cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
                 <Video className="w-4 h-4 text-white" />
@@ -709,7 +715,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 setJoinError(null);
                 setIsJoinModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 hover:from-violet-500 hover:to-purple-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-purple-500/25 border border-purple-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/35 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 hover:from-indigo-500 hover:to-indigo-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-indigo-500/25 border border-indigo-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/35 active:scale-[0.98] cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
                 <UserPlus className="w-4 h-4 text-white" />
@@ -724,10 +730,10 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-schedule-meeting"
               type="button"
               onClick={() => setIsScheduleModalOpen(true)}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-purple-600 via-fuchsia-600 to-purple-700 hover:from-purple-500 hover:to-fuchsia-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-purple-500/20 border border-purple-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-sky-600 via-blue-600 to-indigo-700 hover:from-sky-500 hover:to-blue-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-sky-500/20 border border-sky-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30 active:scale-[0.98] cursor-pointer"
             >
               {scheduledMeetings.length > 0 && (
-                <span className="absolute top-1.5 right-2 px-1.5 py-0.2 rounded-full bg-white text-purple-700 text-[9px] font-bold shadow-xs">
+                <span className="absolute top-1.5 right-2 px-1.5 py-0.2 rounded-full bg-white text-indigo-700 text-[9px] font-bold shadow-xs">
                   {scheduledMeetings.length}
                 </span>
               )}
@@ -747,7 +753,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 regenerateToken();
                 setIsShareModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-emerald-500/20 border border-emerald-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 hover:from-teal-500 hover:to-emerald-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-emerald-500/20 border border-emerald-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98] cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
                 <Share2 className="w-4 h-4 text-white" />
@@ -759,27 +765,27 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
           </div>
 
           {/* Quick Start / Set Meeting Name directly on Initial Home Screen */}
-          <div className={`mt-2.5 p-2.5 rounded-xl transition shadow-2xs border ${
+          <div className={`mt-2.5 p-2.5 rounded-2xl transition shadow-xs border ${
             isDark
-              ? 'bg-[#0f0724] hover:bg-[#140a2f] border-purple-500/25'
-              : 'bg-neutral-50 hover:bg-neutral-100/80 border-neutral-200'
+              ? 'bg-[#131B2E] hover:bg-[#162238] border-slate-800/80 text-slate-100'
+              : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
           }`}>
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">
                 <div className={`w-5 h-5 rounded-md flex items-center justify-center ${
-                  isDark ? 'bg-purple-950/80 text-purple-300' : 'bg-purple-100 text-purple-600'
+                  isDark ? 'bg-indigo-950/80 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
                 }`}>
-                  <Edit3 className="w-3 h-3 text-purple-400" />
+                  <Edit3 className="w-3 h-3 text-indigo-400" />
                 </div>
-                <span className={`text-[11px] font-bold ${isDark ? 'text-purple-200' : 'text-neutral-800'}`}>
+                <span className={`text-[11px] font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                   Meeting Title
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border shadow-2xs ${
                   isDark
-                    ? 'text-purple-300 bg-purple-950/80 border-purple-500/40'
-                    : 'text-purple-700 bg-white border-purple-200'
+                    ? 'text-indigo-300 bg-indigo-950/80 border-indigo-500/40'
+                    : 'text-indigo-700 bg-indigo-50 border-indigo-200'
                 }`}>
                   {generatedNewToken}
                 </span>
@@ -788,8 +794,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onClick={() => setGeneratedNewToken(`#MEET-${Math.floor(1000 + Math.random() * 9000)}`)}
                   className={`text-[10px] px-1 py-0.2 rounded border transition cursor-pointer ${
                     isDark
-                      ? 'text-purple-300 hover:text-white bg-purple-950/60 hover:bg-purple-900 border-purple-500/30'
-                      : 'text-neutral-500 hover:text-purple-600 bg-white hover:bg-purple-50 border-neutral-200'
+                      ? 'text-indigo-300 hover:text-white bg-slate-800 hover:bg-slate-700 border-slate-700'
+                      : 'text-slate-500 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200 border-slate-200'
                   }`}
                   title="Generate new token"
                 >
@@ -807,16 +813,16 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   value={newMeetingTitle}
                   onChange={(e) => setNewMeetingTitle(e.target.value)}
                   placeholder="Enter meeting name..."
-                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs outline-none transition shadow-2xs border ${
+                  className={`flex-1 rounded-xl px-2.5 py-1.5 text-xs outline-none transition shadow-2xs border ${
                     isDark
-                      ? 'bg-[#180a3a] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                      : 'bg-white border-neutral-300 focus:border-purple-600 text-neutral-900 placeholder:text-neutral-400'
+                      ? 'bg-[#1A253D] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                      : 'bg-slate-50 border-slate-200 focus:border-indigo-500 focus:bg-white text-slate-900 placeholder:text-slate-400'
                   }`}
                 />
                 <button
                   id="btn-home-direct-start"
                   type="submit"
-                  className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-sm shadow-indigo-500/20 active:scale-95 transition flex items-center gap-1 shrink-0 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-sm shadow-indigo-500/20 active:scale-95 transition flex items-center gap-1 shrink-0 cursor-pointer"
                 >
                   <Video className="w-3 h-3 text-white" />
                   <span>Start</span>
@@ -825,16 +831,16 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
               {/* Suggestions chips */}
               <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-0.5">
-                <span className={`text-[9px] shrink-0 ${isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>Presets:</span>
+                <span className={`text-[9px] shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>Presets:</span>
                 {['Weekly Sync', 'Project Review', 'Team Catchup', 'Brainstorming'].map((suggestion) => (
                   <button
                     key={suggestion}
                     type="button"
                     onClick={() => setNewMeetingTitle(suggestion)}
-                    className={`text-[9px] px-1.5 py-0.2 rounded-full transition shrink-0 cursor-pointer border ${
+                    className={`text-[9px] px-2 py-0.5 rounded-full transition shrink-0 cursor-pointer border ${
                       isDark
-                        ? 'bg-[#150a30] hover:bg-[#1d0e44] border-purple-500/30 text-purple-200 hover:border-purple-400'
-                        : 'bg-white hover:bg-purple-50 border-neutral-200 hover:border-purple-300 text-neutral-600 hover:text-purple-700'
+                        ? 'bg-[#1A253D] hover:bg-[#223150] border-slate-700/60 text-slate-300 hover:text-white'
+                        : 'bg-slate-100 hover:bg-indigo-50 border-slate-200 hover:border-indigo-200 text-slate-600 hover:text-indigo-700'
                     }`}
                   >
                     {suggestion}
@@ -848,9 +854,9 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
         {/* SECTION 2: HISTORY & ARCHIVE (Chat History, Note History & Record History) */}
         <div>
           <h3 className={`text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${
-            isDark ? 'text-purple-400/70' : 'text-neutral-500'
+            isDark ? 'text-slate-400' : 'text-slate-500'
           }`}>
-            <Clock className="w-3.5 h-3.5 text-purple-500" />
+            <Clock className="w-3.5 h-3.5 text-indigo-500" />
             <span>History &amp; Records</span>
           </h3>
 
@@ -860,25 +866,25 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-chat-history"
               type="button"
               onClick={() => onNavigateToProfileTab('chats')}
-              className={`p-2.5 rounded-xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
+              className={`p-2.5 rounded-2xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
                 isDark
-                  ? 'bg-[#0f0724] hover:bg-[#150a33] border-purple-500/20 hover:border-purple-400/40 text-white'
-                  : 'bg-white hover:bg-purple-50/40 border-neutral-200 hover:border-purple-300 text-neutral-900'
+                  ? 'bg-[#131B2E] hover:bg-[#18233B] border-slate-800/80 hover:border-indigo-500/30 text-slate-100'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-indigo-200 text-slate-900 shadow-xs'
               }`}
             >
               <div className={`w-7 h-7 rounded-lg border flex items-center justify-center mb-1.5 group-hover:scale-110 transition ${
                 isDark
-                  ? 'bg-purple-950/70 border-purple-500/30 text-purple-300'
-                  : 'bg-purple-50 border-purple-200 text-purple-600'
+                  ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-600'
               }`}>
                 <MessageSquareCode className="w-3.5 h-3.5" />
               </div>
               <span className={`block font-bold text-xs truncate transition ${
-                isDark ? 'text-white group-hover:text-purple-300' : 'text-neutral-900 group-hover:text-purple-600'
+                isDark ? 'text-slate-100 group-hover:text-indigo-300' : 'text-slate-900 group-hover:text-indigo-600'
               }`}>
                 Chat History
               </span>
-              <span className={`text-[10px] truncate block ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+              <span className={`text-[10px] truncate block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {recordings.length} sessions
               </span>
             </button>
@@ -888,25 +894,25 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-notes-history"
               type="button"
               onClick={() => onNavigateToProfileTab('notes')}
-              className={`p-2.5 rounded-xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
+              className={`p-2.5 rounded-2xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
                 isDark
-                  ? 'bg-[#0f0724] hover:bg-[#150a33] border-purple-500/20 hover:border-purple-400/40 text-white'
-                  : 'bg-white hover:bg-purple-50/40 border-neutral-200 hover:border-purple-300 text-neutral-900'
+                  ? 'bg-[#131B2E] hover:bg-[#18233B] border-slate-800/80 hover:border-indigo-500/30 text-slate-100'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-indigo-200 text-slate-900 shadow-xs'
               }`}
             >
               <div className={`w-7 h-7 rounded-lg border flex items-center justify-center mb-1.5 group-hover:scale-110 transition ${
                 isDark
-                  ? 'bg-purple-950/70 border-purple-500/30 text-purple-300'
-                  : 'bg-purple-50 border-purple-200 text-purple-600'
+                  ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-600'
               }`}>
                 <FileText className="w-3.5 h-3.5" />
               </div>
               <span className={`block font-bold text-xs truncate transition ${
-                isDark ? 'text-white group-hover:text-purple-300' : 'text-neutral-900 group-hover:text-purple-600'
+                isDark ? 'text-slate-100 group-hover:text-indigo-300' : 'text-slate-900 group-hover:text-indigo-600'
               }`}>
                 Meeting Notes
               </span>
-              <span className={`text-[10px] truncate block ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+              <span className={`text-[10px] truncate block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {notes.length} notes
               </span>
             </button>
@@ -916,25 +922,25 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-record-history"
               type="button"
               onClick={() => onNavigateToProfileTab('recordings')}
-              className={`p-2.5 rounded-xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
+              className={`p-2.5 rounded-2xl border text-left transition duration-200 group cursor-pointer shadow-xs ${
                 isDark
-                  ? 'bg-[#0f0724] hover:bg-[#150a33] border-purple-500/20 hover:border-purple-400/40 text-white'
-                  : 'bg-white hover:bg-purple-50/40 border-neutral-200 hover:border-purple-300 text-neutral-900'
+                  ? 'bg-[#131B2E] hover:bg-[#18233B] border-slate-800/80 hover:border-indigo-500/30 text-slate-100'
+                  : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-indigo-200 text-slate-900 shadow-xs'
               }`}
             >
               <div className={`w-7 h-7 rounded-lg border flex items-center justify-center mb-1.5 group-hover:scale-110 transition ${
                 isDark
-                  ? 'bg-purple-950/70 border-purple-500/30 text-purple-300'
-                  : 'bg-purple-50 border-purple-200 text-purple-600'
+                  ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-600'
               }`}>
                 <Film className="w-3.5 h-3.5" />
               </div>
               <span className={`block font-bold text-xs truncate transition ${
-                isDark ? 'text-white group-hover:text-purple-300' : 'text-neutral-900 group-hover:text-purple-600'
+                isDark ? 'text-slate-100 group-hover:text-indigo-300' : 'text-slate-900 group-hover:text-indigo-600'
               }`}>
                 Recordings
               </span>
-              <span className={`text-[10px] truncate block ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+              <span className={`text-[10px] truncate block ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {recordings.filter((r) => r.isUserRecorded).length} saved
               </span>
             </button>
@@ -945,29 +951,38 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
         <div>
           <div className="flex items-center justify-between mb-2">
             <h3 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-              isDark ? 'text-purple-400/70' : 'text-neutral-500'
+              isDark ? 'text-slate-400' : 'text-slate-500'
             }`}>
-              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live Meetings ({rooms.length})</span>
             </h3>
           </div>
 
           <div className="space-y-2">
-            {rooms.map((room) => (
+            {rooms.length === 0 ? (
+              <div className={`p-4 rounded-xl border text-center ${
+                isDark ? 'bg-[#131B2E] border-slate-800/80 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+              }`}>
+                <Video className="w-6 h-6 mx-auto mb-1 text-indigo-400/80" />
+                <p className="text-xs font-semibold">No live meetings currently</p>
+                <p className="text-[11px] mt-0.5">Tap "New" to start your first live audio/video meeting</p>
+              </div>
+            ) : (
+              rooms.map((room) => (
               <div
                 key={room.id}
                 onClick={() => onJoinMeeting(room.token)}
                 className={`p-2.5 border rounded-xl transition cursor-pointer flex items-center justify-between group shadow-xs ${
                   isDark
-                    ? 'bg-[#0f0724] hover:bg-[#150a33] border-purple-500/20 hover:border-purple-400/40 text-white'
-                    : 'bg-white hover:bg-purple-50/40 border-neutral-200 hover:border-purple-300 text-neutral-900'
+                    ? 'bg-[#131B2E] hover:bg-[#18233B] border-slate-800/80 hover:border-indigo-500/40 text-slate-100'
+                    : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-indigo-300 text-slate-900'
                 }`}
               >
                 <div className="flex items-center gap-2.5 overflow-hidden">
                   <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 group-hover:scale-105 transition ${
                     isDark
-                      ? 'bg-purple-950/70 border-purple-500/30 text-purple-300'
-                      : 'bg-purple-50 border-purple-100 text-purple-600'
+                      ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300'
+                      : 'bg-indigo-50 border-indigo-100 text-indigo-600'
                   }`}>
                     <Video className="w-4 h-4" />
                   </div>
@@ -975,24 +990,24 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     <div className="flex items-center gap-1.5">
                       <span className={`font-mono text-[11px] font-bold px-1.5 py-0.2 rounded border ${
                         isDark
-                          ? 'text-purple-300 bg-purple-950/80 border-purple-500/40'
-                          : 'text-purple-700 bg-purple-50 border-purple-200'
+                          ? 'text-indigo-300 bg-indigo-950/80 border-indigo-500/40'
+                          : 'text-indigo-700 bg-indigo-50 border-indigo-200'
                       }`}>
                         {room.token}
                       </span>
                       <span className={`text-xs font-semibold truncate max-w-[160px] ${
-                        isDark ? 'text-white' : 'text-neutral-900'
+                        isDark ? 'text-slate-100' : 'text-slate-900'
                       }`}>
                         {room.title}
                       </span>
                     </div>
                     <div className={`flex items-center gap-2 text-[10px] mt-0.5 ${
-                      isDark ? 'text-purple-400/60' : 'text-neutral-500'
+                      isDark ? 'text-slate-400' : 'text-slate-500'
                     }`}>
                       <span>Host: {room.host}</span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
-                        <Users className="w-2.5 h-2.5 text-purple-400" />
+                        <Users className="w-2.5 h-2.5 text-indigo-400" />
                         {room.participants.length}
                       </span>
                     </div>
@@ -1001,34 +1016,34 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
                 <button
                   type="button"
-                  className="px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-[11px] font-bold flex items-center gap-1 transition shrink-0 group-hover:scale-105 shadow-xs cursor-pointer"
+                  className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold flex items-center gap-1 transition shrink-0 group-hover:scale-105 shadow-xs cursor-pointer"
                 >
                   <span>Join</span>
                   <ArrowRight className="w-3 h-3 text-white" />
                 </button>
               </div>
-            ))}
+            )))}
           </div>
         </div>
 
         {/* SECTION 4: TODAY'S SCHEDULE SUMMARY (Directly above Bottom Nav Bar) */}
         <div className={`p-3 rounded-2xl border space-y-2 mb-0 ${
           isDark
-            ? 'bg-[#0f0724] border-purple-500/25 text-white'
-            : 'bg-neutral-50 border-neutral-200 text-neutral-900'
+            ? 'bg-[#131B2E] border-slate-800/80 text-slate-100'
+            : 'bg-slate-50 border-slate-200 text-slate-900'
         }`}>
           <div className="flex items-center justify-between">
             <h4 className={`text-xs font-bold flex items-center gap-1.5 ${
-              isDark ? 'text-purple-200' : 'text-neutral-800'
+              isDark ? 'text-slate-200' : 'text-slate-800'
             }`}>
-              <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
+              <CalendarIcon className="w-3.5 h-3.5 text-indigo-400" />
               <span>Today's Schedule</span>
             </h4>
             <button
               type="button"
               onClick={() => setIsScheduleModalOpen(true)}
               className={`text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer ${
-                isDark ? 'text-purple-300 hover:text-purple-200' : 'text-purple-600 hover:text-purple-700'
+                isDark ? 'text-indigo-300 hover:text-indigo-200' : 'text-indigo-600 hover:text-indigo-700'
               }`}
             >
               <span>Calendar</span>
@@ -1043,25 +1058,25 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 key={item.id}
                 className={`p-2 rounded-xl border flex items-center justify-between text-xs shadow-xs ${
                   isDark
-                    ? 'bg-[#150a30] border-purple-500/25 text-white'
-                    : 'bg-white border-neutral-200 text-neutral-900'
+                    ? 'bg-[#1A253D] border-slate-800 text-slate-100'
+                    : 'bg-white border-slate-200 text-slate-900'
                 }`}
               >
                 <div>
-                  <span className={`font-semibold block ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                  <span className={`font-semibold block ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                     {item.title}
                   </span>
                   <span className={`text-[10px] flex items-center gap-1 mt-0.5 font-mono ${
-                    isDark ? 'text-purple-400/70' : 'text-neutral-500'
+                    isDark ? 'text-slate-400' : 'text-slate-500'
                   }`}>
-                    <Clock className="w-3 h-3 text-purple-400" />
+                    <Clock className="w-3 h-3 text-indigo-400" />
                     {item.time} ({item.duration}) • {item.token}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onJoinMeeting(item.token)}
-                  className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-[11px] font-bold text-white transition cursor-pointer shadow-xs"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[11px] font-bold text-white transition cursor-pointer shadow-xs"
                 >
                   Start
                 </button>
@@ -1069,7 +1084,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             ))}
 
             {selectedDateScheduled.length === 0 && (
-              <p className={`text-xs text-center py-1.5 ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+              <p className={`text-xs text-center py-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 No meetings scheduled for today. Tap Schedule to add!
               </p>
             )}
@@ -1077,7 +1092,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
         </div>
 
         {/* CooM Copyright Footer */}
-        <div className="pt-4 pb-10 text-center text-[11px] text-neutral-400 font-medium select-none">
+        <div className={`pt-4 pb-10 text-center text-[11px] font-medium select-none ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
           © 2026 CooM. All rights reserved.
         </div>
       </div>
@@ -1095,27 +1110,27 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             id="new-meeting-modal-container"
             className={`w-full max-w-sm rounded-2xl p-5 shadow-2xl animate-in zoom-in-95 border ${
               isDark
-                ? 'bg-[#0e061e] border-purple-500/30 text-white shadow-[0_15px_40px_rgba(0,0,0,0.85)]'
-                : 'bg-white border-neutral-200 text-neutral-900'
+                ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.7)]'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xl'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`flex items-center justify-between pb-3 border-b ${
-              isDark ? 'border-purple-500/20' : 'border-neutral-200'
+              isDark ? 'border-slate-800' : 'border-slate-200'
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                  isDark ? 'bg-purple-950/70 border-purple-500/30 text-purple-300' : 'bg-purple-50 text-purple-600 border-purple-100'
+                  isDark ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
                 }`}>
                   <Video className="w-4 h-4" />
                 </div>
-                <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>Start Meeting</h3>
+                <h3 className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Start Meeting</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNewMeetingModalOpen(false)}
                 className={`p-1 rounded-full transition cursor-pointer ${
-                  isDark ? 'text-purple-300 hover:text-white hover:bg-purple-900/40' : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100'
+                  isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <X className="w-4 h-4" />
@@ -1125,9 +1140,9 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             <form onSubmit={handleConfirmStartNew} className="mt-4 space-y-4">
               <div>
                 <label className={`block text-xs font-semibold mb-1 flex items-center gap-1.5 ${
-                  isDark ? 'text-purple-200' : 'text-neutral-700'
+                  isDark ? 'text-slate-200' : 'text-slate-700'
                 }`}>
-                  <Edit3 className="w-3.5 h-3.5 text-purple-400" />
+                  <Edit3 className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Meeting Title</span>
                 </label>
                 <input
@@ -1137,14 +1152,14 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onChange={(e) => setNewMeetingTitle(e.target.value)}
                   className={`w-full rounded-xl px-3 py-2 text-xs outline-none transition shadow-2xs border ${
                     isDark
-                      ? 'bg-[#180a3a] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                      : 'bg-neutral-50 border-neutral-300 text-neutral-900 focus:bg-white focus:border-purple-600'
+                      ? 'bg-[#1A253D] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-indigo-600'
                   }`}
                   placeholder="Enter meeting name (e.g. Weekly Strategy Sync)..."
                 />
                 {/* Suggestions chips */}
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1.5">
-                  <span className={`text-[10px] shrink-0 ${isDark ? 'text-purple-400/60' : 'text-neutral-400'}`}>Presets:</span>
+                  <span className={`text-[10px] shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>Presets:</span>
                   {['Weekly Sync', 'Project Review', 'Team Catchup', 'Brainstorming'].map((suggestion) => (
                     <button
                       key={suggestion}
@@ -1152,8 +1167,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       onClick={() => setNewMeetingTitle(suggestion)}
                       className={`text-[10px] px-2 py-0.5 rounded-full transition shrink-0 cursor-pointer border ${
                         isDark
-                          ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-200 border-purple-500/30'
-                          : 'bg-neutral-100 hover:bg-purple-50 hover:text-purple-700 text-neutral-600 border-neutral-200'
+                          ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-300 border-slate-700/60'
+                          : 'bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 border-slate-200'
                       }`}
                     >
                       {suggestion}
@@ -1163,7 +1178,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               </div>
 
               <div>
-                <label className={`block text-xs mb-1 ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>
+                <label className={`block text-xs mb-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   Generated Meeting Token
                 </label>
                 <div className="flex items-center gap-2">
@@ -1173,8 +1188,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     value={generatedNewToken}
                     className={`flex-1 rounded-xl px-3 py-2 text-xs font-mono font-bold outline-none border ${
                       isDark
-                        ? 'bg-[#180a3a] border-purple-500/30 text-purple-300'
-                        : 'bg-neutral-50 border-neutral-300 text-purple-700'
+                        ? 'bg-[#1A253D] border-slate-700 text-indigo-300'
+                        : 'bg-slate-50 border-slate-300 text-indigo-700'
                     }`}
                   />
                   <button
@@ -1182,8 +1197,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     onClick={() => setGeneratedNewToken(`#MEET-${Math.floor(1000 + Math.random() * 9000)}`)}
                     className={`px-2.5 py-2 rounded-xl text-xs transition font-medium border ${
                       isDark
-                        ? 'bg-purple-950/60 hover:bg-purple-900 text-purple-200 border-purple-500/30'
-                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200'
+                        ? 'bg-indigo-950/60 hover:bg-indigo-900 text-indigo-200 border-indigo-500/30'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                     }`}
                     title="Generate new code"
                   >
@@ -1195,22 +1210,22 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               {/* Ready check info */}
               <div className={`p-2.5 rounded-xl border text-[11px] space-y-1 ${
                 isDark
-                  ? 'bg-[#150a30] border-purple-500/20 text-purple-300'
-                  : 'bg-neutral-50 border-neutral-200 text-neutral-600'
+                  ? 'bg-[#1A253D] border-slate-800 text-slate-300'
+                  : 'bg-slate-50 border-slate-200 text-slate-600'
               }`}>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Camera className="w-3 h-3 text-purple-400" />
+                    <Camera className="w-3 h-3 text-indigo-400" />
                     Video Camera
                   </span>
-                  <span className="text-purple-400 font-semibold">Enabled</span>
+                  <span className="text-emerald-400 font-semibold">Enabled</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <Mic className="w-3 h-3 text-purple-400" />
+                    <Mic className="w-3 h-3 text-indigo-400" />
                     Microphone
                   </span>
-                  <span className="text-purple-400 font-semibold">Ready</span>
+                  <span className="text-emerald-400 font-semibold">Ready</span>
                 </div>
               </div>
 
@@ -1220,8 +1235,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onClick={() => setIsNewMeetingModalOpen(false)}
                   className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition border ${
                     isDark
-                      ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-200 border-purple-500/30'
-                      : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 border-neutral-200'
+                      ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-300 border-slate-700'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200'
                   }`}
                 >
                   Cancel
@@ -1229,7 +1244,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 <button
                   id="btn-confirm-start-meeting"
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Video className="w-4 h-4 text-white" />
                   <span>Start Now</span>
@@ -1251,27 +1266,27 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             id="join-meeting-modal-container"
             className={`w-full max-w-sm rounded-2xl p-5 shadow-2xl animate-in zoom-in-95 border ${
               isDark
-                ? 'bg-[#0e061e] border-purple-500/30 text-white shadow-[0_15px_40px_rgba(0,0,0,0.85)]'
-                : 'bg-white border-neutral-200 text-neutral-900'
+                ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.7)]'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xl'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`flex items-center justify-between pb-3 border-b ${
-              isDark ? 'border-purple-500/20' : 'border-neutral-200'
+              isDark ? 'border-slate-800' : 'border-slate-200'
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                  isDark ? 'bg-purple-950/70 border-purple-500/30 text-purple-300' : 'bg-purple-50 text-purple-600 border-purple-100'
+                  isDark ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
                 }`}>
                   <UserPlus className="w-4 h-4" />
                 </div>
-                <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>Join a Meeting</h3>
+                <h3 className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Join a Meeting</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsJoinModalOpen(false)}
                 className={`p-1 rounded-full transition cursor-pointer ${
-                  isDark ? 'text-purple-300 hover:text-white hover:bg-purple-900/40' : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100'
+                  isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <X className="w-4 h-4" />
@@ -1280,7 +1295,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
             <form onSubmit={handleConfirmJoin} className="mt-4 space-y-4">
               <div>
-                <label className={`block text-xs mb-1 ${isDark ? 'text-purple-200' : 'text-neutral-600'}`}>
+                <label className={`block text-xs mb-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   Meeting Token or Code
                 </label>
                 <input
@@ -1294,8 +1309,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   placeholder="e.g. #MEET-9021"
                   className={`w-full rounded-xl px-3 py-2 text-xs outline-none font-mono border ${
                     isDark
-                      ? 'bg-[#180a3a] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                      : 'bg-neutral-50 border-neutral-300 text-neutral-900 focus:bg-white focus:border-purple-600'
+                      ? 'bg-[#1A253D] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-indigo-600'
                   }`}
                 />
                 {joinError && <p className="text-[11px] text-red-500 mt-1">{joinError}</p>}
@@ -1304,7 +1319,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               {/* Quick Select from Active Rooms */}
               {rooms.length > 0 && (
                 <div>
-                  <label className={`block text-[11px] mb-1.5 ${isDark ? 'text-purple-400/70' : 'text-neutral-500'}`}>
+                  <label className={`block text-[11px] mb-1.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     Active rooms:
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -1315,8 +1330,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                         onClick={() => setJoinTokenInput(r.token)}
                         className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition cursor-pointer border ${
                           isDark
-                            ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-200 border-purple-500/30'
-                            : 'bg-neutral-100 hover:bg-purple-50 border-neutral-200 text-purple-700'
+                            ? 'bg-[#1A253D] hover:bg-[#233152] text-indigo-300 border-slate-700'
+                            : 'bg-slate-100 hover:bg-indigo-50 border-slate-200 text-indigo-700'
                         }`}
                       >
                         {r.token}
@@ -1332,8 +1347,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onClick={() => setIsJoinModalOpen(false)}
                   className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition border ${
                     isDark
-                      ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-200 border-purple-500/30'
-                      : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 border-neutral-200'
+                      ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-300 border-slate-700'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border-slate-200'
                   }`}
                 >
                   Cancel
@@ -1341,7 +1356,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 <button
                   id="btn-confirm-join-meeting"
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-4 h-4 text-white" />
                   <span>Join Room</span>
@@ -1363,27 +1378,27 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             id="share-room-modal-container"
             className={`w-full max-w-sm rounded-2xl p-5 shadow-2xl animate-in zoom-in-95 space-y-4 border ${
               isDark
-                ? 'bg-[#0e061e] border-purple-500/30 text-white shadow-[0_15px_40px_rgba(0,0,0,0.85)]'
-                : 'bg-white border-neutral-200 text-neutral-900'
+                ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.7)]'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xl'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`flex items-center justify-between pb-3 border-b ${
-              isDark ? 'border-purple-500/20' : 'border-neutral-200'
+              isDark ? 'border-slate-800' : 'border-slate-200'
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                  isDark ? 'bg-purple-950/70 border-purple-500/30 text-purple-300' : 'bg-purple-50 text-purple-600 border-purple-100'
+                  isDark ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
                 }`}>
                   <Share2 className="w-4 h-4" />
                 </div>
-                <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>Share Room</h3>
+                <h3 className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Share Room</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(false)}
                 className={`p-1 rounded-full transition cursor-pointer ${
-                  isDark ? 'text-purple-300 hover:text-white hover:bg-purple-900/40' : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100'
+                  isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <X className="w-4 h-4" />
@@ -1393,21 +1408,21 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             {/* Generated Room Token & Refresh */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className={`text-xs ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>Meeting Token</label>
+                <label className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Meeting Token</label>
                 <button
                   type="button"
                   onClick={regenerateToken}
                   className={`text-[10px] font-semibold hover:underline ${
-                    isDark ? 'text-purple-400' : 'text-purple-600'
+                    isDark ? 'text-indigo-400' : 'text-indigo-600'
                   }`}
                 >
                   Generate New
                 </button>
               </div>
               <div className={`flex items-center gap-2 rounded-xl p-2.5 border ${
-                isDark ? 'bg-[#180a3a] border-purple-500/30' : 'bg-neutral-50 border-neutral-300'
+                isDark ? 'bg-[#1A253D] border-slate-700' : 'bg-slate-50 border-slate-300'
               }`}>
-                <span className={`flex-1 font-mono font-bold text-sm ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                <span className={`flex-1 font-mono font-bold text-sm ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
                   {shareToken}
                 </span>
                 <button
@@ -1415,11 +1430,11 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onClick={() => handleCopy(shareToken, 'token')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                     isDark
-                      ? 'bg-purple-950/70 hover:bg-purple-900 text-purple-200'
-                      : 'bg-neutral-200 hover:bg-neutral-300 text-neutral-800'
+                      ? 'bg-indigo-950/70 hover:bg-indigo-900 text-indigo-200'
+                      : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                   }`}
                 >
-                  {copiedType === 'token' ? <Check className="w-3.5 h-3.5 text-purple-400" /> : <Copy className="w-3.5 h-3.5 text-purple-400" />}
+                  {copiedType === 'token' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-indigo-400" />}
                   <span>Copy</span>
                 </button>
               </div>
@@ -1427,13 +1442,13 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
             {/* Direct Web Link */}
             <div>
-              <label className={`block text-xs mb-1 ${isDark ? 'text-purple-300' : 'text-neutral-600'}`}>
+              <label className={`block text-xs mb-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                 Invitation Link
               </label>
               <div className={`flex items-center gap-2 rounded-xl p-2.5 border ${
-                isDark ? 'bg-[#180a3a] border-purple-500/30' : 'bg-neutral-50 border-neutral-300'
+                isDark ? 'bg-[#1A253D] border-slate-700' : 'bg-slate-50 border-slate-300'
               }`}>
-                <span className={`flex-1 text-[11px] font-mono truncate ${isDark ? 'text-purple-200' : 'text-neutral-700'}`}>
+                <span className={`flex-1 text-[11px] font-mono truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   {`${window.location.origin}/#room=${shareToken.replace('#', '')}`}
                 </span>
                 <button
@@ -1443,11 +1458,11 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   }
                   className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
                     isDark
-                      ? 'bg-purple-950/70 hover:bg-purple-900 text-purple-200'
-                      : 'bg-neutral-200 hover:bg-neutral-300 text-neutral-800'
+                      ? 'bg-indigo-950/70 hover:bg-indigo-900 text-indigo-200'
+                      : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
                   }`}
                 >
-                  {copiedType === 'link' ? <Check className="w-3.5 h-3.5 text-purple-400" /> : <Copy className="w-3.5 h-3.5 text-purple-400" />}
+                  {copiedType === 'link' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-indigo-400" />}
                   <span>Copy</span>
                 </button>
               </div>
@@ -1461,7 +1476,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   const fullText = `${userProfile.name} is inviting you to a meeting:\nTopic: ${shareTopic}\nToken: ${shareToken}\nLink: ${window.location.origin}/#room=${shareToken.replace('#', '')}`;
                   handleCopy(fullText, 'all');
                 }}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-indigo-500/20"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-indigo-500/20"
               >
                 {copiedType === 'all' ? <Check className="w-4 h-4 text-white" /> : <Share2 className="w-4 h-4 text-white" />}
                 <span>Copy Invitation</span>
@@ -1475,11 +1490,11 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 }}
                 className={`w-full py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer border ${
                   isDark
-                    ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-200 border-purple-500/30'
-                    : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border-neutral-200'
+                    ? 'bg-[#1A253D] hover:bg-[#233152] text-indigo-300 border-slate-700'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
                 }`}
               >
-                <Video className="w-3.5 h-3.5 text-purple-400" />
+                <Video className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Start Room Now</span>
               </button>
             </div>
@@ -1498,24 +1513,24 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             id="schedule-calendar-modal-container"
             className={`w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 border ${
               isDark
-                ? 'bg-[#0e061e] border-purple-500/30 text-white shadow-[0_15px_40px_rgba(0,0,0,0.85)]'
-                : 'bg-white border-neutral-200 text-neutral-900'
+                ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.7)]'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xl'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className={`p-4 border-b flex items-center justify-between ${
-              isDark ? 'bg-[#150a30] border-purple-500/20' : 'bg-white border-neutral-200'
+              isDark ? 'bg-[#1A253D] border-slate-800' : 'bg-slate-50 border-slate-200'
             }`}>
               <div className="flex items-center gap-2">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                  isDark ? 'bg-purple-950/70 border-purple-500/30 text-purple-300' : 'bg-purple-50 text-purple-600 border-purple-100'
+                  isDark ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600 border-indigo-100'
                 }`}>
                   <CalendarDays className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>Meeting Schedule</h3>
-                  <p className={`text-[10px] ${isDark ? 'text-purple-400/70' : 'text-neutral-500'}`}>
+                  <h3 className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Meeting Schedule</h3>
+                  <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     Pick a date to view and schedule meetings
                   </p>
                 </div>
@@ -1524,7 +1539,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 type="button"
                 onClick={() => setIsScheduleModalOpen(false)}
                 className={`p-1 rounded-full transition cursor-pointer ${
-                  isDark ? 'text-purple-300 hover:text-white hover:bg-purple-900/40' : 'text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100'
+                  isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <X className="w-4 h-4" />
@@ -1533,13 +1548,13 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
             {/* Scrollable Body */}
             <div className={`p-4 space-y-4 overflow-y-auto flex-1 divide-y ${
-              isDark ? 'divide-purple-900/30' : 'divide-neutral-100'
+              isDark ? 'divide-slate-800' : 'divide-slate-100'
             }`}>
               {/* INTERACTIVE CALENDAR WIDGET */}
               <div>
                 {/* Month Switcher */}
                 <div className="flex items-center justify-between mb-3 px-1">
-                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                  <span className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                     {monthNames[currentCalendarMonth]} {currentCalendarYear}
                   </span>
                   <div className="flex items-center gap-1">
@@ -1548,29 +1563,29 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       onClick={handlePrevMonth}
                       className={`p-1.5 rounded-lg transition cursor-pointer border ${
                         isDark
-                          ? 'bg-[#180a3a] hover:bg-[#200c4e] text-purple-200 border-purple-500/30'
-                          : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200'
+                          ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-200 border-slate-700'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                       }`}
                     >
-                      <ChevronLeft className="w-4 h-4 text-purple-400" />
+                      <ChevronLeft className="w-4 h-4 text-indigo-400" />
                     </button>
                     <button
                       type="button"
                       onClick={handleNextMonth}
                       className={`p-1.5 rounded-lg transition cursor-pointer border ${
                         isDark
-                          ? 'bg-[#180a3a] hover:bg-[#200c4e] text-purple-200 border-purple-500/30'
-                          : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200'
+                          ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-200 border-slate-700'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                       }`}
                     >
-                      <ChevronRight className="w-4 h-4 text-purple-400" />
+                      <ChevronRight className="w-4 h-4 text-indigo-400" />
                     </button>
                   </div>
                 </div>
 
                 {/* Days of week */}
                 <div className={`grid grid-cols-7 gap-1 text-center text-[11px] font-semibold mb-1 ${
-                  isDark ? 'text-purple-400/70' : 'text-neutral-500'
+                  isDark ? 'text-slate-400' : 'text-slate-500'
                 }`}>
                   {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
                     <span key={d}>{d}</span>
@@ -1599,21 +1614,21 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                         onClick={() => setSelectedDateStr(dateStr)}
                         className={`h-8 rounded-lg flex flex-col items-center justify-center relative text-xs font-semibold transition cursor-pointer ${
                           isSelected
-                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xs'
+                            ? 'bg-indigo-600 text-white shadow-xs'
                             : isToday
                             ? isDark
-                              ? 'bg-purple-950/80 text-purple-200 border border-purple-500/50 font-bold'
-                              : 'bg-purple-50 text-purple-700 border border-purple-200 font-bold'
+                              ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-500/50 font-bold'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold'
                             : isDark
-                            ? 'hover:bg-purple-950/40 text-purple-200'
-                            : 'hover:bg-neutral-100 text-neutral-700'
+                            ? 'hover:bg-slate-800 text-slate-300'
+                            : 'hover:bg-slate-100 text-slate-700'
                         }`}
                       >
                         <span>{dayNum}</span>
                         {/* Status dots */}
                         <div className="flex items-center gap-0.5 mt-0.5">
                           {hasScheduled && (
-                            <span className="w-1 h-1 rounded-full bg-purple-400" />
+                            <span className="w-1 h-1 rounded-full bg-indigo-400" />
                           )}
                         </div>
                       </button>
@@ -1625,9 +1640,9 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               {/* SECTION: SCHEDULED MEETINGS FOR SELECTED DATE */}
               <div className="pt-3 space-y-2.5">
                 <h4 className={`text-xs font-bold flex items-center gap-1.5 ${
-                  isDark ? 'text-purple-200' : 'text-neutral-800'
+                  isDark ? 'text-slate-200' : 'text-slate-800'
                 }`}>
-                  <CalendarDays className="w-3.5 h-3.5 text-purple-400" />
+                  <CalendarDays className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Meetings for {selectedDateStr} ({selectedDateScheduled.length})</span>
                 </h4>
 
@@ -1639,29 +1654,29 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                         key={m.id}
                         className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
                           isDark
-                            ? 'bg-[#150a30] border-purple-500/25 text-white'
-                            : 'bg-neutral-50 border-neutral-200 text-neutral-900'
+                            ? 'bg-[#1A253D] border-slate-800 text-slate-100'
+                            : 'bg-slate-50 border-slate-200 text-slate-900'
                         }`}
                       >
                         <div>
                           <div className="flex items-center gap-2">
                             <span className={`font-mono text-[10px] font-bold px-1.5 py-0.2 rounded border ${
                               isDark
-                                ? 'text-purple-300 bg-purple-950/80 border-purple-500/40'
-                                : 'text-purple-700 bg-purple-100 border-purple-200'
+                                ? 'text-indigo-300 bg-indigo-950/80 border-indigo-500/40'
+                                : 'text-indigo-700 bg-indigo-50 border-indigo-200'
                             }`}>
                               {m.token}
                             </span>
                             <span className={`font-semibold truncate max-w-[150px] ${
-                              isDark ? 'text-white' : 'text-neutral-900'
+                              isDark ? 'text-slate-100' : 'text-slate-900'
                             }`}>
                               {m.title}
                             </span>
                           </div>
                           <span className={`text-[11px] flex items-center gap-1 mt-1 font-mono ${
-                            isDark ? 'text-purple-400/70' : 'text-neutral-500'
+                            isDark ? 'text-slate-400' : 'text-slate-500'
                           }`}>
-                            <Clock className="w-3 h-3 text-purple-400" />
+                            <Clock className="w-3 h-3 text-indigo-400" />
                             {m.time} ({m.duration}) • Host: {m.host}
                           </span>
                         </div>
@@ -1671,7 +1686,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                             setIsScheduleModalOpen(false);
                             onJoinMeeting(m.token);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-xs font-bold text-white transition cursor-pointer shadow-xs"
+                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition cursor-pointer shadow-xs"
                         >
                           Start
                         </button>
@@ -1679,7 +1694,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className={`text-[11px] italic ${isDark ? 'text-purple-400/60' : 'text-neutral-500'}`}>
+                  <p className={`text-[11px] italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     No meetings scheduled for this date.
                   </p>
                 )}
@@ -1689,14 +1704,14 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   onSubmit={handleSaveScheduledMeeting}
                   className={`rounded-xl p-3 space-y-2 border ${
                     isDark
-                      ? 'bg-[#150a30] border-purple-500/25'
-                      : 'bg-neutral-50 border-neutral-200'
+                      ? 'bg-[#1A253D] border-slate-800'
+                      : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <span className={`text-xs font-bold flex items-center gap-1 ${
-                    isDark ? 'text-purple-200' : 'text-neutral-800'
+                    isDark ? 'text-slate-200' : 'text-slate-800'
                   }`}>
-                    <Plus className="w-3 h-3 text-purple-400" />
+                    <Plus className="w-3 h-3 text-indigo-400" />
                     <span>Schedule New Meeting</span>
                   </span>
                   <input
@@ -1707,8 +1722,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     placeholder="Meeting Topic..."
                     className={`w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border ${
                       isDark
-                        ? 'bg-[#1a0c3b] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                        : 'bg-white border-neutral-300 text-neutral-900 focus:border-purple-600'
+                        ? 'bg-[#131B2E] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                        : 'bg-white border-slate-300 text-slate-900 focus:border-indigo-600'
                     }`}
                   />
                   <div className="grid grid-cols-2 gap-2">
@@ -1719,8 +1734,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       placeholder="e.g. 10:00 AM"
                       className={`rounded-lg px-2.5 py-1.5 text-xs outline-none border ${
                         isDark
-                          ? 'bg-[#1a0c3b] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                          : 'bg-white border-neutral-300 text-neutral-900 focus:border-purple-600'
+                          ? 'bg-[#131B2E] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                          : 'bg-white border-slate-300 text-slate-900 focus:border-indigo-600'
                       }`}
                     />
                     <select
@@ -1728,8 +1743,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       onChange={(e) => setScheduleDuration(e.target.value)}
                       className={`rounded-lg px-2 py-1.5 text-[11px] outline-none cursor-pointer border ${
                         isDark
-                          ? 'bg-[#1a0c3b] border-purple-500/30 text-purple-200'
-                          : 'bg-white border-neutral-300 text-neutral-800'
+                          ? 'bg-[#131B2E] border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-300 text-slate-800'
                       }`}
                     >
                       <option value="15 mins">15 mins</option>
@@ -1740,7 +1755,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-md shadow-indigo-500/20"
+                    className="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer shadow-md shadow-indigo-500/20"
                   >
                     <CalendarDays className="w-3.5 h-3.5 text-white" />
                     <span>Add to Schedule</span>
@@ -1751,15 +1766,15 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
 
             {/* Footer */}
             <div className={`p-3 border-t flex items-center justify-end ${
-              isDark ? 'bg-[#150a30] border-purple-500/20' : 'bg-neutral-50 border-neutral-200'
+              isDark ? 'bg-[#1A253D] border-slate-800' : 'bg-slate-50 border-slate-200'
             }`}>
               <button
                 type="button"
                 onClick={() => setIsScheduleModalOpen(false)}
                 className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition border ${
                   isDark
-                    ? 'bg-purple-950/70 hover:bg-purple-900 text-purple-200 border-purple-500/30'
-                    : 'bg-neutral-200 hover:bg-neutral-300 text-neutral-800 border-neutral-300'
+                    ? 'bg-indigo-950/70 hover:bg-indigo-900 text-indigo-200 border-indigo-500/30'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-800 border-slate-300'
                 }`}
               >
                 Done
@@ -1780,28 +1795,28 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             id="direct-chat-modal"
             className={`w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl text-left flex flex-col animate-in zoom-in-95 duration-150 border ${
               isDark
-                ? 'bg-[#0e061e] border-purple-500/30 text-white shadow-[0_15px_40px_rgba(0,0,0,0.85)]'
-                : 'bg-white border-neutral-200 text-neutral-900'
+                ? 'bg-[#131B2E] border-slate-700/80 text-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.7)]'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xl'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="p-3.5 bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white flex items-center justify-between">
+            <div className="p-3.5 bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between border-b border-indigo-500/20">
               <div className="flex items-center gap-2.5">
-                <div className="relative w-9 h-9 rounded-full ring-2 ring-white/50 overflow-hidden shrink-0">
+                <div className="relative w-9 h-9 rounded-full ring-2 ring-indigo-400/50 overflow-hidden shrink-0">
                   <img
                     src={activeDirectChatUser.avatar}
                     alt={activeDirectChatUser.name}
                     className="w-full h-full object-cover"
                   />
                   {(activeDirectChatUser.isOnline || activeDirectChatUser.id === 'usr_me') && (
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-purple-800" />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-indigo-900" />
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h3 className="text-xs font-bold text-white">{activeDirectChatUser.name}</h3>
-                    <span className="text-[10px] text-purple-200 font-mono">
+                    <span className="text-[10px] text-indigo-200 font-mono">
                       {activeDirectChatUser.handle}
                     </span>
                   </div>
@@ -1837,7 +1852,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
             <form onSubmit={handleSendDirectChat} className="p-4 space-y-3">
               <div>
                 <label className={`text-[10px] font-bold uppercase tracking-wider block mb-1 ${
-                  isDark ? 'text-purple-300' : 'text-neutral-500'
+                  isDark ? 'text-slate-300' : 'text-slate-500'
                 }`}>
                   Send Direct Message to {activeDirectChatUser.name}
                 </label>
@@ -1849,8 +1864,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   autoFocus
                   className={`w-full rounded-2xl p-2.5 text-xs outline-hidden resize-none border ${
                     isDark
-                      ? 'bg-[#180a3a] border-purple-500/30 text-white placeholder:text-purple-400/40 focus:border-purple-400'
-                      : 'bg-neutral-50 border-neutral-200 focus:border-purple-600 text-neutral-900'
+                      ? 'bg-[#1A253D] border-slate-700 text-slate-100 placeholder:text-slate-400 focus:border-indigo-400'
+                      : 'bg-slate-50 border-slate-200 focus:border-indigo-600 text-slate-900'
                   }`}
                 />
               </div>
@@ -1865,7 +1880,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                       onNavigateToChatWithUser(name);
                     }}
                     className={`text-[11px] font-semibold hover:underline cursor-pointer ${
-                      isDark ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-800'
+                      isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'
                     }`}
                   >
                     Open in Chat Tab →
@@ -1878,8 +1893,8 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                     onClick={() => setActiveDirectChatUser(null)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer border ${
                       isDark
-                        ? 'bg-[#150a30] hover:bg-[#1d0e44] text-purple-300 border-purple-500/30'
-                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600 border-neutral-200'
+                        ? 'bg-[#1A253D] hover:bg-[#233152] text-slate-300 border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
                     }`}
                   >
                     Close
@@ -1887,7 +1902,7 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                   <button
                     type="submit"
                     disabled={!directChatMessageInput.trim()}
-                    className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-purple-600/30 flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Send Message</span>

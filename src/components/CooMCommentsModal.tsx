@@ -22,6 +22,7 @@ interface CooMCommentsModalProps {
   currentUser: UserProfile;
   onAddComment: (meetingToken: string, text: string, replyToCommentId?: string, replyToUser?: string) => void;
   onToggleLikeComment: (meetingToken: string, commentId: string, replyId?: string) => void;
+  themeMode?: 'dark' | 'light';
 }
 
 const QUICK_EMOJIS = ['❤️', '🔥', '👏', '😂', '💯', '🚀', '✨', '👍'];
@@ -36,7 +37,9 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
   currentUser,
   onAddComment,
   onToggleLikeComment,
+  themeMode = 'dark',
 }) => {
+  const isDark = themeMode !== 'light';
   const [inputText, setInputText] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ commentId: string; author: string } | null>(null);
   const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
@@ -106,23 +109,29 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
   return (
     <div
       id="coom-comments-backdrop"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/70 backdrop-blur-xs animate-in fade-in"
       onClick={onClose}
     >
       <div
         id="coom-comments-container"
-        className="w-full max-w-lg max-h-[85vh] h-[75vh] bg-white border border-neutral-200 rounded-t-3xl sm:rounded-3xl flex flex-col text-neutral-900 shadow-2xl animate-in slide-from-bottom-6 overflow-hidden"
+        className={`w-full max-w-lg max-h-[85vh] h-[75vh] border rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl animate-in slide-from-bottom-6 overflow-hidden ${
+          isDark ? 'bg-[#131B2E] border-slate-700/80 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Drag Pill & Header */}
-        <div className="pt-2.5 pb-2 px-4 border-b border-neutral-200 bg-neutral-50 shrink-0 relative">
-          <div className="w-10 h-1 rounded-full bg-neutral-300 mx-auto mb-2" />
+        <div className={`pt-2.5 pb-2 px-4 border-b shrink-0 relative ${
+          isDark ? 'border-slate-800 bg-[#0B0F19]' : 'border-slate-200 bg-slate-50'
+        }`}>
+          <div className={`w-10 h-1 rounded-full mx-auto mb-2 ${isDark ? 'bg-slate-700' : 'bg-slate-300'}`} />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold tracking-tight text-neutral-900">
+              <span className={`text-sm font-bold tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                 {totalCommentsCount} comments
               </span>
-              <span className="text-[10px] text-purple-700 font-mono bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full font-semibold">
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold border ${
+                isDark ? 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30' : 'text-indigo-700 bg-indigo-50 border-indigo-200'
+              }`}>
                 {meetingToken}
               </span>
             </div>
@@ -130,12 +139,14 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
               id="btn-close-comments-modal"
               type="button"
               onClick={onClose}
-              className="p-1 text-neutral-400 hover:text-neutral-900 rounded-full hover:bg-neutral-200 transition cursor-pointer"
+              className={`p-1.5 rounded-xl transition cursor-pointer ${
+                isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'
+              }`}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="text-[11px] text-neutral-500 truncate mt-0.5 font-medium">
+          <div className={`text-[11px] truncate mt-0.5 font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {meetingTitle}
           </div>
         </div>
@@ -143,15 +154,17 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
         {/* Comments Scrollable List */}
         <div
           ref={commentsListRef}
-          className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-thin scrollbar-thumb-neutral-200"
+          className={`flex-1 overflow-y-auto px-4 py-3 space-y-4 ${isDark ? 'bg-[#131B2E]' : 'bg-white'}`}
         >
           {comments.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center py-12 text-neutral-400 space-y-2">
-              <div className="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
+            <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-2">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                isDark ? 'bg-[#1E293B] border border-slate-700 text-indigo-400' : 'bg-indigo-50 border border-indigo-100 text-indigo-600'
+              }`}>
                 <Sparkles className="w-6 h-6" />
               </div>
-              <p className="text-sm font-semibold text-neutral-700">No comments yet</p>
-              <p className="text-xs text-neutral-500 max-w-xs">
+              <p className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>No comments yet</p>
+              <p className={`text-xs max-w-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Be the first to comment on this meeting session!
               </p>
             </div>
@@ -169,37 +182,41 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                     <img
                       src={comment.avatar}
                       alt={comment.author}
-                      className="w-9 h-9 rounded-full object-cover border border-neutral-200 shrink-0 mt-0.5"
+                      className="w-9 h-9 rounded-full object-cover border border-slate-700 shrink-0 mt-0.5"
                     />
 
                     {/* Comment Content */}
                     <div className="flex-1 min-w-0 pr-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-semibold text-neutral-900">
+                        <span className={`text-xs font-semibold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                           {comment.author}
                         </span>
                         {isCommentHost && (
-                          <span className="text-[9px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-1.5 py-0.2 rounded-full flex items-center gap-0.5">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5 border ${
+                            isDark ? 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30' : 'text-indigo-700 bg-indigo-50 border-indigo-200'
+                          }`}>
                             <ShieldCheck className="w-2.5 h-2.5" /> Host
                           </span>
                         )}
                         {comment.handle && (
-                          <span className="text-[10px] text-neutral-400 font-mono">
+                          <span className={`text-[10px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             {comment.handle}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-neutral-800 mt-1 whitespace-pre-wrap leading-relaxed">
+                      <p className={`text-xs mt-1 whitespace-pre-wrap leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                         {comment.text}
                       </p>
 
-                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-neutral-400">
+                      <div className={`flex items-center gap-3 mt-1.5 text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>
                         <span>{comment.time}</span>
                         <button
                           type="button"
                           onClick={() => handleStartReply(comment.id, comment.author)}
-                          className="font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer"
+                          className={`font-semibold transition cursor-pointer ${
+                            isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'
+                          }`}
                         >
                           Reply
                         </button>
@@ -211,18 +228,24 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                       <button
                         type="button"
                         onClick={() => onToggleLikeComment(meetingToken, comment.id)}
-                        className="p-1 text-neutral-400 hover:text-purple-600 active:scale-125 transition cursor-pointer"
+                        className={`p-1 active:scale-125 transition cursor-pointer ${
+                          comment.isLiked
+                            ? 'text-rose-500'
+                            : isDark ? 'text-slate-500 hover:text-rose-400' : 'text-slate-400 hover:text-rose-500'
+                        }`}
                         title={comment.isLiked ? 'Unlike comment' : 'Love comment'}
                       >
                         <Heart
                           className={`w-4 h-4 transition ${
                             comment.isLiked
-                              ? 'fill-purple-600 text-purple-600 scale-110'
-                              : 'text-neutral-400 hover:text-purple-600'
+                              ? 'fill-rose-500 text-rose-500 scale-110'
+                              : ''
                           }`}
                         />
                       </button>
-                      <span className={`text-[10px] font-medium ${comment.isLiked ? 'text-purple-600 font-bold' : 'text-neutral-500'}`}>
+                      <span className={`text-[10px] font-medium ${
+                        comment.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-slate-400' : 'text-slate-500'
+                      }`}>
                         {comment.likes}
                       </span>
                     </div>
@@ -230,14 +253,16 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
 
                   {/* Replies Section */}
                   {hasReplies && (
-                    <div className="ml-12 pl-3 border-l-2 border-neutral-200 space-y-3 pt-1">
+                    <div className={`ml-12 pl-3 border-l-2 space-y-3 pt-1 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
                       {/* Toggle View Replies button */}
                       <button
                         type="button"
                         onClick={() => toggleRepliesExpand(comment.id)}
-                        className="flex items-center gap-1.5 text-[11px] font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer py-0.5"
+                        className={`flex items-center gap-1.5 text-[11px] font-semibold transition cursor-pointer py-0.5 ${
+                          isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'
+                        }`}
                       >
-                        <div className="w-4 h-px bg-neutral-300" />
+                        <div className={`w-4 h-px ${isDark ? 'bg-slate-700' : 'bg-slate-300'}`} />
                         <span>
                           {isRepliesExpanded
                             ? 'Hide replies'
@@ -258,36 +283,38 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                               <img
                                 src={reply.avatar}
                                 alt={reply.author}
-                                className="w-7 h-7 rounded-full object-cover border border-neutral-200 shrink-0 mt-0.5"
+                                className="w-7 h-7 rounded-full object-cover border border-slate-700 shrink-0 mt-0.5"
                               />
 
                               <div className="flex-1 min-w-0 pr-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-[11px] font-semibold text-neutral-900">
+                                  <span className={`text-[11px] font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
                                     {reply.author}
                                   </span>
                                   {reply.handle && (
-                                    <span className="text-[9px] text-neutral-400 font-mono">
+                                    <span className={`text-[9px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                                       {reply.handle}
                                     </span>
                                   )}
                                 </div>
 
-                                <p className="text-xs text-neutral-800 mt-0.5 leading-relaxed">
+                                <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-800'}`}>
                                   {reply.replyToUser && (
-                                    <span className="text-purple-600 font-semibold mr-1.5">
+                                    <span className={`font-semibold mr-1.5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                                       @{reply.replyToUser}
                                     </span>
                                   )}
                                   {reply.text.replace(new RegExp(`^@${reply.replyToUser}\\s*`), '')}
                                 </p>
 
-                                <div className="flex items-center gap-3 mt-1 text-[10px] text-neutral-400">
+                                <div className={`flex items-center gap-3 mt-1 text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>
                                   <span>{reply.time}</span>
                                   <button
                                     type="button"
                                     onClick={() => handleStartReply(comment.id, reply.author)}
-                                    className="font-semibold text-purple-600 hover:text-purple-700 transition cursor-pointer"
+                                    className={`font-semibold transition cursor-pointer ${
+                                      isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'
+                                    }`}
                                   >
                                     Reply
                                   </button>
@@ -301,17 +328,23 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                                   onClick={() =>
                                     onToggleLikeComment(meetingToken, comment.id, reply.id)
                                   }
-                                  className="p-1 text-neutral-400 hover:text-purple-600 active:scale-125 transition cursor-pointer"
+                                  className={`p-1 active:scale-125 transition cursor-pointer ${
+                                    reply.isLiked
+                                      ? 'text-rose-500'
+                                      : isDark ? 'text-slate-500 hover:text-rose-400' : 'text-slate-400 hover:text-rose-500'
+                                  }`}
                                 >
                                   <Heart
                                     className={`w-3.5 h-3.5 transition ${
                                       reply.isLiked
-                                        ? 'fill-purple-600 text-purple-600 scale-110'
-                                        : 'text-neutral-400 hover:text-purple-600'
+                                        ? 'fill-rose-500 text-rose-500 scale-110'
+                                        : ''
                                     }`}
                                   />
                                 </button>
-                                <span className={`text-[9px] font-medium ${reply.isLiked ? 'text-purple-600 font-bold' : 'text-neutral-500'}`}>
+                                <span className={`text-[9px] font-medium ${
+                                  reply.isLiked ? 'text-rose-500 font-bold' : isDark ? 'text-slate-400' : 'text-slate-500'
+                                }`}>
                                   {reply.likes}
                                 </span>
                               </div>
@@ -328,18 +361,22 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
         </div>
 
         {/* Bottom Input Area */}
-        <div className="p-3 border-t border-neutral-200 bg-neutral-50 shrink-0 space-y-2">
+        <div className={`p-3 border-t shrink-0 space-y-2 ${
+          isDark ? 'border-slate-800 bg-[#0B0F19]' : 'border-slate-200 bg-slate-50'
+        }`}>
           {/* Replying banner if active */}
           {replyingTo && (
-            <div className="flex items-center justify-between bg-purple-50 border border-purple-200 px-3 py-1 rounded-full text-xs text-purple-800">
+            <div className={`flex items-center justify-between px-3 py-1 rounded-xl text-xs border ${
+              isDark ? 'bg-[#1E293B] border-slate-700 text-slate-200' : 'bg-indigo-50 border-indigo-200 text-indigo-900'
+            }`}>
               <span className="flex items-center gap-1 font-medium">
-                <CornerDownRight className="w-3 h-3 text-purple-600" />
-                Replying to <span className="font-bold text-purple-700">@{replyingTo.author}</span>
+                <CornerDownRight className="w-3 h-3 text-indigo-400" />
+                Replying to <span className="font-bold text-indigo-400">@{replyingTo.author}</span>
               </span>
               <button
                 type="button"
                 onClick={handleCancelReply}
-                className="text-purple-600 hover:text-purple-900 p-0.5 transition"
+                className="text-slate-400 hover:text-white p-0.5 transition"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -353,7 +390,9 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                 key={emoji}
                 type="button"
                 onClick={() => handleAddEmoji(emoji)}
-                className="px-2 py-0.5 text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-full transition active:scale-95 shrink-0 font-medium"
+                className={`px-2.5 py-0.5 text-xs rounded-full transition active:scale-95 shrink-0 font-medium ${
+                  isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-slate-200/80 hover:bg-slate-200 text-slate-700'
+                }`}
               >
                 {emoji}
               </button>
@@ -365,7 +404,7 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover border border-neutral-200 shrink-0"
+              className="w-8 h-8 rounded-full object-cover border border-slate-700 shrink-0"
             />
             <div className="flex-1 relative flex items-center">
               <input
@@ -378,12 +417,16 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
                     ? `Reply to @${replyingTo.author}...`
                     : 'Add comment...'
                 }
-                className="w-full bg-white border border-neutral-200 rounded-full pl-4 pr-10 py-2 text-xs text-neutral-900 placeholder-neutral-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition"
+                className={`w-full rounded-full pl-4 pr-10 py-2 text-xs outline-none transition border ${
+                  isDark
+                    ? 'bg-[#1E293B] border-slate-700 text-slate-100 placeholder-slate-400 focus:border-indigo-500'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-600'
+                }`}
               />
               <button
                 type="button"
                 onClick={() => handleAddEmoji('😊')}
-                className="absolute right-3 text-neutral-400 hover:text-purple-600"
+                className={`absolute right-3 ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-700'}`}
               >
                 <Smile className="w-4 h-4" />
               </button>
@@ -395,8 +438,8 @@ export const CooMCommentsModal: React.FC<CooMCommentsModalProps> = ({
               disabled={!inputText.trim()}
               className={`w-9 h-9 rounded-full flex items-center justify-center transition shrink-0 cursor-pointer ${
                 inputText.trim()
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xs active:scale-95'
-                  : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs active:scale-95'
+                  : isDark ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
               title="Post comment"
             >
