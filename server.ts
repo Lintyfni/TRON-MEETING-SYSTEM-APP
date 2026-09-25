@@ -433,19 +433,26 @@ async function startServer() {
     });
   });
 
-  // Login with Credentials (Email or Username + Password) matching the screenshot
+  // Login with Credentials (Email or Username + Password, or Device ID for device testing)
   app.post('/api/auth/login-credentials', (req: Request, res: Response) => {
-    const { identifier, password } = req.body;
+    const { identifier, password, isDeviceTest } = req.body;
     if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
-      return res.status(400).json({ error: 'Email or Username is required' });
+      return res.status(400).json({ error: 'Device ID, Email, or Username is required' });
     }
 
     const cleanId = identifier.trim().toLowerCase();
+    const rawId = identifier.trim();
+    const isDeviceLogin = Boolean(isDeviceTest) || cleanId.startsWith('dev-') || cleanId.includes('device') || !password;
     let matchedUser: AuthUserData | undefined;
 
-    // Match by email or handle
+    // Match by email or handle or device id
     for (const u of authUsers.values()) {
-      if (u.email.toLowerCase() === cleanId || u.handle.toLowerCase() === cleanId || u.handle.toLowerCase() === `@${cleanId}`) {
+      if (
+        u.email.toLowerCase() === cleanId ||
+        u.handle.toLowerCase() === cleanId ||
+        u.handle.toLowerCase() === `@${cleanId}` ||
+        u.id.toLowerCase() === cleanId
+      ) {
         matchedUser = u;
         break;
       }
@@ -453,33 +460,44 @@ async function startServer() {
 
     if (!matchedUser) {
       // Create user if logging in for the first time
-      const email = cleanId.includes('@') ? cleanId : `${cleanId.replace(/[^a-z0-9_]/g, '')}@coom.app`;
-      const name = cleanId.replace(/[@._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'CooM User';
+      const email = cleanId.includes('@') ? cleanId : `${cleanId.replace(/[^a-z0-9_]/g, '')}@device.coom.app`;
+      const displayName = cleanId.startsWith('dev-')
+        ? `Device ${rawId.replace(/^DEV-?/i, '')}`
+        : cleanId.replace(/[@._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || 'CooM Tester';
       const handle = cleanId.startsWith('@') ? cleanId : `@${cleanId.replace(/[^a-z0-9_]/g, '')}`;
+
       matchedUser = {
-        id: `user_${Date.now()}`,
+        id: `user_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
         email,
-        name,
+        name: displayName,
         handle,
         avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${cleanId}`,
-        bio: 'CooM Member',
+        bio: isDeviceLogin ? `CooM Active Device (${rawId})` : 'CooM Member',
         provider: 'email',
         isEmailVerified: true,
         createdAt: new Date().toISOString(),
+        birthday: isDeviceLogin ? '2000-01-15' : undefined,
+        gender: isDeviceLogin ? 'male' : undefined,
+        country: isDeviceLogin ? 'Myanmar (Burma)' : undefined,
       };
       authUsers.set(email, matchedUser);
+    } else if (isDeviceLogin) {
+      // Ensure device profile fields are populated for immediate testing
+      if (!matchedUser.birthday) matchedUser.birthday = '2000-01-15';
+      if (!matchedUser.gender) matchedUser.gender = 'male';
+      if (!matchedUser.country) matchedUser.country = 'Myanmar (Burma)';
     }
 
     const token = `coom_cred_${Buffer.from(`${matchedUser.email}:${Date.now()}`).toString('base64')}`;
     activeSessions.set(token, matchedUser);
 
-    console.log(`[CooM Auth] Logged in via credentials: ${matchedUser.handle} (${matchedUser.email})`);
+    console.log(`[CooM Auth] 📱 Logged in via credentials/device: ${matchedUser.handle} (${matchedUser.email}) [device: ${isDeviceLogin}]`);
     return res.json({
       success: true,
-      message: 'Login successful',
+      message: isDeviceLogin ? 'Device login successful' : 'Login successful',
       token,
       user: matchedUser,
-      needsOnboarding: !matchedUser.birthday || !matchedUser.gender || !matchedUser.country,
+      needsOnboarding: isDeviceLogin ? false : (!matchedUser.birthday || !matchedUser.gender || !matchedUser.country),
     });
   });
 

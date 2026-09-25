@@ -696,12 +696,12 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 setNewMeetingTitle(`${userProfile.name}'s Meeting`);
                 setIsNewMeetingModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white flex flex-col items-center justify-center text-center shadow-md shadow-amber-500/20 border border-amber-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl embossed-btn-amber text-white flex flex-col items-center justify-center text-center cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
+              <div className="w-8 h-8 rounded-xl bg-white/25 backdrop-blur-md flex items-center justify-center border-t border-white/40 border-b border-black/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-inner mb-1.5">
                 <Video className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white tracking-wide leading-tight text-center drop-shadow-2xs">
+              <span className="text-xs font-bold text-white tracking-wide leading-tight text-center drop-shadow-xs">
                 New
               </span>
             </button>
@@ -715,12 +715,12 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 setJoinError(null);
                 setIsJoinModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 hover:from-indigo-500 hover:to-indigo-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-indigo-500/25 border border-indigo-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/35 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl embossed-btn-primary text-white flex flex-col items-center justify-center text-center cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
+              <div className="w-8 h-8 rounded-xl bg-white/25 backdrop-blur-md flex items-center justify-center border-t border-white/40 border-b border-black/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-inner mb-1.5">
                 <UserPlus className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white tracking-wide leading-tight text-center drop-shadow-2xs">
+              <span className="text-xs font-bold text-white tracking-wide leading-tight text-center drop-shadow-xs">
                 Join
               </span>
             </button>
@@ -730,17 +730,17 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
               id="btn-home-schedule-meeting"
               type="button"
               onClick={() => setIsScheduleModalOpen(true)}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-sky-600 via-blue-600 to-indigo-700 hover:from-sky-500 hover:to-blue-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-sky-500/20 border border-sky-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-b from-sky-500 via-blue-600 to-indigo-700 border-t border-white/40 border-b-2 border-indigo-950 text-white flex flex-col items-center justify-center text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_4px_0_#1e1b4b,0_8px_20px_rgba(2,132,199,0.35)] transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),0_1px_0_#1e1b4b] cursor-pointer"
             >
               {scheduledMeetings.length > 0 && (
                 <span className="absolute top-1.5 right-2 px-1.5 py-0.2 rounded-full bg-white text-indigo-700 text-[9px] font-bold shadow-xs">
                   {scheduledMeetings.length}
                 </span>
               )}
-              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
+              <div className="w-8 h-8 rounded-xl bg-white/25 backdrop-blur-md flex items-center justify-center border-t border-white/40 border-b border-black/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-inner mb-1.5">
                 <CalendarDays className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white tracking-wide leading-tight text-center drop-shadow-2xs">
+              <span className="text-xs font-bold text-white tracking-wide leading-tight text-center drop-shadow-xs">
                 Schedule
               </span>
             </button>
@@ -753,22 +753,22 @@ export const MeetingHomeScreen: React.FC<MeetingHomeScreenProps> = ({
                 regenerateToken();
                 setIsShareModalOpen(true);
               }}
-              className="group relative h-20 p-2.5 rounded-2xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 hover:from-teal-500 hover:to-emerald-600 text-white flex flex-col items-center justify-center text-center shadow-md shadow-emerald-500/20 border border-emerald-300/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98] cursor-pointer"
+              className="group relative h-20 p-2.5 rounded-2xl embossed-btn-emerald text-white flex flex-col items-center justify-center text-center cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-2xs mb-1.5">
+              <div className="w-8 h-8 rounded-xl bg-white/25 backdrop-blur-md flex items-center justify-center border-t border-white/40 border-b border-black/30 text-white group-hover:scale-105 transition-transform duration-200 shadow-inner mb-1.5">
                 <Share2 className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-semibold text-white tracking-wide leading-tight text-center drop-shadow-2xs">
+              <span className="text-xs font-bold text-white tracking-wide leading-tight text-center drop-shadow-xs">
                 Share
               </span>
             </button>
           </div>
 
           {/* Quick Start / Set Meeting Name directly on Initial Home Screen */}
-          <div className={`mt-2.5 p-2.5 rounded-2xl transition shadow-xs border ${
+          <div className={`mt-2.5 p-2.5 rounded-2xl transition border ${
             isDark
-              ? 'bg-[#131B2E] hover:bg-[#162238] border-slate-800/80 text-slate-100'
-              : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
+              ? 'bg-gradient-to-b from-[#162238] to-[#101828] border-t border-white/10 border-b border-black/60 border-x border-slate-800 shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_4px_14px_rgba(0,0,0,0.3)] text-slate-100'
+              : 'bg-white hover:bg-slate-50 border-t border-white border-b border-slate-300 border-x border-slate-200 text-slate-900 shadow-xs'
           }`}>
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-1.5">

@@ -607,6 +607,7 @@ export const api = {
   async loginCredentials(params: {
     identifier: string;
     password?: string;
+    isDeviceTest?: boolean;
   }): Promise<{ success: boolean; token?: string; user?: any; needsOnboarding?: boolean; error?: string }> {
     try {
       const res = await fetch('/api/auth/login-credentials', {

@@ -15,6 +15,8 @@ import {
   Globe,
   HelpCircle,
   Check,
+  Smartphone,
+  Copy,
 } from 'lucide-react';
 import { AuthUser, SocialProvider } from '../types';
 import { api } from '../services/api';
@@ -24,13 +26,32 @@ interface CooMAuthScreenProps {
   defaultEmail?: string;
 }
 
+// Generate or retrieve a persistent Device ID per browser/device
+function getOrCreateDeviceId(): string {
+  try {
+    const existing = localStorage.getItem('coom_device_id');
+    if (existing && existing.trim()) return existing;
+    const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newId = `DEV-${p1}-${p2}`;
+    localStorage.setItem('coom_device_id', newId);
+    return newId;
+  } catch {
+    return 'DEV-8A29-4B10';
+  }
+}
+
 export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
   onAuthSuccess,
   defaultEmail = 'linty.fni@gmail.com',
 }) => {
-  // Login form state (matching screenshot)
-  const [identifier, setIdentifier] = useState(defaultEmail);
-  const [password, setPassword] = useState('••••••••');
+  // Device ID state for multi-device testing
+  const [deviceId, setDeviceId] = useState<string>(() => getOrCreateDeviceId());
+  const [copiedDeviceId, setCopiedDeviceId] = useState(false);
+
+  // Login form state: username field defaults automatically to Device ID as requested
+  const [identifier, setIdentifier] = useState<string>(() => getOrCreateDeviceId());
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -71,6 +92,29 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
     setTimeout(() => setToastMessage(''), 4000);
   };
 
+  const handleCopyDeviceId = () => {
+    try {
+      navigator.clipboard.writeText(deviceId);
+      setCopiedDeviceId(true);
+      showToast(`Copied Device ID: ${deviceId}`);
+      setTimeout(() => setCopiedDeviceId(false), 2500);
+    } catch {
+      showToast(`Device ID: ${deviceId}`);
+    }
+  };
+
+  const handleRegenerateDeviceId = () => {
+    const p1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const p2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newId = `DEV-${p1}-${p2}`;
+    try {
+      localStorage.setItem('coom_device_id', newId);
+    } catch {}
+    setDeviceId(newId);
+    setIdentifier(newId);
+    showToast(`New Device ID: ${newId}`);
+  };
+
   // Auto-fill username when pendingUser changes
   useEffect(() => {
     if (pendingUser) {
@@ -79,32 +123,36 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
     }
   }, [pendingUser]);
 
-  // Handle standard Credential Login
-  const handleCredentialLogin = async (e?: React.FormEvent) => {
+  // Handle standard Credential or Device ID Login (Passwordless supported for Device ID)
+  const handleCredentialLogin = async (e?: React.FormEvent, forceDeviceId?: string) => {
     if (e) e.preventDefault();
-    if (!identifier.trim()) {
-      setErrorMessage('Please enter your email or username');
+    const idToUse = (forceDeviceId || identifier || deviceId).trim();
+    if (!idToUse) {
+      setErrorMessage('Please enter your Device ID, email, or username');
       return;
     }
+
+    const isDevice = Boolean(forceDeviceId) || idToUse.toUpperCase().startsWith('DEV-') || idToUse.toLowerCase().includes('device') || !password;
 
     setIsSubmitting(true);
     setErrorMessage('');
     try {
       const res = await api.loginCredentials({
-        identifier: identifier.trim(),
-        password,
+        identifier: idToUse,
+        password: password ? password : undefined,
+        isDeviceTest: isDevice,
       });
 
       if (res.success && res.user && res.token) {
-        if (res.needsOnboarding) {
+        if (res.needsOnboarding && !isDevice) {
           setOnboardingToken(res.token);
           setPendingUser(res.user);
           setIsOnboardingOpen(true);
         } else {
-          showToast(`Welcome back, ${res.user.name}!`);
+          showToast(`Welcome! Signed in with ${res.user.name || idToUse}`);
           setTimeout(() => {
             onAuthSuccess(res.user, res.token!);
-          }, 400);
+          }, 350);
         }
       } else {
         setErrorMessage(res.error || 'Failed to sign in');
@@ -307,21 +355,21 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
       )}
 
       {/* ============================================================ */}
-      {/* 2. AUTHENTIC PHONE-FRAME / LOGIN CARD CONTAINER              */}
+      {/* 2. AUTHENTIC 3D EMBOSSED PHONE-FRAME / LOGIN CARD CONTAINER   */}
       {/* ============================================================ */}
       <div
         id="coom-login-card"
-        className="relative z-10 w-full max-w-[390px] sm:max-w-[420px] mx-auto flex flex-col items-center justify-between py-6 sm:py-8 px-5 sm:px-7 rounded-[36px] sm:rounded-[40px] bg-[#131B2E]/90 backdrop-blur-xl border border-slate-700/70 shadow-[0_20px_60px_rgba(0,0,0,0.6)] min-h-[640px]"
+        className="relative z-10 w-full max-w-[390px] sm:max-w-[420px] mx-auto flex flex-col items-center justify-between py-6 sm:py-7 px-5 sm:px-7 rounded-[36px] sm:rounded-[40px] bg-gradient-to-b from-[#18233C] via-[#121B2E] to-[#0A101D] backdrop-blur-xl border-t border-white/20 border-b border-black/70 border-x border-slate-700/60 embossed-card min-h-[660px]"
       >
-        {/* TOP CENTER EMBLEM: Soft glowing emblem with CooM */}
-        <div className="flex flex-col items-center justify-center pt-2 sm:pt-4 mb-6">
+        {/* TOP CENTER EMBLEM: 3D Embossed Squircle with CooM branding */}
+        <div className="flex flex-col items-center justify-center pt-1 sm:pt-2 mb-4">
           <div className="relative group cursor-pointer">
             {/* Ambient Soft Glow */}
-            <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl opacity-75 group-hover:opacity-100 transition duration-500" />
+            <div className="absolute -inset-4 rounded-full bg-indigo-500/25 blur-xl opacity-80 group-hover:opacity-100 transition duration-500" />
 
-            {/* Squircle Badge */}
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] sm:rounded-[32px] bg-gradient-to-b from-[#1A253D] to-[#131B2E] border border-slate-700 shadow-xl flex items-center justify-center backdrop-blur-xl">
-              <span className="text-4xl sm:text-5xl font-black tracking-tight bg-gradient-to-b from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-sm">
+            {/* 3D Embossed Squircle Badge */}
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-[28px] sm:rounded-[32px] bg-gradient-to-b from-[#223150] via-[#18253E] to-[#0F1728] border-t border-white/30 border-b-2 border-black/80 border-x border-slate-700 shadow-[inset_0_2px_4px_rgba(255,255,255,0.25),0_12px_28px_rgba(0,0,0,0.6)] flex items-center justify-center backdrop-blur-xl transition-transform duration-200 group-hover:scale-105 active:scale-98">
+              <span className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-b from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(99,102,241,0.4)]">
                 CooM
               </span>
             </div>
@@ -329,10 +377,53 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         </div>
 
         {/* ============================================================ */}
-        {/* 3. CREDENTIALS FORM (Email/Username, Password, Log In)       */}
+        {/* 3D EMBOSSED DEVICE ID BADGE (FOR FAST MULTI-DEVICE TESTING) */}
         {/* ============================================================ */}
-        <form onSubmit={handleCredentialLogin} className="w-full space-y-3.5 my-auto">
-          {/* Input 1: Email or Username */}
+        <div className="w-full mb-3.5 p-3 rounded-2xl bg-gradient-to-b from-[#1E2C48] to-[#131E33] border-t border-white/20 border-b border-black/60 border-x border-slate-700/60 shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),0_4px_14px_rgba(0,0,0,0.4)] flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-b from-indigo-500/30 to-indigo-700/20 border border-indigo-400/40 flex items-center justify-center shrink-0 shadow-inner">
+              <Smartphone className="w-4 h-4 text-indigo-300" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Device ID</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Ready for Instant Testing" />
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-semibold hidden xs:inline">
+                  Test Ready
+                </span>
+              </div>
+              <p className="font-mono text-xs sm:text-sm font-extrabold text-indigo-200 tracking-wider truncate">
+                {deviceId}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleCopyDeviceId}
+              title="Copy Device ID"
+              className="px-2 py-1.5 rounded-xl bg-gradient-to-b from-[#2A3B5E] to-[#1B2740] hover:from-[#324772] hover:to-[#223252] border-t border-white/20 border-b border-black/60 border-x border-slate-600/80 text-slate-200 text-xs flex items-center gap-1 shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              {copiedDeviceId ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-300" />}
+              <span className="text-[10px] font-bold">{copiedDeviceId ? 'Copied' : 'Copy'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRegenerateDeviceId}
+              title="Generate New Device ID for Testing"
+              className="p-1.5 rounded-xl bg-gradient-to-b from-[#2A3B5E] to-[#1B2740] hover:from-[#324772] hover:to-[#223252] border-t border-white/20 border-b border-black/60 border-x border-slate-600/80 text-slate-300 hover:text-white transition active:scale-95 shadow-xs cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* 3. CREDENTIALS / DEVICE ID FORM                              */}
+        {/* ============================================================ */}
+        <form onSubmit={(e) => handleCredentialLogin(e)} className="w-full space-y-3 my-auto">
+          {/* Input 1: Device ID / Email / Username (Auto-filled with Device ID) */}
           <div className="relative group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition">
               <User className="w-5 h-5 stroke-[1.75]" />
@@ -340,14 +431,24 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
             <input
               type="text"
               id="input-login-identifier"
-              placeholder="Email or Username"
+              placeholder="Device ID, Email, or Username"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full h-13 pl-12 pr-4 rounded-2xl bg-[#1A253D] hover:bg-[#1E2B47] focus:bg-[#1E2B47] border border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-sm outline-none transition shadow-xs"
+              className="w-full h-12 pl-12 pr-20 rounded-2xl bg-[#141E33] hover:bg-[#18243D] focus:bg-[#18243D] border-t border-white/10 border-b border-black/70 border-x border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-sm outline-none transition embossed-input font-medium"
             />
+            {identifier !== deviceId && (
+              <button
+                type="button"
+                onClick={() => setIdentifier(deviceId)}
+                title="Reset to Device ID"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 transition cursor-pointer"
+              >
+                Use Device ID
+              </button>
+            )}
           </div>
 
-          {/* Input 2: Password with Eye Toggle */}
+          {/* Input 2: Password with Eye Toggle (Optional for Device ID) */}
           <div className="relative group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition">
               <Lock className="w-5 h-5 stroke-[1.75]" />
@@ -355,10 +456,10 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
             <input
               type={showPassword ? 'text' : 'password'}
               id="input-login-password"
-              placeholder="Password"
+              placeholder="Password (Optional for Device ID - မလိုပါ)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-13 pl-12 pr-12 rounded-2xl bg-[#1A253D] hover:bg-[#1E2B47] focus:bg-[#1E2B47] border border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-sm outline-none transition shadow-xs"
+              className="w-full h-12 pl-12 pr-12 rounded-2xl bg-[#141E33] hover:bg-[#18243D] focus:bg-[#18243D] border-t border-white/10 border-b border-black/70 border-x border-slate-700/80 focus:border-indigo-400 text-slate-100 placeholder-slate-400 text-xs sm:text-sm outline-none transition embossed-input"
             />
             <button
               type="button"
@@ -370,7 +471,14 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
           </div>
 
           {/* Forgot Password? Link */}
-          <div className="flex justify-end pt-0.5">
+          <div className="flex justify-between items-center px-1 pt-0.5">
+            <span className="text-[11px] text-slate-400">
+              {identifier.toUpperCase().startsWith('DEV-') ? (
+                <span className="text-emerald-400 font-medium">✓ Device ID ဖြင့် Password မလိုဘဲ ၀င်နိုင်ပါသည်</span>
+              ) : (
+                'Standard login mode'
+              )}
+            </span>
             <button
               type="button"
               id="btn-forgot-password"
@@ -391,13 +499,26 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
             </div>
           )}
 
-          {/* Primary Action Button */}
-          <div className="pt-2">
+          {/* Action Buttons: 1-Tap Quick Device Entry & Standard Log In */}
+          <div className="space-y-2 pt-1.5">
+            {/* 1-Tap Quick Device Entry Button */}
+            <button
+              type="button"
+              id="btn-quick-device-login"
+              disabled={isSubmitting}
+              onClick={() => handleCredentialLogin(undefined, deviceId)}
+              className="relative w-full h-12 rounded-2xl embossed-btn-emerald text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <Smartphone className="w-4 h-4 shrink-0" />
+              <span>⚡ 1-Tap Device Sign In (Device ID ဖြင့် တိုက်ရိုက်ဝင်မည်)</span>
+            </button>
+
+            {/* Standard Log In Button */}
             <button
               type="submit"
               id="btn-login-submit"
               disabled={isSubmitting}
-              className="relative w-full h-12 sm:h-13 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-md shadow-indigo-500/25 cursor-pointer disabled:opacity-50"
+              className="relative w-full h-12 rounded-2xl embossed-btn-primary text-white font-bold text-base tracking-wide flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <RefreshCw className="w-5 h-5 animate-spin text-white" />
@@ -408,7 +529,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
           </div>
 
           {/* Don't have an account? Sign Up Link */}
-          <div className="text-center pt-2">
+          <div className="text-center pt-1.5">
             <button
               type="button"
               id="btn-toggle-signup"
@@ -424,10 +545,10 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         </form>
 
         {/* ============================================================ */}
-        {/* 4. SOCIAL APPS AUTHORIZED CONNECT ROW (Google, Apple, FB, X, TikTok) */}
+        {/* 4. 3D EMBOSSED SOCIAL APPS AUTHORIZED CONNECT ROW            */}
         {/* ============================================================ */}
-        <div className="w-full pt-6 border-t border-slate-700/80 mt-auto">
-          <p className="text-[11px] text-center text-slate-400 uppercase tracking-widest font-semibold mb-3">
+        <div className="w-full pt-4 border-t border-slate-700/80 mt-auto">
+          <p className="text-[11px] text-center text-slate-400 uppercase tracking-widest font-semibold mb-2.5">
             Or connect with social apps
           </p>
 
@@ -438,7 +559,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-google"
               onClick={() => handleOpenSocialAuth('google')}
               title="Connect with Google"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-black text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl embossed-btn-secondary text-slate-200 font-black text-lg flex items-center justify-center cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition font-serif font-bold">G</span>
             </button>
@@ -449,7 +570,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-apple"
               onClick={() => handleOpenSocialAuth('apple')}
               title="Connect with Apple"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl embossed-btn-secondary text-slate-200 text-lg flex items-center justify-center cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-xl"></span>
             </button>
@@ -460,7 +581,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-facebook"
               onClick={() => handleOpenSocialAuth('facebook')}
               title="Connect with Facebook"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl embossed-btn-secondary text-slate-200 font-bold text-lg flex items-center justify-center cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition font-serif">f</span>
             </button>
@@ -471,7 +592,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-x"
               onClick={() => handleOpenSocialAuth('x')}
               title="Connect with X"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl embossed-btn-secondary text-slate-200 font-bold text-lg flex items-center justify-center cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-base">𝕏</span>
             </button>
@@ -482,7 +603,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
               id="btn-social-tiktok"
               onClick={() => handleOpenSocialAuth('tiktok')}
               title="Connect with TikTok"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-[#1A253D] hover:bg-[#233152] border border-slate-700 hover:border-indigo-400/60 text-slate-200 font-bold text-lg flex items-center justify-center transition active:scale-95 shadow-xs cursor-pointer group"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl embossed-btn-secondary text-slate-200 font-bold text-lg flex items-center justify-center cursor-pointer group"
             >
               <span className="group-hover:scale-110 transition text-lg">♪</span>
             </button>
@@ -490,7 +611,7 @@ export const CooMAuthScreen: React.FC<CooMAuthScreenProps> = ({
         </div>
 
         {/* Footer Copyright */}
-        <div className="text-[10px] text-slate-500 text-center pt-4 select-none">
+        <div className="text-[10px] text-slate-500 text-center pt-3 select-none">
           © 2026 CooM Inc. All rights reserved.
         </div>
       </div>
