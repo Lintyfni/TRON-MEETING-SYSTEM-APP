@@ -110,21 +110,29 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
         <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="font-bold text-base">Settings</h1>
-            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-settings-header-theme-toggle"
+              onClick={() => onUpdateSettings({ themeMode: isDark ? 'light' : 'dark' })}
+              title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+              className={`p-1.5 rounded-full transition cursor-pointer flex items-center justify-center ${
+                isDark
+                  ? 'bg-slate-800/80 border border-slate-700/60 text-amber-400 hover:text-white hover:bg-slate-700/80 shadow-xs'
+                  : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-600" />}
+            </button>
+            <span className={`text-[11px] font-semibold font-mono px-2 py-0.5 rounded-full border ${
               isDark
-                ? 'text-indigo-300 bg-indigo-950/60 border-indigo-500/30'
-                : 'text-indigo-700 bg-indigo-50 border-indigo-200'
+                ? 'text-slate-300 bg-slate-900 border-slate-700'
+                : 'text-slate-600 bg-slate-100 border-slate-200'
             }`}>
-              {isDark ? 'Midnight Slate (Eye-Comfort)' : 'Soft Porcelain (Eye-Comfort)'}
+              CooM v2.5.0
             </span>
           </div>
-          <span className={`text-[11px] font-semibold font-mono px-2 py-0.5 rounded-full border ${
-            isDark
-              ? 'text-slate-300 bg-slate-900 border-slate-700'
-              : 'text-slate-600 bg-slate-100 border-slate-200'
-          }`}>
-            CooM v2.5.0
-          </span>
         </div>
       </div>
 
@@ -162,63 +170,7 @@ export const ZoomSettingsScreen: React.FC<ZoomSettingsScreenProps> = ({
           </div>
         </div>
 
-        {/* 2. APP THEME & APPEARANCE (Eye-soothing Dark & Light Theme) */}
-        <div className={`p-4 transition-colors ${isDark ? 'bg-[#131B2E]' : 'bg-white'}`}>
-          <SectionTitle title="THEME & APPEARANCE (မျက်စိအေး အရောင်စနစ်)" isDark={isDark} />
-          <div className="grid grid-cols-2 gap-3 mt-2.5">
-            {/* Midnight Slate Dark Theme (Eye-comfort dark) */}
-            <button
-              type="button"
-              id="btn-setting-theme-dark"
-              onClick={() => onUpdateSettings({ themeMode: 'dark' })}
-              className={`p-3.5 rounded-2xl border text-left transition relative cursor-pointer ${
-                isDark
-                  ? 'bg-[#1A253D] border-indigo-500 shadow-md shadow-indigo-950/50'
-                  : 'bg-slate-900 border-slate-700 text-white hover:border-indigo-400'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-900 to-indigo-900 border border-indigo-500/40 flex items-center justify-center text-indigo-300 shadow-xs">
-                  <Moon className="w-4 h-4 text-indigo-400" />
-                </div>
-                {isDark && (
-                  <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
-                    ✓
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-bold text-white">Midnight Slate Dark</p>
-              <p className="text-[10px] text-slate-300 mt-0.5">မျက်စိအေး ညအလင်းရောင် (Eye-Comfort)</p>
-            </button>
-
-            {/* Soft Porcelain Light Theme (Eye-comfort light) */}
-            <button
-              type="button"
-              id="btn-setting-theme-light"
-              onClick={() => onUpdateSettings({ themeMode: 'light' })}
-              className={`p-3.5 rounded-2xl border text-left transition relative cursor-pointer ${
-                !isDark
-                  ? 'bg-indigo-50/70 border-indigo-600 text-slate-900 shadow-sm'
-                  : 'bg-[#18233B] border-slate-700/60 text-slate-300 hover:border-indigo-400/50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-500 shadow-xs">
-                  <Sun className="w-4 h-4 text-amber-500" />
-                </div>
-                {!isDark && (
-                  <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
-                    ✓
-                  </span>
-                )}
-              </div>
-              <p className={`text-xs font-bold ${!isDark ? 'text-slate-900' : 'text-slate-200'}`}>Soft Porcelain Light</p>
-              <p className={`text-[10px] ${!isDark ? 'text-slate-600' : 'text-slate-400'} mt-0.5`}>မျက်စိအေး နေ့အလင်းရောင် (Glare-Free)</p>
-            </button>
-          </div>
-        </div>
-
-        {/* 3. MEETING SETTINGS */}
+        {/* 2. MEETING SETTINGS */}
         <div className={`py-2 transition-colors ${isDark ? 'bg-[#131B2E]' : 'bg-white'}`}>
           <SectionTitle title="MEETING SETTINGS" isDark={isDark} />
 
